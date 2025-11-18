@@ -28,7 +28,7 @@ end
 
 DockablePanel.Register {
     name = "Journal",
-	icon = "icons/standard/Icon_App_Journal.png",
+    icon = "icons/standard/Icon_App_Journal.png",
     vscroll = false,
     dmonly = false,
     minHeight = 160,
@@ -166,7 +166,8 @@ end
 local CreateFolderContentsPanel
 
 local function CreateFolderPanel(journalPanel, folderid)
-    local builtinFolder = folderid == "private" or folderid == "public" or folderid == "templates" or folderid == game.currentMapId or folderid == dmhub.loginUserid
+    local builtinFolder = folderid == "private" or folderid == "public" or folderid == "templates" or
+        folderid == game.currentMapId or folderid == dmhub.loginUserid
     local m_contentPanel = CreateFolderContentsPanel(journalPanel, folderid)
 
     local resultPanel
@@ -184,7 +185,8 @@ local function CreateFolderPanel(journalPanel, folderid)
 
         draggable = not builtinFolder,
         canDragOnto = function(element, target)
-            return target ~= nil and (target:HasClass("folder") or target:HasClass("contentPanel")) and target:FindParentWithClass("documentFolder") ~= nil
+            return target ~= nil and (target:HasClass("folder") or target:HasClass("contentPanel")) and
+                target:FindParentWithClass("documentFolder") ~= nil
         end,
         drag = function(element, target)
             if target == nil then
@@ -280,12 +282,12 @@ CreateFolderContentsPanel = function(journalPanel, folderid)
     local m_invalidated = true
 
     contentPanel = gui.Panel {
-        width = "100%",
+        width = "100%+12", --make it take the whole space of the parent + scrollbar area
         height = "auto",
         flow = "vertical",
         dragTarget = true,
         dragTargetPriority = 1,
-        classes = {"contentPanel"},
+        classes = { "contentPanel" },
         x = cond(folderid == "", 0, 8),
 
         expand = function(element)
@@ -317,9 +319,71 @@ CreateFolderContentsPanel = function(journalPanel, folderid)
                 if member.nodeType == "pdf" or member.nodeType == "image" or member.nodeType == "pdffragment" or member.nodeType == "custom" then
                     p = m_documentPanels[k] or gui.Panel {
                         draggable = true,
+                        hover = function(element)
+                            if member.nodeType ~= "pdf" then
+                                return
+                            end
+
+                            local document = member.doc
+                            element.tooltip = gui.Panel {
+
+                                bgimage = true,
+                                bgcolor = "clear",
+                                width = 180,
+                                height = 180 * 1.3 + 24,
+                                x = -35,
+                                y = 145,
+                                cornerRadius = { x1 = 4, y1 = 4, x2 = 0, y2 = 0 },
+
+                                flow = "vertical",
+
+                                gui.Panel {
+                                    bgimage = true,
+                                    bgcolor = Styles.RichBlack02,
+                                    width = "100%",
+                                    height = 24,
+                                    halign = "center",
+                                    valign = "top",
+                                    cornerRadius = { x1 = 4, y1 = 4, x2 = 0, y2 = 0 },
+
+                                    flow = "horizontal",
+
+                                    gui.Label {
+                                        text = member.description,
+                                        fontFace = "newzald",
+                                        lmargin = 5,
+                                        fontSize = 10,
+                                        width = "auto",
+                                        height = "100%",
+                                        bold = true,
+                                    },
+
+                                    gui.Label {
+                                        text = document.summary["npages"],
+                                        fontFace = "newzald",
+                                        halign = "right",
+                                        fontSize = 10,
+                                        rmargin = 5,
+                                        width = "auto",
+                                        height = "100%",
+                                        bold = true,
+                                    },
+                                },
+
+                                gui.Panel {
+                                    bgimage = document:GetPageThumbnailId(0),
+                                    bgcolor = "white",
+                                    width = "100%",
+                                    height = "100%-24",
+                                    halign = "center",
+                                    valign = "top",
+
+                                },
+                            }
+                        end,
                         canDragOnto = function(element, target)
                             return target ~= nil and (target:HasClass("folder") or target:HasClass("contentPanel")) and
-                            target:FindParentWithClass("documentFolder") ~= nil
+                                target:FindParentWithClass("documentFolder") ~= nil
                         end,
                         drag = function(element, target)
                             if target == nil then
@@ -380,7 +444,7 @@ CreateFolderContentsPanel = function(journalPanel, folderid)
                                         elseif member.nodeType == "pdffragment" then
                                             chat.ShareData(member)
                                         elseif type(member) == "table" and member.IsDerivedFrom("CustomDocument") then
-                                            chat.ShareData(CustomDocumentRef.new{
+                                            chat.ShareData(CustomDocumentRef.new {
                                                 docid = k
                                             })
                                         else
@@ -477,8 +541,10 @@ CreateFolderContentsPanel = function(journalPanel, folderid)
                                 end
 
                                 table.sort(bookmarksSorted,
-                                    function(a, b) return a.value.page < b.value.page or
-                                        (a.value.page == b.value.page and ((a.value.y or 0) < (b.value.y or 0))) end)
+                                    function(a, b)
+                                        return a.value.page < b.value.page or
+                                            (a.value.page == b.value.page and ((a.value.y or 0) < (b.value.y or 0)))
+                                    end)
                                 print("SORTED_BOOKMARKS::")
 
                                 local children = {}
@@ -510,10 +576,10 @@ CreateFolderContentsPanel = function(journalPanel, folderid)
                                                     local b = bookmark
                                                     local s = ""
                                                     print("SORTED_BOOKMARKS:: PARENT: " ..
-                                                    v.key ..
-                                                    " " ..
-                                                    bookmark.title ..
-                                                    " " .. bookmark.page .. " " .. (bookmark.parentGuid or "none"))
+                                                        v.key ..
+                                                        " " ..
+                                                        bookmark.title ..
+                                                        " " .. bookmark.page .. " " .. (bookmark.parentGuid or "none"))
                                                     while b.parentGuid ~= nil and n < 100 do
                                                         b = bookmarks[b.parentGuid]
                                                         if b == nil then
@@ -892,8 +958,8 @@ CreateJournalPanel = function()
                 end
 
                 local customDocs = dmhub.GetTable(CustomDocument.tableName) or {}
-                for k,doc in unhidden_pairs(customDocs) do
-                    local parentFolder = doc.parentFolder or "private"
+                for k, doc in unhidden_pairs(customDocs) do
+                    local parentFolder = doc.parentFolder
                     local members = foldersToMembers[parentFolder] or {}
                     members[k] = doc
                     foldersToMembers[parentFolder] = members
@@ -949,8 +1015,8 @@ CreateJournalPanel = function()
 
                     local entries = {}
 
-                    for k,v in pairs(CustomDocument.documentTypes) do
-                        entries[#entries+1] = {
+                    for k, v in pairs(CustomDocument.documentTypes) do
+                        entries[#entries + 1] = {
                             text = v.text,
                             click = function()
                                 element.popup = nil
