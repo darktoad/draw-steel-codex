@@ -484,7 +484,7 @@ Commands.move = function(str)
     print("MOVE:: TRYING...")
     for _, token in ipairs(matchedTokens) do
         print("MOVE:: CALLING MOVE...")
-        token:Move(core.Loc { x = x, y = y, floorIndex = token.floorIndex }:WithGroundLevelAltitude(), { maxCost = 5000 })
+        token:Move(core.Loc { x = x, y = y, floorIndex = token.floorIndex }:WithGroundLevelAltitude(), { maxCost = 5000, findVacantSpace = true })
     end
 end
 
