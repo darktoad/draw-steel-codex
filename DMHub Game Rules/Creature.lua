@@ -8305,14 +8305,15 @@ function creature:DispatchAvailableTrigger(triggerInfo)
         return
     end
 
+
 	local availableTriggers = self:get_or_add("availableTriggers", {})
 	local deletes = {}
 	for key,value in pairs(availableTriggers) do
 		local age = TimestampAgeInSeconds(value.timestamp)
 		if age > 60 then
 			deletes[#deletes+1] = key
-		elseif triggerInfo ~= nil and key == triggerInfo.id then
-			--check if this is a duplicate trigger (same ID, just refreshing).
+		elseif triggerInfo ~= nil and triggerInfo.powerRollModifier == false and value.powerRollModifier == false then
+            --de-duplicate spammy triggers that all do the same thing, e.g. if Tactician Mastermind's Overwatch trigger against the same moving creature.
 			if (not value.dismissed) and (not value.triggered) and (value.text == triggerInfo.text) and (value.rules == triggerInfo.rules) and dmhub.DeepEqual(value.modes, triggerInfo.modes) and dmhub.DeepEqual(value.targets, triggerInfo.targets) then
 				--just refresh this trigger instead of creating a new one.
 				value.timestamp = ServerTimestamp()
