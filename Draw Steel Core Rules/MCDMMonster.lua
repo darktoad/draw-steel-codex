@@ -61,6 +61,10 @@ function monster:FillMonsterActivatedAbilities(options, result)
 
     self:FillFreeStrikes(options, result)
 
+    if self:try_get("retainer", false) then
+        return
+    end
+
     local group = self:MonsterGroup()
     local foundDefaultMalice = false
     if group ~= nil then
