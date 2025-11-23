@@ -1357,23 +1357,22 @@ function CharSheet.CharacterSheetAndAvatarPanel()
 
             },
 
-            gui.SetEditor {
-
+            -- Titles
+            gui.Multiselect {
                 options = Title.GetDropdownList(),
                 addItemText = "Grant title...",
-
-
                 refreshToken = function(element, info)
-                    local creature = info.token.properties
-
-                    element.value = creature:GetTitles()
-
+                    element:SetClass("collapsed", info.token.properties:IsMonster())
+                    local v = info.token.properties:GetTitles()
+                    element.value = info.token.properties:GetTitles()
+                    element:FireEvent("refreshSet")
                 end,
-
-
+                change = function(element, value)
+                    local token = CharacterSheet.instance.data.info.token
+                    local creature = token.properties
+                    creature:SetTitles(value)
+                end,
             },
-
-            --Titles
             gui.Label {
 
                 text = "Titles",
@@ -1385,9 +1384,10 @@ function CharSheet.CharacterSheetAndAvatarPanel()
                 height = "auto",
                 halign = "center",
 
-
+                refreshToken = function(element, info)
+                    element:SetClass("collapsed", info.token.properties:IsMonster())
+                end,
             },
-
         },
 
 
