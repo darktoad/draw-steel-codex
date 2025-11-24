@@ -266,6 +266,26 @@ Commands.awardvp = function(str)
     end
 end
 
+--take a respite to any heroes on the map.
+Commands.dorespite = function(args)
+    if args == "help" then
+        dmhub.Log("Usage: /dorespite\n Grants a respite to all heroes on the map.")
+        return
+    end
+    if not dmhub.isDM then return end
+
+    for _, t in ipairs(dmhub.allTokens) do
+        if t.properties:IsHero() then
+            t:ModifyProperties {
+                description = "Take a Respite",
+                execute = function()
+                    t.properties:Rest("long")
+                end
+            }
+        end
+    end
+end
+
 Commands.showallmaps = function(str)
     for _, map in ipairs(game.maps) do
         print("MAP:", map.id, map.description)
