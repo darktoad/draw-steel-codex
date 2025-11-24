@@ -157,8 +157,10 @@ local function EditHero(element, character)
     end)
 end
 
+
 local function CreateHero(element)
-    if #lobby.games >= 24 then
+    local chars = table.values(dmhub.GetAllCharacters())
+    if #chars >= 8 then
         local modal
         modal = gui.Panel {
             classes = { "framedPanel" },
@@ -172,12 +174,12 @@ local function CreateHero(element)
 
             gui.Label {
                 classes = { "title" },
-                text = "Too Many Games",
+                text = "Too Many Heroes",
             },
 
             gui.Label {
                 classes = { "dialogMessage" },
-                text = "You are already participating in too many games. Leave or delete some games before creating more.",
+                text = "You currently have the maximum number of heroes. Please delete an existing hero before creating a new one.",
             },
 
             gui.Panel {
@@ -3142,6 +3144,27 @@ function CreateTitlescreen(dialog, options)
                                         }
                                     },
 
+                                },
+
+                                --FS import button.
+                                gui.Button {
+                                    width = 48,
+                                    height = 48,
+                                    halign = "right",
+                                    valign = "center",
+                                    beveledcorners = true,
+                                    cornerRadius = 8,
+                                    text = "FS",
+                                    fontSize = 30,
+                                    y = -10,
+
+                                    monitorGame = "/characters",
+                                    refreshGame = function(element)
+                                        local chars = table.values(dmhub.GetAllCharacters())
+                                        element:SetClass("hidden", #chars >= 8)
+                                    end,
+
+                                    press = CreateHero,
                                 },
 
 
