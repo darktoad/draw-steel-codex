@@ -3812,19 +3812,17 @@ function creature:RefreshInitiativeGrouping(token)
 
 end
 
-
 function  creature:GetTitles()
-    
     return self:get_or_add("titles", {})
-
 end
 
 function creature:AddTitle(titleid)
-
     local titles = self:GetTitles()
-
     titles[titleid] = true
-    
+end
+
+function creature:SetTitles(titles)
+    self.titles = titles
 end
 
 dmhub.RegisterEventHandler("ClearTemporaryState", function()
