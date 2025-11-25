@@ -421,7 +421,7 @@ BreakdownRichTags = function(content, result, options, extraOutput)
                     linesContext = lines,
                     lineIndexContext = i,
                     stylingInfo = stylingInfo,
-                })
+                }, extraOutput)
 
                 linePrefix = linePrefix .. cell .. "|"
             end
@@ -464,7 +464,7 @@ BreakdownRichTags = function(content, result, options, extraOutput)
 
         while str ~= "" do
             local match = regex.MatchGroups(str,
-                "^(?<prefix>.*?)((?<justification>:(<>|><|<|>))|(?<embed>\\[:[^\\[\\]]+\\])|(?<tag>\\[[ xX]\\] *(?<checkname>[a-zA-Z0-9 ]*))|\\[\\[(?<tag>[^\\]]*)\\]\\])(?<suffix>.*)$")
+                "^(?<prefix>.*?)((?<spoiler>\\{)|(?<justification>:(<>|><|<|>))|(?<embed>\\[:[^\\[\\]]+\\])|(?<tag>\\[[ xX]\\] *(?<checkname>[a-zA-Z0-9 ]*))|\\[\\[(?<tag>[^\\]]*)\\]\\])(?<suffix>.*)$")
             if match == nil then
                 text = text .. str
                 if str ~= line:sub(#currentIndent + 1) and text ~= "" then
@@ -481,7 +481,37 @@ BreakdownRichTags = function(content, result, options, extraOutput)
                 EmitText(match.prefix, justification)
             end
 
-            if match.justification ~= nil then
+            if match.spoiler ~= nil then
+
+                if not isPlayer then
+
+                    local linepos = (#line - #str) + #match.prefix
+
+                    local suffix = match.suffix
+                    local firstChar = suffix:sub(1,1)
+                    local spoilerText = "Reveal to Players"
+                    if firstChar == "!" then
+                        spoilerText = "Hide from Players"
+                    end
+
+                    local spoilerInfo = extraOutput.spoilers or {}
+                    extraOutput.spoilers = spoilerInfo
+
+                    local guid = dmhub.GenerateGuid()
+
+                    spoilerInfo[guid] = {
+                        lines = options.linesContext or lines,
+                        lineIndex = options.lineIndexContext or i,
+                        linepos = linepos,
+                    }
+
+                    print("SPOILER: ADD spoiler", guid)
+
+                    text = text .. string.format("<color=#00FFFF><size=70%%><link=spoiler:%s>%s</link></size></color>", guid, spoilerText)
+                end
+
+                text = text .. "{"
+            elseif match.justification ~= nil then
                 result[#result + 1] = {
                     type = "justification",
                     text = match.justification,
@@ -902,6 +932,7 @@ function MarkdownDocument.DisplayPanel(self, args)
     local m_embeds = {}
     local m_treeNodes = {}
     local m_blockquotes = {}
+    local m_tokenExtraInfo = {}
 
     local params = {
         styles = {
@@ -978,12 +1009,12 @@ function MarkdownDocument.DisplayPanel(self, args)
 
             local tagsSeen = {}
 
-            local richTagInfo = {}
-            local tokens = BreakdownRichTags(self:GetTextContent(), nil, { player = self:IsPlayerView(element) }, richTagInfo)
+            m_tokenExtraInfo = {}
+            local tokens = BreakdownRichTags(self:GetTextContent(), nil, { player = self:IsPlayerView(element) }, m_tokenExtraInfo)
 
-            if richTagInfo.queries ~= nil then
+            if m_tokenExtraInfo.queries ~= nil then
                 element.thinkTime = 0.2
-                element.data.queries = richTagInfo.queries
+                element.data.queries = m_tokenExtraInfo.queries
             else
                 element.thinkTime = nil
                 element.data.queries = nil
@@ -1357,6 +1388,9 @@ function MarkdownDocument.DisplayPanel(self, args)
                         links = true,
                         hoverLink = function(element, link)
                             print("LINK:: HOVER", link, element.linkHovered)
+                            if string.starts_with(link, "spoiler:") then
+                                return
+                            end
                             CustomDocument.PreviewLink(element, link)
                         end,
                         dehoverLink = function(element, link)
@@ -1364,7 +1398,38 @@ function MarkdownDocument.DisplayPanel(self, args)
                         end,
                         press = function(element)
                             if element.linkHovered ~= nil then
+                                local link = element.linkHovered
                                 print("LINK::", element.linkHovered)
+                                if string.starts_with(link, "spoiler:") then
+                                    local spoilerValue = link:sub(9)
+                                    local spoilerInfo = (m_tokenExtraInfo.spoilers or {})[spoilerValue]
+                                    if spoilerInfo == nil then
+                                        print("SPOILER: INVALID INDEX", spoilerValue, "VS", table.keys(m_tokenExtraInfo.spoilers))
+                                        return
+                                    end
+
+                                    local lines = table.shallow_copy(spoilerInfo.lines)
+                                    local line = spoilerInfo.lines[spoilerInfo.lineIndex]
+                                    print("SPOILER: SUBSTITUTING...", line)
+                                    for i=spoilerInfo.linepos,#line do
+                                        if line:sub(i,i) == "{" then
+                                            local nextChar = line:sub(i+1,i+1)
+                                            if nextChar == "!" then
+                                                line = line:sub(1,i) .. line:sub(i+2)
+                                            else
+                                                line = line:sub(1,i) .. "!" .. line:sub(i+1)
+                                            end
+                                            print("SPOILER: NEW LINE...", line)
+                                            lines[spoilerInfo.lineIndex] = line
+                                            self:SetTextContent(table.concat(lines, "\n"))
+                                            self:Upload()
+                                            break
+                                        end
+                                    end
+
+                                    return
+                                end
+
                                 local doc = CustomDocument.ResolveLink(element.linkHovered)
                                 if doc ~= nil then
                                     CustomDocument.OpenContent(doc)
@@ -1421,6 +1486,7 @@ function MarkdownDocument.DisplayPanel(self, args)
                             end
                             currentRichRow.selfStyle.width = "100%"
                             currentRichRow.selfStyle.valign = "top"
+                            currentRichRow.selfStyle.maxWidth = nil
                             currentRichRow.data.children = {}
                             newRichRows[#newRichRows + 1] = currentRichRow
                             children[#children + 1] = currentRichRow
@@ -1552,6 +1618,7 @@ function MarkdownDocument.DisplayPanel(self, args)
                                 end
                                 currentRichRow.selfStyle.width = "100%"
                                 currentRichRow.selfStyle.valign = "top"
+                                currentRichRow.selfStyle.maxWidth = nil
                                 currentRichRow.data.children = {}
                                 newRichRows[#newRichRows + 1] = currentRichRow
                                 children[#children + 1] = currentRichRow
