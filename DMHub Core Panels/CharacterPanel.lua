@@ -3270,7 +3270,6 @@ CreateCharacterPanel = function()
             },
             {
                 selectors = { "bestiaryLabel", "invisible" },
-                color = "black",
                 italics = true,
             },
         },
