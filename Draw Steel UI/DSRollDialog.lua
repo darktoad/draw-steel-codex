@@ -876,6 +876,21 @@ function GameHud.CreateRollDialog(self)
                     DuplicateTriggerToMultiTargets(m_info)
                     RecalculateMultiTargets()
                 else
+                    local text = "Pinging trigger controller."
+                    local token = info.charid and dmhub.GetTokenById(info.charid)
+                    if token and token.valid then
+                        local player = token.playerNameOrNil
+                        if player ~= nil then
+                            text = string.format("Pinging %s to ask them to use the trigger.", player)
+                        end
+                    end
+
+                    if dmhub.isDM then
+                        text = text .. "\nRight-click to activate the trigger directly."
+                    end
+
+                    gui.Tooltip(text)(element)
+
                     m_info.ping = dmhub.GenerateGuid()
                     resultPanel:FireEventTree("dispatchTriggerUpdates")
                     element:FireEvent("ping", 12)
