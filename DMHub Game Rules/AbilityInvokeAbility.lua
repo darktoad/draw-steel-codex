@@ -696,9 +696,11 @@ function AbilityInvocation:Invoke()
 	local abilityClone = abilityTemplate:MakeTemporaryClone()
 	if self.abilityType == "standard" or self.abilityType == "custom" then
         local lookupSymbols = table.shallow_copy(self.symbols)
-        local targetToken = dmhub.GetTokenById(self.targetid)
-        if targetToken ~= nil then
-            lookupSymbols.target = GenerateSymbols(targetToken.properties)
+        if self:has_key("targetid") then
+            local targetToken = dmhub.GetTokenById(self.targetid)
+            if targetToken ~= nil then
+                lookupSymbols.target = GenerateSymbols(targetToken.properties)
+            end
         end
 
 		local allParameters = {}
