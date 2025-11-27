@@ -411,7 +411,7 @@ BreakdownRichTags = function(content, result, options, extraOutput)
 
             local linePrefix = "|"
 
-            local cells = string.split_allow_duplicates(tableMatch.row, "|")
+            local cells = string.split_with_square_brackets(tableMatch.row, "|")
             for j, cell in ipairs(cells) do
                 result[#result + 1] = {
                     type = "cell",

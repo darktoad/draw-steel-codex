@@ -1158,6 +1158,42 @@ local mountOptions = {
         id = "8",
         text = "Eight Saddles",
     },
+    {
+        id = "9",
+        text = "Nine Saddles",
+    },
+    {
+        id = "10",
+        text = "Ten Saddles",
+    },
+    {
+        id = "11",
+        text = "Eleven Saddles",
+    },
+    {
+        id = "12",
+        text = "Twelve Saddles",
+    },
+    {
+        id = "13",
+        text = "Thirteen Saddles",
+    },
+    {
+        id = "14",
+        text = "Fourteen Saddles",
+    },
+    {
+        id = "15",
+        text = "Fifteen Saddles",
+    },
+    {
+        id = "16",
+        text = "Sixteen Saddles",
+    },
+    {
+        id = "17",
+        text = "Seventeen Saddles",
+    },
 }
 
 function CharSheet.PortraitSelectionPanel()

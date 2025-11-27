@@ -380,6 +380,30 @@ function string.split_allow_duplicates(inputstr, sep)
         return t
 end
 
+function string.split_with_square_brackets(inputstr, sep)
+    local result = {}
+    local chars = {}
+    local depth = 0
+    for i = 1, #inputstr do
+        local c = inputstr:sub(i,i)
+        if depth <= 0 and c == sep then
+            result[#result+1] = table.concat(chars)
+            chars = {}
+        else
+            if c == "[" then
+                depth = depth+1
+            elseif c == "]" then
+                depth = depth-1
+            end
+
+            chars[#chars+1] = c
+        end
+    end
+
+    result[#result+1] = table.concat(chars)
+    return result
+end
+
 function GoblinScriptTrue(val)
     if type(val) == "number" then
         return val > 0

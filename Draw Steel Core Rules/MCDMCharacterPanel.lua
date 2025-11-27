@@ -4054,15 +4054,33 @@ function CharacterPanel.SingleCharacterDisplaySidePanel(token)
 			height = 140,
 			bgimage = "panels/square.png",
 			bgcolor = "white",
+            borderWidth = 0,
 			lmargin = 16,
-			borderWidth = 2,
-			borderColor = Styles.textColor,
 
 			refreshCharacter = function(element, token)
-                local portrait = token.offTokenPortrait
-				element.bgimage = portrait
-				element.selfStyle.imageRect = token:GetPortraitRectForAspect(Styles.portraitWidthPercentOfHeight*0.01, portrait)
+                local bg = token.portraitBackground
+                if bg == nil or bg == "" then
+                    element.selfStyle.bgcolor = "clear"
+                else
+                    element.bgimage = bg
+                    element.selfStyle.bgcolor = "white"
+                end
 			end,
+
+            gui.Panel{
+                floating = true,
+                width = "100%",
+                height = "100%",
+                bgcolor = "white",
+			    borderWidth = 2,
+			    borderColor = Styles.textColor,
+
+                refreshCharacter = function(element, token)
+                    local portrait = token.offTokenPortrait
+                    element.bgimage = portrait
+                    element.selfStyle.imageRect = token:GetPortraitRectForAspect(Styles.portraitWidthPercentOfHeight*0.01, portrait)
+                end,
+            },
 
 			CharacterPanel.DecoratePortraitPanel(token),
 

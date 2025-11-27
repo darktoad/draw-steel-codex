@@ -1034,12 +1034,6 @@ CreateJournalPanel = function()
                 }
 
                 if dmhub.isDM then
-                    journalPanel.data.documentFoldersTable.adventure = {
-                        description = "Current Adventure",
-                        parentFolder = "",
-                        nodeType = "builtinFolder",
-                    }
-
                     journalPanel.data.documentFoldersTable.templates = {
                         description = "Templates",
                         parentFolder = "",
