@@ -77,13 +77,22 @@ function RichFollower:CreateDisplay()
                     print(string.format("THC:: GRANT:: %s %s", token.name, token.id))
                     local followers = token.properties:GetFollowers()
                     if followers then
+                        local retainerToken
+                        if self.follower.type == "retainer" then
+                            local locs = token.properties:AdjacentLocations()
+                            local loc = #locs and locs[1] or token.properties.locsOccupying[1]
+                            print("THC:: SPAWNAT::", json(loc))
+                            retainerToken = game.SpawnTokenFromBestiaryLocally(self.follower.retainerToken, loc, {fitLocatoin = true})
+                            retainerToken.ownerId = token.ownerId
+                            retainerToken:UploadToken()
+                            game.UpdateCharacterTokens()
+                            self.retainerToken = retainerToken.id
+                        end
                         token:ModifyProperties{
                             description = "Grant a Follower",
                             undoable = false,
-                            execute = function ()
-                                if self.follower.type == "artisan" or self.follower.type == "sage" then
-                                    followers[#followers + 1] = self.follower:ToTable()
-                                end
+                            execute = function()
+                                followers[#followers + 1] = self.follower:ToTable()
                             end
                         }
                     end
