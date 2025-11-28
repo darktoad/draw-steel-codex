@@ -83,7 +83,6 @@ function Follower.Describe(self)
             local node = assets:GetMonsterNode(id)
             if node and node.monster and node.monster.info then
                 local t = node.monster.info
-                print("THC:: INFO::", t)
                 s = string.format("%s\n%s", s, t.description)
                 if t.properties then
                     local m = t.properties
