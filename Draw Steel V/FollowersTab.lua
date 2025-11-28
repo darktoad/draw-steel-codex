@@ -85,12 +85,10 @@ local function buildSkillLists()
     table.sort(artisanSkills, function(a,b)
         return string.lower(a.text) < string.lower(b.text)
     end)
-    table.insert(artisanSkills, 1, { id = "none", text = "Add Artisan Skill" })
 
     table.sort(sageSkills, function(a,b)
         return string.lower(a.text) < string.lower(b.text)
     end)
-    table.insert(sageSkills, 1, { id = "none", text = "Add Sage Skill" })
 
     return artisanSkills, sageSkills
 end
@@ -154,109 +152,47 @@ function CharSheet.FollowersInnerPanel()
         local resultsPanel
         local artisanSkills, sageSkills = buildSkillLists()
 
-        resultsPanel = gui.Panel{
+        resultsPanel = gui.Multiselect{
             classes = {cond(follower.type == "retainer", "collapsed-anim")},
-            flow = "vertical",
+            options = (follower.type == "sage") and sageSkills or artisanSkills,
             width = "auto",
-            height = 150,
+            height = "auto",
             margin = 3,
-
+            flow = "horizontal",
+            sort = true,
+            textDefault = "Select 4 skills...",
+            dropdown = {
+                width = 170,
+            },
+            chipPos = "right",
+            chipPanel = {
+               width = "100%-160",
+                halign = "left",
+            },
+            chips = {
+                halign = "left",
+                valign = "center",
+            },
+            create = function(element)
+                element:FireEvent("refreshAll")
+            end,
+            change = function(element)
+                if element.idChosen == "none" then return end
+                follower.skills = element.value
+            end,
             refreshAll = function(element)
                 if follower.type == "retainer" then
                     element:SetClass("collapsed-anim", true)
+                    return
                 else
                     element:SetClass("collapsed-anim", false)
                 end
+
+                local options = follower.type == "sage" and sageSkills or artisanSkills
+                local selected = follower.skills or {}
+                element:FireEvent("refreshSet", options, selected)
+                element.value = selected
             end,
-
-            gui.Label{
-                classes = { "followerLabel"},
-                text = "Skills",
-            },
-            
-            gui.Dropdown{
-                classes = {"followerDropdown" ,cond((countSkills(follower.skills)) >= 4 , "collapsed-anim")},
-                width = 190,
-                valign = "top",
-                idChosen = "none",
-                options = (follower.type == "sage") and sageSkills or artisanSkills,
-                change = function(element)
-                    if element.idChosen == "none" then return end
-                    follower.skills[element.idChosen] = true
-                    resultsPanel:FireEventTree("refreshAll")
-                end,
-
-                refreshList = function(element)
-                    local currentType = follower.type or "artisan"
-                    if currentType == "retainer" then return end
-                    
-                    local sourceSkills = (currentType == "sage") and sageSkills or artisanSkills
-                    local filteredOptions = {}
-                    
-                    for _, skill in pairs(sourceSkills) do
-                        if skill.id == "none" or not follower.skills[skill.id] then
-                            table.insert(filteredOptions, skill)
-                        end
-                    end
-                    
-                    element.options = filteredOptions
-                    element.idChosen = "none"
-                end,
-                
-                refreshAll = function(element)
-                    element:FireEvent("refreshList")
-                    if countSkills(follower.skills) >= 4 then
-                        element:SetClass("collapsed-anim", true)
-                    else
-                        element:SetClass("collapsed-anim", false)
-                    end
-                end,
-            },
-
-            -- Skill List
-            gui.Panel{
-                width = "auto",
-                height = "auto", 
-                flow = "vertical",
-                create = function(element)
-                    element:FireEvent("refreshAssets")
-                end,
-
-                refreshAll = function(element)
-                    element:FireEvent("refreshAssets")
-                end,
-
-                refreshAssets = function(element)
-                    local skillsList = follower.skills or {}
-                    local children = {}
-
-                    local skilltable = dmhub.GetTable(Skill.tableName) or {}
-
-                    for id, _ in pairs(skillsList) do
-                        local skill = skilltable[id]
-
-                        children[#children+1] = gui.Panel{
-                            height = "auto",
-                            width = "auto",
-                            gui.Label{
-                                classes = { "followersListLabel"},
-                                text = skill.name,
-                            },
-                            gui.CloseButton{
-                                uiscale = 0.7,
-                                valign = "center",
-                                escapeActivates = false,
-                                click = function()
-                                    follower.skills[id] = nil
-                                    resultsPanel:FireEventTree("refreshAll")
-                                end
-                            }
-                        }
-                    end
-
-                    element.children = children
-                end,
-            }
         }
 
         return resultsPanel
@@ -267,103 +203,44 @@ function CharSheet.FollowersInnerPanel()
 
         local languageList = buildLanguageList()
 
-        resultsPanel = gui.Panel{
+        resultsPanel = gui.Multiselect{
             classes = {cond(follower.type == "retainer", "collapsed-anim")},
-            flow = "vertical",
+            options = languageList,
             width = "auto",
+            height = "auto",
             margin = 3,
-            height = 150,
-
-            gui.Label{
-                classes = { "followerLabel"},
-                text = "Languages",
+            flow = "horizontal",
+            sort = true,
+            textDefault = "Select 2 languages...",
+            dropdown = {
+                width = 170,
             },
-
-            gui.Dropdown{
-                classes = {"followerDropdown", cond((countSkills(follower.languages)) >= 2 , "collapsed-anim")},
-                idChosen = "none",
-                options = languageList,
-                change = function(element)
-                    if element.idChosen == "none" then return end
-                    follower.languages[element.idChosen] = true
-                    resultsPanel:FireEventTree("refreshAll")
-                end,
-
-                refreshList = function(element)
-                    local currentType = follower.type or "artisan"
-                    if currentType == "retainer" then return end
-                    
-                    local filteredOptions = {}
-                    
-                    for _, language in pairs(languageList) do
-                        if language.id == "none" or not follower.languages[language.id] then
-                            table.insert(filteredOptions, language)
-                        end
-                    end
-                    
-                    element.options = filteredOptions
-                    element.idChosen = "none"
-                end,
-
-                refreshAll = function(element)
-                    element:FireEvent("refreshList")
-                    if countSkills(follower.languages) >= 2 then
-                        element:SetClass("collapsed-anim", true)
-                    else
-                        element:SetClass("collapsed-anim", false)
-                    end
-                end,
+            chipPos = "right",
+            chipPanel = {
+               width = "100%-160",
+                halign = "left",
             },
-
-            -- Language List
-            gui.Panel{
-                width = "auto",
-                height = "auto",
-                flow = "vertical",
-                create = function(element)
-                    element:FireEvent("refreshAssets")
-                end,
-                refreshAll = function(element)
-                    element:FireEvent("refreshAssets")
-                end,
-                refreshAssets = function(element)
-                    local languagesList = follower.languages or {}
-                    local children = {}
-
-                    local languagetable = dmhub.GetTable(Language.tableName) or {}
-
-                    for id, _ in pairs(languagesList) do
-                        local language = languagetable[id]
-
-                        children[#children+1] = gui.Panel{
-                            height = "auto",
-                            width = "auto",
-                            gui.Label{
-                                classes = { "followersListLabel"},
-                                text = language.name,
-                            },
-                            gui.CloseButton{
-                                uiscale = 0.7,
-                                valign = "center",
-                                escapeActivates = false,
-                                click = function()
-                                    follower.languages[id] = nil
-                                    resultsPanel:FireEventTree("refreshAll")
-                                end
-                            }
-                        }
-                    end
-
-                    element.children = children
-                end,
+            chips = {
+                halign = "left",
+                valign = "center",
             },
-
+            create = function(element)
+                element:FireEvent("refreshAll")
+            end,
+            change = function(element)
+                if element.idChosen == "none" then return end
+                follower.languages = element.value
+            end,
             refreshAll = function(element)
                 if follower.type == "retainer" then
                     element:SetClass("collapsed-anim", true)
+                    return
                 else
                     element:SetClass("collapsed-anim", false)
                 end
+                local selected = follower.languages or {}
+                element:FireEvent("refreshSet", languageList, selected)
+                element.value = selected
             end,
         }
 
@@ -629,7 +506,7 @@ function CharSheet.FollowersInnerPanel()
                         gui.Panel{
                             width = "100%",
                             height = "auto",
-                            flow = "horizontal",
+                            flow = "vertical",
                             pad = 5,
                             
                             FollowerSkillsPanel(follower),
@@ -648,25 +525,17 @@ function CharSheet.FollowersInnerPanel()
         return resultPanel
     end
 
-    local addFollowerButton = gui.AddButton {
+    local addFollowerButton = gui.Button{
         hmargin = 15,
         halign = "right",
-        linger = function(element)
-            gui.Tooltip("Add a New Follower")(element)
-        end,
+        text = "Add New Follower",
         click = function(element)
             local followers = EnsureFollowers(CharacterSheet.instance.data.info.token.properties)
-            followers[#followers + 1] = {
-                guid = dmhub.GenerateGuid(),
-                name = "New Follower",
-                type = "artisan",
-                description = "",
-                portrait = false,
-                skills = {},
-                ancestry = Race.DefaultRace(),
-                characteristic = "mgt",
-                languages = {},
-            }
+            local newFollower = Follower.Create()
+            newFollower.ancestry = Race.DefaultRace()
+            newFollower.retainerToken = "none"
+
+            followers[#followers + 1] = newFollower
             CharacterSheet.instance:FireEvent("refreshAll")
         end,
     }
@@ -694,15 +563,24 @@ function CharSheet.FollowersInnerPanel()
                 local newFollowerPanels = {}
 
                 for i, follower in ipairs(followers) do
-                    local child = followerPanels[i] or CreateFollowersSection(i, {
-                        delete = function()
-                            local followers = EnsureFollowers(info.token.properties)
-                            table.remove(followers, i)
-                            CharacterSheet.instance:FireEvent("refreshAll")
-                        end,
-                    })
+                    
+                    local child = followerPanels[follower.guid]
+                    if not child then
+                        child = CreateFollowersSection(i, {
+                            delete = function()
+                                local followers = EnsureFollowers(info.token.properties)
+                                for id, f in ipairs(followers) do
+                                    if f.guid == follower.guid then
+                                        table.remove(followers, id)
+                                        break
+                                    end
+                                end
+                                CharacterSheet.instance:FireEvent("refreshAll")
+                            end,
+                        })
+                    end
 
-                    newFollowerPanels[i] = child
+                    newFollowerPanels[follower.guid] = child
                     children[#children + 1] = child
                 end
 
