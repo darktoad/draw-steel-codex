@@ -333,7 +333,7 @@ function CustomDocument.ResolveLink(link)
 
     local monsters = assets.monsters
     for k,monster in pairs(monsters) do
-        if not monster.hidden and monster.name ~= nil and string.lower(monster.name) == link then
+        if not monster.hidden and ((monster.name ~= nil and string.lower(monster.name) == link) or (monster.properties ~= nil and string.lower(monster.properties:try_get("monster_type", "")) == link)) then
             return MonsterReferenceDocument.new{
                 monsterid = k,
             }
