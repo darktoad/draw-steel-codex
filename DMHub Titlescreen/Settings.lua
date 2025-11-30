@@ -1446,7 +1446,12 @@ setting{
 			value = "rectangle",
 			text = "Rectangle",
 			bind = "ctrl+r",
-		}
+		},
+        {
+            value = "polygon",
+            text = "Custom Shape",
+            bind = "ctrl+p",
+        },
 	},
 }
 
