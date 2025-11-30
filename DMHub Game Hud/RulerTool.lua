@@ -7,7 +7,7 @@ local function CreateRulerPanel()
 		persistentSetting = CreateSettingsEditor("measure:persistent")
 	end
 	local resultPanel = gui.Panel{
-		width = 340,
+		width = 400,
 		height = 240,
 		halign = "right",
 		valign = "top",
