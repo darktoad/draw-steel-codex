@@ -1052,7 +1052,7 @@ function MarkdownDocument.DisplayPanel(self, args)
                         embed = string.format("%s|%d", original, count)
                     end
 
-                    if m_embeds[embed] ~= nil then
+                    if m_embeds[embed] then
                         newEmbeds[embed] = m_embeds[embed]
                         newEmbeds[embed]:Unparent()
                     else
@@ -1609,7 +1609,14 @@ function MarkdownDocument.DisplayPanel(self, args)
                             richTag = DeepCopy(richTagFromPattern)
                         else
                             richTag = self.annotations[candidate]
+
+                            --patch over any possible bugs where the saved annotation is not a proper table.
+                            if richTag ~= nil and getmetatable(richTag) == nil then
+                                richTag = nil
+                                self.annotations[candidate] = nil
+                            end
                         end
+
                         
                         if richTag ~= nil then
                             local panel = m_richPanels[candidate] or richTag:CreateDisplay()
@@ -1914,6 +1921,12 @@ function MarkdownDocument:EditPanel(args)
                         tagsSeen[candidate] = true
 
                         local richTag = self.annotations[candidate]
+                        --patch over any possible bugs where the saved annotation is not a proper table.
+                        if richTag ~= nil and getmetatable(richTag) == nil then
+                            richTag = nil
+                            self.annotations[candidate] = nil
+                        end
+
                         if richTag == nil then
                             richTag = richTagInfo.Create()
                             richTag.identifier = suffix or false
