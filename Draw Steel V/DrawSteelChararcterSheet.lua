@@ -2861,6 +2861,29 @@ local function DSCharSheet()
                                 tmargin = 5,
                             },
 
+                            gui.SettingsButton {
+                                floating = true,
+                                halign = "right",
+                                valign = "top",
+                                hmargin = 18,
+                                vmargin = 8,
+                                width = 16,
+                                height = 16,
+                                press = function(element)
+                                    local options = {
+                                        callbacks = {
+                                            confirm = function(newSkills)
+                                                local token = CharacterSheet.instance.data.info.token
+                                                CharacterSkillDialog.saveFeatures(token, newSkills.features)
+                                                CharacterSkillDialog.saveLevelChoices(token, newSkills.levelChoices)
+                                                CharacterSheet.instance:FireEventTree("refresh")
+                                                CharacterSheet.instance:FireEvent("refreshAll")
+                                            end,
+                                        }
+                                    }
+                                    CharacterSheet.instance:AddChild(CharacterSkillDialog.CreateAsChild(options))
+                                end,
+                            },
 
                             gui.Divider {
 
