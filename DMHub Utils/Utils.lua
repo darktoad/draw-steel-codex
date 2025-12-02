@@ -471,3 +471,18 @@ function DeepReplaceGuids(obj, guidMap, key)
         end
     end
 end
+
+function safe_toint(val)
+    local num = tonumber(val)
+    if num == nil then
+        return nil
+    end
+
+    if type(val) == "string" and not val:match("^%d+$") then
+        return nil
+    elseif math.floor(num) ~= num then
+        return nil
+    end
+
+    return num
+end

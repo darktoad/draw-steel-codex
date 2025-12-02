@@ -1196,6 +1196,33 @@ local function InflictedConditionsPanel(m_token)
                         end,
                     }
 
+                    local trackCasterButton = gui.Button{
+                        fontSize = 12,
+                        width = 62,
+                        height = "auto",
+                        text = "Set Caster",
+                        halign = "left",
+                        press = function(element)
+                            local ability = DeepCopy(MCDMUtils.GetStandardAbility("SetConditionCaster"))
+                            ability.behaviors[1].condid = key
+                            ActivatedAbilityInvokeAbilityBehavior.ExecuteInvoke(m_token, ability, m_token, "prompt", {}, {})
+                        end,
+                        refresh = function(element)
+                            if m_token == nil or not m_token.valid then
+                                return
+                            end
+
+                            local conditions = m_token.properties:try_get("inflictedConditions", {})
+                            local cond = conditions[key]
+                            if cond == nil or cond.casterInfo ~= nil then
+                                element:SetClass("collapsed", true)
+                                quantityLabel:SetClass("collapsed", true)
+                            else
+                                element:SetClass("collapsed", false)
+                            end
+                        end,
+                    }
+
                     panel = gui.Panel{
                         width = "100%",
                         height = "auto",
@@ -1223,6 +1250,7 @@ local function InflictedConditionsPanel(m_token)
                         descriptionLabel,
 
                         quantityLabel,
+                        trackCasterButton,
 
                         gui.DeleteItemButton{
                             width = 12,
@@ -1611,7 +1639,7 @@ CharacterPanel.CreateCharacterDetailsPanel = function(m_token)
                             fontSize = 12,
                             text = string.format("+%d", tonumber(entry.quantity) or 1),
                             refreshToken = function(element)
-                                if tonumber(entry.quantity) then
+                                if safe_toint(entry.quantity) then
                                     return
                                 end
                                 local creature = m_token.properties

@@ -3334,7 +3334,7 @@ function creature:PersistentAbilities()
             local q = dmhub.initiativeQueue
             if q == nil or q.hidden then
                 break
-            elseif q.round > a.round or (q.round == a.round and q.turn > a.turn) then
+            elseif (q.round or 0) > (a.round or 0) or ((q.round or 0) == (a.round or 0) and (q.turn or 0) > (a.turn or 0)) then
                 if a.ability == nil then
                     break
                 end

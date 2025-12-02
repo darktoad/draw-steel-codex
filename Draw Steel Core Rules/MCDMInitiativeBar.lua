@@ -208,7 +208,61 @@ local function CreateDrawSteelBubble()
 
 		},
 
+        hover = function(element)
+            if ShouldShowEndTurn() or not dmhub.initiativeQueue:ChoosingTurn() then
+                element:SetClass("highlightSwords", false)
+                return
+            end
 
+            local canSelectToken = false
+            local token = dmhub.selectedOrPrimaryTokens[1]
+            if token ~= nil and token.canControl then
+                local initiativeid = InitiativeQueue.GetInitiativeId(token)
+                if initiativeid ~= nil and dmhub.initiativeQueue:IsEntryPlayer(initiativeid) and token.topsheet ~= nil then
+                    canSelectToken = true
+                end
+            end
+
+            if not canSelectToken then
+                element:FireEvent("dehover")
+                element:SetClass("highlightSwords", false)
+                return
+            end
+
+            element:SetClass("highlightSwords", true)
+
+            local tokens = dmhub.allTokens
+            for _,tok in ipairs(tokens) do
+                if tok.topsheet ~= nil then
+                    local swords = tok.topsheet:GetChildrenWithClassRecursive("swords")[1]
+                    if swords ~= nil then
+                        swords:SetClass("highlight", tok.charid == token.charid)
+                        swords:SetClass("highlightActive", true)
+                    end
+                end
+            end
+        end,
+
+        dehover = function(element)
+            if element:HasClass("highlightSwords") == false and ShouldShowEndTurn() or not dmhub.initiativeQueue:ChoosingTurn() then
+                element:SetClass("highlightSwords", false)
+                return
+            end
+
+            element:SetClass("highlightSwords", false)
+
+            local tokens = dmhub.allTokens
+            for _,token in ipairs(tokens) do
+                if token.topsheet ~= nil then
+                    local swords = token.topsheet:GetChildrenWithClassRecursive("swords")[1]
+                    if swords ~= nil then
+                        swords:SetClass("highlight", false)
+                        swords:SetClass("highlightActive", false)
+                    end
+                end
+            end
+        end,
+        
         press = function(self)
             if ShouldShowEndTurn() then
 				GameHud.instance:NextInitiative(function()
@@ -217,6 +271,22 @@ local function CreateDrawSteelBubble()
                 end)
 
                 return
+            end
+
+            if not dmhub.initiativeQueue:ChoosingTurn() then
+                return
+            end
+
+            local token = dmhub.selectedOrPrimaryTokens[1]
+            if token ~= nil and token.canControl then
+                local initiativeid = InitiativeQueue.GetInitiativeId(token)
+                if initiativeid ~= nil and (dmhub.initiativeQueue:IsEntryPlayer(initiativeid) == dmhub.initiativeQueue:IsPlayersTurn()) and token.topsheet ~= nil then
+                    local nameplate = token.topsheet:GetChildrenWithClassRecursive("nameplate")[1]
+                    if nameplate ~= nil then
+                        nameplate:FireEvent("press")
+                    end
+                    return
+                end
             end
         end,
 
@@ -320,13 +390,17 @@ local function CreateDrawSteelBubble()
         gui.Panel{
 
             bgimage = mod.images.bubbleglow,
-            bgcolor = "#1194FF",
-            brightness = 2,
             width = 112,
             height = 112,
             halign = "center",
+            bgcolor = "#1194FF",
+            brightness = 2,
 
 			classes = "glow",
+
+            claiming = function(element, prompt)
+                element:SetClass("prompt", prompt)
+            end,
 
 			switch = function(self)
 				self:SetClass("selected", not self:HasClass("selected"))
@@ -356,8 +430,10 @@ local function CreateDrawSteelBubble()
             text = "Hero\n<size=90%>Turn</size>",
             textAlignment = "center",
             fontSize = 26,
+            brightness = 2,
             width = "auto",
             height = "auto",
+            minWidth = 120,
             --bgimage = mod.images.heroturntext,
             bgcolor = "white",
             --width = 69,
@@ -367,32 +443,119 @@ local function CreateDrawSteelBubble()
 
 			classes = "text",
 
-			refresh = function (self)
+            claiming = function(element, val)
+                element:SetClass("hidden", val)
+            end,
+
+			refresh = function (element)
                 if dmhub.initiativeQueue == nil or dmhub.initiativeQueue.hidden then
-                    self:SetClass("selected", false)
+                    element:SetClass("selected", false)
                     return
                 end
 
                 if ShouldShowEndTurn() then
-                    self:SetClass("selected", false)
+                    element:SetClass("selected", false)
                     return
                 end
 
 				local isPlayersTurn = dmhub.initiativeQueue:IsPlayersTurn()
 
 				if not isPlayersTurn then
-					self:SetClass("selected", false)
-                elseif not self:HasClass("selected") then
+					element:SetClass("selected", false)
+                elseif not element:HasClass("selected") then
                     local delay = 0
                     if dmhub.initiativeQueue.turn == 1 and dmhub.initiativeQueue.round ~= 1 then
                         delay = 1.5
                     end
                     audio.FireSoundEvent("UI.TurnStart_Hero", {delay = delay})
-					self:SetClass("selected", true)
+					element:SetClass("selected", true)
 				end
-				
 			end,
         },
+
+		gui.Label{
+
+            fontFace = "Book",
+            text = "Claim\n<size=90%>Turn</size>",
+            textAlignment = "center",
+            fontSize = 26,
+            width = "auto",
+            height = "auto",
+            minWidth = 120,
+            --bgimage = mod.images.heroturntext,
+            bgcolor = "white",
+            --width = 69,
+            --height = 39,
+            halign = "center",
+			valign = "center",
+
+			classes = "text",
+
+            claiming = function(element, prompt)
+                element:SetClass("hidden", not prompt)
+                if not prompt then
+                    element:SetClass("big", false)
+                    element.data.bigTime = nil
+                    element.selfStyle.scale = 1
+                else
+                    local t = dmhub.Time()
+                    local r = math.sin(t*2*math.pi)
+                    if element.parent:HasClass("hover") then
+                        r = 1
+                    end
+                    element.selfStyle.scale = 1 + (r * 0.05)
+                end
+            end,
+
+            think = function(element)
+                if not dmhub.initiativeQueue:ChoosingTurn() then
+                    element.parent:FireEventTree("claiming", false)
+                    return
+                end
+
+                local token = dmhub.selectedOrPrimaryTokens[1]
+                if token ~= nil and token.canControl then
+                    local initiativeid = InitiativeQueue.GetInitiativeId(token)
+                    if initiativeid ~= nil and (dmhub.initiativeQueue:IsEntryPlayer(initiativeid) == dmhub.initiativeQueue:IsPlayersTurn()) then
+                        element.parent:FireEventTree("claiming", true)
+                        return
+                    end
+                end
+
+                element.parent:FireEventTree("claiming", false)
+            end,
+
+			refresh = function (element)
+                if dmhub.initiativeQueue == nil or dmhub.initiativeQueue.hidden then
+                    element:SetClass("selected", false)
+                    element.thinkTime = nil
+                    element.parent:FireEventTree("claiming", false)
+                    return
+                end
+
+                if ShouldShowEndTurn() then
+                    element:SetClass("selected", false)
+                    element.thinkTime = nil
+                    element.parent:FireEventTree("claiming", false)
+                    return
+                end
+
+                if not element:HasClass("selected") then
+                    local delay = 0
+                    if dmhub.initiativeQueue.turn == 1 and dmhub.initiativeQueue.round ~= 1 then
+                        delay = 1.5
+                    end
+					element:SetClass("selected", true)
+                    element.thinkTime = 0.01
+                    element:FireEvent("think")
+                else
+                    element.thinkTime = 0.01
+                    element:FireEvent("think")
+				end
+			end,
+        },
+
+
 
         gui.Panel{
 
@@ -518,18 +681,18 @@ local function CreateDrawSteelBubble()
 
 			classes = {"glow", "selected"},
 
-			refresh = function (self)
+			refresh = function (element)
                 if dmhub.initiativeQueue == nil or dmhub.initiativeQueue.hidden then
-                    self:SetClass("selected", false)
+                    element:SetClass("selected", false)
                     return
                 end
 
 				local isPlayersTurn = dmhub.initiativeQueue:IsPlayersTurn()
 
 				if isPlayersTurn then
-					self:SetClass("selected", false)
+					element:SetClass("selected", false)
 				else
-					self:SetClass("selected", true)
+					element:SetClass("selected", true)
 				end
 				
 			end,
@@ -550,6 +713,10 @@ local function CreateDrawSteelBubble()
 			valign = "center",
 
 			classes = {"text", "selected"},
+
+            claiming = function(element, val)
+                element:SetClass("hidden", val)
+            end,
 
 			refresh = function (self)
                 if dmhub.initiativeQueue == nil or dmhub.initiativeQueue.hidden then

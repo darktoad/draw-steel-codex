@@ -4222,6 +4222,7 @@ function creature:Invalidate()
     self._tmp_languagesKnown = nil
     self._tmp_grabbedby = nil
     self._tmp_aggroColor = nil
+    self._tmp_suspended = nil
 end
 
 --all the languages that creatures controlled by the local player know.
@@ -4252,11 +4253,16 @@ function creature:RefreshToken(token)
 		end
 	end
 
+    self._tmp_suspended = nil
 	self._tmp_builtinOngoingEffects = builtinEffects
     self._tmp_modifiersRefresh = nil
 
-	self:GetActiveModifiers()
+	local modifiers = self:GetActiveModifiers()
     self._tmp_down = self:IsDown()
+
+    for _,modifier in ipairs(modifiers) do
+        modifier.mod:OnTokenRefresh(modifier, self, token)
+    end
 
     if dmhub.initiativeQueue ~= nil and (not dmhub.initiativeQueue.hidden) then
         local initiativeid = InitiativeQueue.GetInitiativeId(token)

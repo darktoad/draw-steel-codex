@@ -1002,7 +1002,7 @@ function ActivatedAbilityDrawSteelCommandBehavior:ExecuteCommandInternal(ability
 
         local attrid = GameSystem.AttributeByFirstLetter[string.lower(gateMatch.attr)] or "-"
         local result = (targetToken.properties:AttributeForPotencyResistance(attrid) or 0) >= gate
-        print("GATE:: RESULT =", result)
+        print("GATE:: RESULT =", result, "from", targetToken.properties:AttributeForPotencyResistance(attrid) or 0, ">=", gate)
         if result then
 
             if options.powerRollPass == "target" then

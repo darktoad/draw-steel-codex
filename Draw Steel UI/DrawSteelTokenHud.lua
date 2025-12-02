@@ -278,12 +278,109 @@ TokenHud.RegisterPanel{
             m_triggerActivePanel,
 
             gui.Panel{
-                classes = {"actionBarDrawer", "hidden"},
+                classes = {"swords"},
+                floating = true,
+                interactable = false,
+                halign = "center",
+                valign = "center",
+                width = 48,
+                height = 48,
+                bgimage = "panels/initiative/initiative-icon2.png",
+                bgcolor = "white",
+
+                selfStyle = {},
+
+                styles = {
+                    gui.Style{
+                        opacity = 0.3,
+                    },
+                },
+
+                gui.Panel{
+                    --hit area.
+                    width = 16,
+                    height = 16,
+                    bgimage = true,
+                    bgcolor = "clear",
+                    halign = "center",
+                    valign = "center",
+                    interactable = true,
+                    press = function(element)
+                        element.parent.parent:GetChildrenWithClassRecursive("nameplate")[1]:FireEvent("press")
+                    end,
+                    hover = function(element)
+                        element.parent:SetClass("childHover", true)
+                    end,
+                    dehover = function(element)
+                        element.parent:SetClass("childHover", false)
+                    end,
+                },
+
+                think = function(element)
+                    if element.data.activeTime ~= nil then
+                        local elapsed = dmhub.Time() - element.data.activeTime
+                        if elapsed > 0.5 then
+                            element.thinkTime = nil
+                            element:SetClass("hidden", true)
+                            element.data.activeTime = nil
+                            return
+                        end
+
+                        local t = elapsed / 0.5
+                        element.selfStyle.scale = element.data.startScale + (1.5 - element.data.startScale) * t
+                        element.selfStyle.opacity = element.data.startOpacity*(1-t)
+                        return
+                    end
+                    local r = math.sin(dmhub.Time()*2*math.pi)
+                    if element:HasClass("highlight") or element:HasClass("childHover") then
+                        r = 1
+                        element.selfStyle.opacity = 1
+                        element.selfStyle.brightness = 2
+                    elseif element:HasClass("highlightActive") then
+                        element.selfStyle.opacity = 0.2
+                        element.selfStyle.brightness = 0.8
+                        r = -1
+                    else
+                        element.selfStyle.opacity = 0.3
+                        element.selfStyle.brightness = 1
+                    end
+                    element.selfStyle.scale = 1.1 + (r * 0.1)
+                end,
+
+                updateInitiative = function(element)
+                    if element.data.activeTime ~= nil then
+                        return
+                    end
+                    local status = token.initiativeStatus
+
+                    if status == "OurTurn" and element.data.prevStatus == "ActiveAndReady" and element:HasClass("hidden") == false then
+                        element.data.startScale = 1 --element.selfStyle.scale
+                        element.data.startOpacity = 1 --element.selfStyle.opacity
+                        element.data.prevStatus = status
+                        element.data.activeTime = dmhub.Time()
+                        return
+                    end
+
+                    element.data.activeTime = nil
+
+                    local show = status == "ActiveAndReady"
+                    if dmhub.Time() < (element.data.clickTime or 0) + 1 then
+                        show = false
+                    end
+                    element:SetClass("hidden", not show)
+                    element.thinkTime = cond(show, 0.01)
+
+                    element.data.prevStatus = status
+                end,
+            },
+
+            gui.Panel{
+                classes = {"actionBarDrawer", "hidden", "nameplate"},
                 interactable = true,
                 halign = "center",
                 valign = "center",
-                width = 120,
-                height = 30,
+                width = 100,
+                height = 26,
                 y = 40,
                 flow = "none",
 
@@ -297,24 +394,16 @@ TokenHud.RegisterPanel{
 
                 styles = {
                     Styles.ActionBar,
-
-                    gui.Style{
-                        selectors = {"big"},
-                        scale = 1.2,
-                        transitionTime = 0.5,
-                        brightness = 1.2,
-                        easing = "easeInOutSine",
-                    },
-                    gui.Style{
-                        selectors = {"hover"},
-                        scale = 1.2,
-                        brightness = 3.0,
-                        transitionTime = 0.2,
-                    },
                 },
 
                 think = function(element)
-                    element:SetClass("big", not element:HasClass("big"))
+                    local r = math.sin(dmhub.Time()*2*math.pi)
+                    if element:HasClass("hover") then
+                        r = 1
+                    end
+                    element.selfStyle.scale = 0.9 + (r * 0.04)
+                    element.selfStyle.brightness = 1.1 + (r * 0.1)
+
                 end,
 
                 updateInitiative = function(element)
@@ -329,16 +418,17 @@ TokenHud.RegisterPanel{
                         show = false
                     end
                     element:SetClass("hidden", not show)
-                    element.thinkTime = cond(show, 0.5)
+                    element.thinkTime = cond(show, 0.01)
 
                     element.data.prevStatus = status
                 end,
 
                 hover = function(element)
-                    if token.canControl then
-                        audio.FireSoundEvent("Mouse.Hover")
-                        gui.Tooltip("Click to take your turn now.")(element)
-                    end
+                    element.parent:GetChildrenWithClassRecursive("swords")[1]:SetClass("highlight", true)
+                end,
+
+                dehover = function(element)
+                    element.parent:GetChildrenWithClassRecursive("swords")[1]:SetClass("highlight", false)
                 end,
 
                 press = function(element)

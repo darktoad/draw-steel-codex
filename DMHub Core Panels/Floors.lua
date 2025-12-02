@@ -347,7 +347,17 @@ CreateLayersPanel = function()
 			height = 20,
 			vmargin = 2,
 			click = function(element)
-				game.currentMap:CreateFloor()
+                element.popup = gui.ContextMenu{
+                    entries = {
+                        {
+                            text = "Add New Floor",
+                            click = function()
+                                element.popup = nil
+                                game.currentMap:CreateFloor()
+                            end,
+                        },
+                    }
+                }
 			end,
 			hover = gui.Tooltip("Add a new floor"),
 		}

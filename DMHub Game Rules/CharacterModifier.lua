@@ -3700,3 +3700,10 @@ function CharacterModifier:ModifyRollProperties(context, creature, rollPropertie
 		typeInfo.modifyRollProperties(self, creature, rollProperties, targetCreature)
 	end
 end
+
+function CharacterModifier:OnTokenRefresh(context, creature, token)
+	local typeInfo = CharacterModifier.TypeInfo[self.behavior] or {}
+    if typeInfo.onTokenRefresh ~= nil then
+        typeInfo.onTokenRefresh(self, creature, token)
+    end
+end

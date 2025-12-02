@@ -123,13 +123,13 @@ function ActivatedAbilityReplenishBehavior:Cast(ability, casterToken, targets, o
 
     local rollResults = {}
 
-    if tonumber(roll) ~= nil then
+    if safe_toint(roll) ~= nil then
         rollComplete = true
 
         for _,target in ipairs(targets) do
-            rollResults[target.token.charid] = { result = tonumber(roll) }
+            rollResults[target.token.charid] = { result = safe_toint(roll) }
         end
-        quantity = tonumber(roll)
+        quantity = safe_toint(roll)
     else
         local dcaction = ability:RequireSavingThrowsCo(self, casterToken, ActivatedAbility.GetTokenIds(targets), {
             rollType = "custom",
@@ -287,8 +287,8 @@ function ActivatedAbilityReplenishBehavior:Cast(ability, casterToken, targets, o
                                     element.text = string.format("%d", resourceidToQuantity[resourceid])
                                 end,
                                 change = function(element)
-                                    local n = tonumber(element.text)
-                                    if n ~= nil and round(n) == n and n >= 0 and n <= quantity then
+                                    local n = safe_toint(element.text)
+                                    if n ~= nil and n <= quantity then
                                         resourceidToQuantity[resourceid] = n
                                         m_pinnedResource = i
                                         dialogPanel:FireEventTree("refreshResources")
@@ -392,8 +392,8 @@ function ActivatedAbilityReplenishBehavior:Cast(ability, casterToken, targets, o
                                 text = string.format("%d", quantity),
                                 editable = true,
                                 change = function(element)
-                                    local n = tonumber(element.text)
-                                    if n ~= nil and n == round(n) then
+                                    local n = safe_toint(element.text)
+                                    if n ~= nil  then
                                         quantity = n
                                         m_pinnedResource = nil
                                         dialogPanel:FireEventTree("refreshResources")

@@ -18,9 +18,17 @@ function ActivatedAbilityConditionSourceBehavior:Cast(ability, casterToken, targ
     local cast = options.symbols.cast
 
     for _,target in ipairs(targets) do
-        local affectedCreatures = cast:try_get("inflictedConditions", {})[self.condid]
+        local affectedCreatures
+        print("GRABBED::", self:try_get("conditionMode", "ability"))
+        if self:try_get("conditionMode", "ability") == "ability" then
+            affectedCreatures = cast:try_get("inflictedConditions", {})[self.condid]
+        else
+            affectedCreatures = {casterToken.charid}
+            print("GRABBED:: AFFECTED", affectedCreatures)
+        end
         for _,charid in ipairs(affectedCreatures or {}) do
             local affectedToken = dmhub.GetTokenById(charid)
+            print("GRABBED:: SET GRAB FOR", charid, affectedToken, "TO", target.token.charid)
             if affectedToken ~= nil then
                 affectedToken:ModifyProperties{
                     description = "Set source of condition",
@@ -48,6 +56,25 @@ function ActivatedAbilityConditionSourceBehavior:EditorItems(parentPanel)
             }
         end
     end
+
+    result[#result+1] = gui.Panel{
+        classes = {"formPanel"},
+        gui.Label{
+            classes = {"formLabel"},
+            text = "Mode:",
+        },
+
+        gui.Dropdown{
+            options = {
+                {id="ability", text="This Ability Conditions"},
+                {id="caster", text="Caster Conditions"},
+            },
+            idChosen = self:try_get("conditionMode", "ability"),
+            change = function(element)
+                self.conditionMode = element.idChosen
+            end,
+        },
+    }
 
     result[#result+1] = gui.Panel{
         classes = {"formPanel"},
