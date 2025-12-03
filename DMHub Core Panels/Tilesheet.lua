@@ -785,6 +785,42 @@ mod.shared.EditTilesheetAssetDialog = function(tileid, startingValues)
 
 				children = {
 					gui.Label{
+						text = 'Order:',
+						classes = {"formLabel"},
+					},
+					gui.Input{
+						bgimage = 'panels/square.png',
+						text = string.format("%f", asset.ord),
+						characterLimit = 24,
+						style = {
+							fontSize = 18,
+							bgcolor = 'black',
+							margin = 4,
+							valign = 'center',
+							width = 360,
+							height = 30,
+							cornerRadius = 0,
+						},
+
+						events = {
+							change = function(element)
+								asset.ord = tonumber(element.text) or 0
+                                element.text = string.format("%f", asset.ord)
+								fieldsPanel:FireEvent("updateAsset")
+							end,
+						}
+					},
+				},
+
+
+			},
+		
+
+			gui.Panel{
+				classes = {"formPanel"},
+
+				children = {
+					gui.Label{
 						text = 'Description:',
 						classes = {"formLabel"},
 					},

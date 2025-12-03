@@ -994,6 +994,7 @@ CreateBuildingEditor = function()
                             floor = floor,
                             GetSelectedFloor = GetSelectedFloor,
                             GetSelectedWall = GetSelectedWall,
+                            ord = floor.ord,
                         },
 
                         events = {
@@ -1038,7 +1039,7 @@ CreateBuildingEditor = function()
                     children[#children+1] = newFloorItems[key]
                 end
 
-                table.sort(children, function(a,b) return a.data.tileid < b.data.tileid end)
+                table.sort(children, function(a,b) return a.data.ord < b.data.ord or (a.data.ord == b.data.ord and a.data.tileid < b.data.tileid) end)
 
                 children[#children+1] = addFloorButton
 
