@@ -52,6 +52,13 @@ CreateMapSettings = function()
 			width = '100%',
 			height = 'auto',
 		},
+        styles = {
+            {
+                selectors = {"dropdown"},
+                priority = 5,
+                width = 200,
+            }
+        },
 		children = {
 			CreateSettingsEditor('gridcolor'),
 			CreateSettingsEditorsForSection('vision'),
