@@ -1069,21 +1069,7 @@ function GameHud.CreateRollDialog(self)
                         if targetAll then
                             targets = { casterToken.charid }
                         else
-                            --gather all multi-targets as targets of this trigger.
                             targets = { target.token.charid }
-                            for i, altTarget in ipairs(m_multitargets) do
-                                if i ~= targetIndex then
-                                    for j, altTrigger in ipairs(altTarget.triggers) do
-                                        if altTrigger.modifier.guid == trigger.modifier.guid then
-                                            targets[#targets + 1] = altTarget.token.charid
-                                            triggerIndexes[#triggerIndexes + 1] = {
-                                                targetIndex = i,
-                                                triggerIndex = j
-                                            }
-                                        end
-                                    end
-                                end
-                            end
                         end
 
                         local triggered = trigger.triggered
@@ -1097,7 +1083,6 @@ function GameHud.CreateRollDialog(self)
                                 end
                             end
                         end
-
 
                         local activeTrigger = ActiveTrigger.new {
                             id = dmhub.GenerateGuid(),
@@ -2280,7 +2265,7 @@ function GameHud.CreateRollDialog(self)
     }
 
     DuplicateTriggerToMultiTargets = function(triggerInfo)
-        if m_multitargets == nil and triggerInfo.modifier:try_get("multitarget", "one") ~= "all" then
+        if m_multitargets == nil or triggerInfo.modifier:try_get("multitarget", "one") ~= "all" then
             return
         end
 
@@ -2323,6 +2308,7 @@ function GameHud.CreateRollDialog(self)
 
         local needReroll = false
 
+
         for i = 1, #m_multitargets do
             index = index + 1
             if index > #m_multitargets then
@@ -2335,7 +2321,7 @@ function GameHud.CreateRollDialog(self)
 
             local triggers = m_multitargets[index].triggers or {}
 
-            for _, trigger in ipairs(triggers) do
+            for j, trigger in ipairs(triggers) do
                 if trigger.triggered then
                     local powerRollModifier = trigger.modifier.powerRollModifier
 
