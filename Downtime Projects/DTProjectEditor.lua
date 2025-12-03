@@ -1928,7 +1928,7 @@ function DTProjectEditor:CreateEditorPanel()
             if downtimeController then
                 element.data.project:AddRolls(rolls)
                 downtimeController:FireEvent("adjustRolls", -1, roller)
-                dmhub.Schedule(0.1, function()
+                dmhub.Schedule(0.2, function()
                     DTSettings.Touch()
                     DTShares.Touch()
                 end)
@@ -1942,8 +1942,8 @@ function DTProjectEditor:CreateEditorPanel()
                 if roll then
                     local roller = DTRoller:new(roll)
                     if roller then
-                        downtimeController:FireEvent("adjustRolls", 1, roller)
                         element.data.project:RemoveRoll(rollId)
+                        downtimeController:FireEvent("adjustRolls", 1, roller)
                         dmhub.Schedule(0.1, function()
                             DTSettings.Touch()
                             DTShares.Touch()
