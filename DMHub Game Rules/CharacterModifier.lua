@@ -3659,11 +3659,11 @@ function CharacterModifier:CanBestowConditions()
 	return typeInfo.bestowConditions ~= nil
 end
 
-function CharacterModifier:BestowConditions(modContext, creature, conditionsRecorded)
+function CharacterModifier:BestowConditions(modContext, creature, conditionsRecorded, conditionExplanations)
 	local typeInfo = CharacterModifier.TypeInfo[self.behavior] or {}
 	if typeInfo.bestowConditions ~= nil then
 		self:InstallSymbolsFromContext(modContext)
-		typeInfo.bestowConditions(self, creature, conditionsRecorded)
+		typeInfo.bestowConditions(self, creature, conditionsRecorded, conditionExplanations)
 	end
 end
 

@@ -933,6 +933,7 @@ function creature:FillCalculatedStatusIcons(result)
 	local mods = self:GetActiveModifiers()
 
 	local conditions = self:try_get("_tmp_directConditions")
+    local explanations = self:try_get("_tmp_conditionExplanations") or {}
 	if conditions ~= nil then
 		local conditionsTable = dmhub.GetTable(CharacterCondition.tableName)
 		for k,v in pairs(conditions) do
@@ -940,12 +941,13 @@ function creature:FillCalculatedStatusIcons(result)
 			if v > 1 then
 				quantityText = string.format(" (%d)", v)
 			end
+            local explanation = explanations[k] or ""
 			local conditionInfo = conditionsTable[k]
 			result[#result+1] = {
 				id = k,
 				icon = conditionInfo.iconid,
 				style = conditionInfo.display,
-				hoverText = string.format("%s%s: %s", conditionInfo.name, quantityText, conditionInfo.description),
+				hoverText = string.format("%s%s: %s\n\n<b>%s</b>", conditionInfo.name, quantityText, conditionInfo.description, explanation),
 				quantity = v,
 				statusIcon = true,
 			}
@@ -4223,6 +4225,7 @@ function creature:Invalidate()
     self._tmp_grabbedby = nil
     self._tmp_aggroColor = nil
     self._tmp_suspended = nil
+    self._tmp_conditionExplanations = nil
 end
 
 --all the languages that creatures controlled by the local player know.
@@ -4256,6 +4259,7 @@ function creature:RefreshToken(token)
     self._tmp_suspended = nil
 	self._tmp_builtinOngoingEffects = builtinEffects
     self._tmp_modifiersRefresh = nil
+    self._tmp_conditionExplanations = nil
 
 	local modifiers = self:GetActiveModifiers()
     self._tmp_down = self:IsDown()
@@ -4993,12 +4997,13 @@ function creature:FillTemporalActiveModifiers(result)
     end
 
 
+    self._tmp_conditionExplanations = {}
 	self._tmp_directConditions = {}
 	for i,modifier in ipairs(result) do
         --note that bestowing is super sensitive to being late in the process if it's filtered.
         --it will get any modifiers added to this point.
 		if modifier.mod:CanBestowConditions() and modifier.mod:PassesFilter(self, modifier) then
-			modifier.mod:BestowConditions(modifier, self, self._tmp_directConditions)
+			modifier.mod:BestowConditions(modifier, self, self._tmp_directConditions, self._tmp_conditionExplanations)
 		end
 	end
 
