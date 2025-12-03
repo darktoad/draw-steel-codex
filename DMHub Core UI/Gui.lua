@@ -4819,13 +4819,13 @@ function gui.VisibilityPanel(options)
 end
 
 --- @class DividerArgs:PanelArgs
---- @field style? nil|"line"|"dot"|"peak"|"v"|"v-dot" To style the divider as an MCDM divider
+--- @field layout? nil|"line"|"dot"|"peak"|"v"|"v-dot" To style the divider as an MCDM divider
 --- Create a divider panel.
 --- @param options DividerArgs
 --- @return Panel
 function gui.Divider(options)
 	options = options or {}
-	local validStyles = { line = true, dot = true, peak = true, v = true, ["v-dot"] = true }
+	local validLayouts = { line = true, dot = true, peak = true, v = true, ["v-dot"] = true }
 
 	local args = {
 		tmargin = 4,
@@ -4839,9 +4839,10 @@ function gui.Divider(options)
 	}
 
 	-- MCDM styles
-	local mcdmStyle = options.style and #options.style > 0 and options.style:lower()
-	if mcdmStyle and validStyles[mcdmStyle] then
-		if mcdmStyle == "line" then
+	local layout = options.layout and #options.layout > 0 and options.layout:lower()
+	if options.layout then options.layout = nil end
+	if layout and validLayouts[layout] then
+		if layout == "line" then
 			-- For lines, we can use the base layout, replacing the look
 			options.height = 30
 			options.bgimage = mod.images.line
@@ -4879,7 +4880,7 @@ function gui.Divider(options)
 				pad = 0,
 				margin = 0,
 				halign = "center",
-				bgimage = centerImages[mcdmStyle],
+				bgimage = centerImages[layout],
 				bgcolor = args.bgcolor,
 			}
 			local rightPanel = gui.Panel{
