@@ -4818,11 +4818,14 @@ function gui.VisibilityPanel(options)
 	return gui.Panel(args)
 end
 
+--- @class DividerArgs:PanelArgs
+--- @field style? nil|"line"|"dot"|"peak"|"v"|"v-dot" To style the divider as an MCDM divider
 --- Create a divider panel.
---- @param options PanelArgs
+--- @param options DividerArgs
 --- @return Panel
 function gui.Divider(options)
 	options = options or {}
+	local validStyles = { line = true, dot = true, peak = true, v = true, ["v-dot"] = true }
 
 	local args = {
 		tmargin = 4,
@@ -4834,6 +4837,68 @@ function gui.Divider(options)
 		bgcolor = Styles.textColor,
 		gradient = Styles.horizontalGradient,
 	}
+
+	-- MCDM styles
+	local mcdmStyle = options.style and #options.style > 0 and options.style:lower()
+	if mcdmStyle and validStyles[mcdmStyle] then
+		if mcdmStyle == "line" then
+			-- For lines, we can use the base layout, replacing the look
+			options.height = 30
+			options.bgimage = mod.images.line
+			options.gradient = ""
+		else
+			-- The rest are 3-part panels.
+			local centerImages = {
+				["dot"] = mod.images.dot,
+				["peak"] = mod.images.peak,
+				["v"] = mod.images.v,
+				["v-dot"] = mod.images.vdot,
+			}
+
+			for k,v in pairs(options) do
+				args[k] = v
+			end
+			args.tmargin = 0
+			args.height = 30
+			args.bgimage = nil
+			args.gradient = nil
+			args.flow = "horizontal"
+
+			local leftPanel = gui.Panel{
+				width = "50%-15",
+				height = 30,
+				pad = 0,
+				margin = 0,
+				halign = "right",
+				bgimage = mod.images.line,
+				bgcolor = args.bgcolor,
+			}
+			local midPanel = gui.Panel{
+				width = 30,
+				height = 30,
+				pad = 0,
+				margin = 0,
+				halign = "center",
+				bgimage = centerImages[mcdmStyle],
+				bgcolor = args.bgcolor,
+			}
+			local rightPanel = gui.Panel{
+				width = "50%-15",
+				height = 30,
+				pad = 0,
+				margin = 0,
+				halign = "left",
+				bgimage = mod.images.line,
+				bgcolor = args.bgcolor,
+			}
+
+			args.children = {
+				leftPanel, midPanel, rightPanel,
+			}
+
+			return gui.Panel(args)
+		end
+	end
 
 	for k,v in pairs(options) do
 		args[k] = v
