@@ -1111,13 +1111,22 @@ function CharSheet.CreateCharacterSheet(params)
 	local heightPercent = (dmhub.uiscale*characterSheetHeight)/dmhub.screenDimensionsBelowTitlebar.y
 	local minPercent = 1080/1080
 	local xdelta = 0
+    print("RATIO::", characterSheetWidth/characterSheetHeight, dmhub.screenDimensionsBelowTitlebar.x/dmhub.screenDimensionsBelowTitlebar.y)
 	if heightPercent < minPercent then
 		scale = heightPercent/minPercent
 		xdelta = -(1 - scale)*1920/2
+    end
+
+
+    if characterSheetWidth/characterSheetHeight > dmhub.screenDimensionsBelowTitlebar.x/dmhub.screenDimensionsBelowTitlebar.y then
+        scale = min(scale, 0.98*(dmhub.screenDimensionsBelowTitlebar.x/dmhub.screenDimensionsBelowTitlebar.y) / (characterSheetWidth/characterSheetHeight))
+		xdelta = 0
+        print("RATIO:: SCALE =", scale)
 	end
 
 	local rightArea = gui.Panel{
 		id = "rightArea",
+        floating = true,
 		scale = scale,
 		halign = "center",
 		x = xdelta,
