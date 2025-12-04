@@ -67,6 +67,9 @@ function GameHud:ModalDialog(options)
 		Styles.Panel,
 	}
 
+	local width = options.width
+	local height = options.height
+
 	options.width = nil
 	options.height = nil
 
@@ -134,8 +137,8 @@ function GameHud:ModalDialog(options)
 	dialogPanel = gui.Panel{
 		classes = {'framedPanel'},
 
-		width = options.width or 1024,
-		height = options.height or 768,
+		width = width or 1024,
+		height = height or 768,
 
 		styles = styles,
 
