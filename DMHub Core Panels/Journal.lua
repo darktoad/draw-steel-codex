@@ -48,6 +48,22 @@ Commands.clearadventuredocuments = function(str)
     doc:CompleteChange()
 end
 
+Commands.setadventuredocumentstitle = function(str)
+    if str == "help" then
+        dmhub.Log("Usage: /setadventuredocumentstitle name [icon]\nSets the title for adventure documents, and optionally an icon.")
+        return
+    end
+
+    local args = Commands.SplitArgs(str)
+    local doc = GetCurrentAdventuresDocument()
+    doc:BeginChange()
+    doc.data.meta = {
+        name = args[1],
+        icon = args[2],
+    }
+    doc:CompleteChange("Set adventure document title")
+end
+
 Commands.setadventuredocument = function(str)
     if str == "help" then
         dmhub.Log(

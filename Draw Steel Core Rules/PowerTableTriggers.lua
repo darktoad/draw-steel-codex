@@ -301,7 +301,7 @@ CharacterModifier.TypeInfo.powertabletrigger = {
             local damageType = self:try_get("damageType", "all")
             if damageType ~= "all" then
                 local damageTypes = rollProperties:GetDamageTypes()
-                for _,t in ipairs(damageTypes) do
+                for _,t in ipairs(damageTypes or {}) do
                     if t == "untyped" and damageType == "typed" then
                         return false
                     end

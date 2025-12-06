@@ -804,7 +804,7 @@ function equipment:RenderToMarkdown(options)
 
     if not options.noninteractive then
         tokens[#tokens+1] = "\n\n:<>"
-        for _,token in ipairs(dmhub.GetTokens{playerControlled = true}) do
+        for key,token in pairs(Party.GetPlayerCharacters()) do
             if token.name ~= "" then
                 tokens[#tokens+1] = string.format("[[/giveitem \"%s\" %s 1|Give to %s]]", token.name, self.id, token.name)
             end

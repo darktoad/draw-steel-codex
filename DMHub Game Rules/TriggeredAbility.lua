@@ -62,7 +62,7 @@ TriggeredAbility.TargetTypes = {
 		id = 'target',
 		text = 'Target',
 		condition = function(ability)
-			return ability.trigger == "damage" or ability.trigger == "dealdamage" or ability.trigger == "movethrough" or ability.silent
+			return ability.trigger == "damage" or ability.trigger == "dealdamage" or ability.trigger == "movethrough" or ability.trigger == "pressureplate" or ability.silent
 		end,
 	},
     {
@@ -298,6 +298,17 @@ TriggeredAbility.triggers = {
 		id = "fall",
 		text = "Land from a fall",
 	},
+    {
+        id = "pressureplate",
+        text = "Stepped on a Pressure Plate",
+        symbols = {
+            target = {
+                name = "Target",
+                type = "creature",
+                desc = "The creature that moved onto the pressure plate.",
+            }
+        }
+    }
 }
 
 function TriggeredAbility:GenerateManualVersion()
@@ -552,6 +563,7 @@ end
 function TriggeredAbility:Trigger(characterModifier, creature, symbols, auraControllerToken, modContext, argOptions)
 
     argOptions = argOptions or {}
+
 
 	local casterToken = dmhub.LookupToken(creature)
 	if casterToken == nil then
@@ -853,7 +865,6 @@ function TriggeredAbility:Trigger(characterModifier, creature, symbols, auraCont
 
 		g_triggerDepth = g_triggerDepth + 1
 
-        print("CAST:: COROUTINE:: Start synchronous", tostring(coroutine.running()))
 		dmhub.CoroutineSynchronous(TriggeredAbility.TriggerCo, self, targets, characterModifier, casterToken, creature, symbols, auraControllerToken, modContext, argOptions)
 
 		g_triggerDepth = g_triggerDepth - 1

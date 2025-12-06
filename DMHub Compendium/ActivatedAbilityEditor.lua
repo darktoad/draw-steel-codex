@@ -1902,6 +1902,28 @@ function ActivatedAbility:TargetTypeEditor()
 			},
 		},
 
+        gui.Panel{
+            classes = {"formPanel", cond(self.targetType ~= "areatemplate", "collapsed-anim")},
+			refreshAbility = function(element)
+				element:SetClass('collapsed-anim', self.targetType ~= "areatemplate")
+			end,
+
+            gui.Label{
+                classes = {"formLabel"},
+                text = "Object ID:",
+            },
+
+            gui.Input{
+                classes = {"formInput"},
+                text = self:try_get("areaTemplateObjectId", ""),
+                width = 240,
+                placeholderText = "Enter Object ID...",
+                change = function(element)
+                    self.areaTemplateObjectId = element.text
+                end,
+            }
+        },
+
 		gui.Check{
 			text = "Can Target Self",
 			value = self.selfTarget,

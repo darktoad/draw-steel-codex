@@ -365,7 +365,7 @@ CharacterModifier.TypeInfo.power = {
             local newRoll = dmhub.EvalGoblinScript(self:try_get("replaceText"), creature:LookupSymbol(), "Power Roll Replacement")
             
             --we only consider the "2d10 + xxx" part as the 'roll' to replace. Anything after that should be kept.
-            local m = regex.MatchGroups(roll, "^(?<roll>2d10(?:\\s*\\+\\s*\\d+)?)(?<suffix>.*)$")
+            local m = regex.MatchGroups(roll, "^(?<roll>2d10(?:\\s*[+-]\\s*\\d+)?)(?<suffix>.*)$")
             if m ~= nil then
                 if self.modtype == "appendroll" then
                     roll = m.roll .. " + " .. newRoll .. m.suffix

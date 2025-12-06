@@ -1728,6 +1728,7 @@ local CreateObjectEditor = function(nodes, options)
 									text = 'Copy Property',
 									click = function()
 										for i,entry in ipairs(components[componentName].componentsList) do
+                                            print("JSON:: COPY PROPERTY...")
 											dmhub.CopyToInternalClipboard(entry.object:ComponentToJson(entry.componentid))
 											break
 										end

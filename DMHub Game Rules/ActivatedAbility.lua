@@ -310,11 +310,15 @@ ActivatedAbility.TargetTypes = {
         id = 'map',
         text = "All Creatures in Encounter",
     },
+    {
+        id = "areatemplate",
+        text = "Area Template on Map",
+    }
 }
 
 function ActivatedAbility:IsTargetTypeAOE(targetType)
     targetType = targetType or self.targetType
-    return targetType == "all" or targetType == "sphere" or targetType == "cylinder" or targetType == "line" or targetType == "cube" or targetType == "cone"
+    return targetType == "all" or targetType == "sphere" or targetType == "cylinder" or targetType == "line" or targetType == "cube" or targetType == "cone" or targetType == "areatemplate"
 end
 
 --- @return DropdownOption[]
@@ -1139,7 +1143,7 @@ end
 --- @param symbols Symbols
 --- @return boolean
 function ActivatedAbility:CanCastAsIs(casterToken, targets, symbols)
-	if self.targetType == 'all' or self.targetType == 'map' then
+	if self.targetType == 'all' or self.targetType == 'map' or self.targetType == 'areatemplate' then
 		return true
 	end
 	if self.targetType == 'self' then

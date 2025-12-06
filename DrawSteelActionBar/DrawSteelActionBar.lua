@@ -57,6 +57,10 @@ local g_pointForceTargets = {}
 --- @type function[] a list of functions we will call when we cancel casting.
 local g_castingDestructors = {}
 
+function IsCurrentlyUsingAbility()
+    return g_currentAbility ~= nil
+end
+
 local function GetHeroicResourceOrMaliceCost(ability, symbols)
     symbols = symbols or g_currentSymbols
 
@@ -1940,6 +1944,8 @@ local AddRadiusMarker = function(locOverride, radius, color, filterFunction)
         locs = newLocs
     end
 
+
+    print("MovementRadius:: MarkLocs", locs and #locs, "radius =", radius, "from token", tokenCasting.charid, "override =", locOverride)
     g_radiusMarkers[#g_radiusMarkers + 1] = dmhub.MarkLocs {
         locs = locs,
         color = color,
@@ -1947,6 +1953,7 @@ local AddRadiusMarker = function(locOverride, radius, color, filterFunction)
 end
 
 local function ClearRadiusMarkers()
+    print("MovementRadius:: CLEAR")
     for i, marker in ipairs(g_radiusMarkers) do
         marker:Destroy()
     end
@@ -2415,7 +2422,7 @@ CreateAbilityController = function()
             assert(g_currentAbility ~= nil)
             assert(g_abilityController ~= nil)
 
-            if g_currentAbility.targetType == 'all' or g_currentAbility.targetType == 'map' then
+            if g_currentAbility.targetType == 'all' or g_currentAbility.targetType == 'map' or g_currentAbility.targetType == 'areatemplate' then
                 --for 'all' types we have a fake map press. The map parameters don't matter.
                 g_abilityController:FireEvent("mappress")
             else
@@ -2504,7 +2511,7 @@ CreateAbilityController = function()
 
                             g_targetInfo = CreateTargetInfo(g_currentAbility)
 
-                            if g_currentAbility.targetType ~= 'self' and g_currentAbility.targetType ~= 'target' and g_currentAbility.targetType ~= 'all' then
+                            if g_currentAbility.targetType ~= 'self' and g_currentAbility.targetType ~= 'target' and g_currentAbility.targetType ~= 'all' and g_currentAbility.targetType ~= 'areatemplate' then
                                 --make this get map events.
                                 g_abilityController.mapfocus = true
                             else
@@ -2989,7 +2996,7 @@ CreateAbilityController = function()
             g_castMessageContainer:SetClass("collapsed", true)
             g_castButton:SetClass("collapsed", true)
 
-            if ability.targetType ~= 'self' and ability.targetType ~= 'target' and ability.targetType ~= 'all' then
+            if ability.targetType ~= 'self' and ability.targetType ~= 'target' and ability.targetType ~= 'all' and ability.targetType ~= 'areatemplate' then
                 --make this get map events.
                 g_abilityController.mapfocus = true
             else
@@ -3181,6 +3188,7 @@ CreateAbilityController = function()
             ClearRadiusMarkers()
 
             if options.sourceToken ~= nil then
+                print("MovementRadius:: MARK", options.radius)
                 AddRadiusMarker(options.sourceToken.locsOccupying, options.radius)
             end
 
@@ -3365,7 +3373,8 @@ CreateAbilityController = function()
             end
             local destroyLabelsBeforeReturning = g_pointTargeting.labelsAtPathEnd ~= nil
             local pathfinding = false
-            if point ~= nil then
+                print("MARK:: CALCULATING...", g_currentAbility.targetType)
+            if point ~= nil and g_currentAbility.targetType ~= "areatemplate" then
                 local radius = g_currentAbility:GetRadius(g_token.properties, g_currentSymbols)
                 local shape = g_currentAbility.targetType
                 local requireEmpty = false
@@ -3529,6 +3538,7 @@ CreateAbilityController = function()
                                     g_pointTargeting.labelsAtPathEnd[#g_pointTargeting.labelsAtPathEnd + 1] =
                                         g_pointTargeting.shapePathEnd
                                         [i]:Mark { color = "red", video = "divinationline.webm", showLocs = false }
+                            print("MARK:: MARK SHAPE")
                                 end
 
                                 for i, info in ipairs(textLabels) do
@@ -3562,6 +3572,7 @@ CreateAbilityController = function()
                             }
 
                             g_pointTargeting.fallingShape = fallShape:Mark { color = "red", video = "divinationline.webm" }
+                            print("MARK:: MARK SHAPE")
                         end
                     end
                 end
@@ -3627,6 +3638,13 @@ CreateAbilityController = function()
                     shape = "map",
                     token = g_token,
                 }
+            elseif g_currentAbility.targetType == "areatemplate" then
+                g_pointTargeting.shapeRequiresConfirm = false
+                g_pointTargeting.shape = dmhub.CalculateShape {
+                    shape = "areatemplate",
+                    token = g_token,
+                    objectTemplate = g_currentAbility:try_get("areaTemplateObjectId"),
+                }
             else
                 g_pointTargeting.shapeRequiresConfirm = false
                 g_pointTargeting.shape = nil
@@ -3688,6 +3706,7 @@ CreateAbilityController = function()
                 end
 
                 g_pointTargeting.radius = g_pointTargeting.shape:Mark { color = targetColor, video = video }
+                            print("MARK:: MARK SHAPE")
 
                 if g_currentAbility ~= nil and loc ~= nil and g_pointTargeting.shape ~= nil then
                     local numTargets = g_currentAbility:GetNumTargets(g_token, g_currentSymbols)
@@ -3881,6 +3900,7 @@ CreateAbilityController = function()
                         end
 
                         local filterTargetPredicate = g_currentAbility:TargetLocPassesFilterPredicate(g_token, g_currentSymbols)
+                print("MovementRadius:: MARK", g_range)
                         local radiusMarker = g_token:MarkMovementRadius(g_range,
                             { moveFlags = moveFlags, waypoints = waypoints, mask = mask, filter = filterTargetPredicate})
 
@@ -3954,10 +3974,27 @@ end
 local g_potentialTargetTokens = {}
 
 local function CalculateSpellTargetFocusing(range)
+
+
     local potentialTargetTokens = {}
     assert(g_currentAbility ~= nil)
     local spell = g_currentAbility
-    if (spell.targetType == 'self' or spell.targetType == 'target' or spell.targetType == 'all') and g_synthesizedSpellsPanel:HasClass("collapsed") then
+    if (spell.targetType == 'self' or spell.targetType == 'target' or spell.targetType == 'all' or spell.targetType == 'areatemplate') and g_synthesizedSpellsPanel:HasClass("collapsed") then
+
+        local locs = nil
+        if spell.targetType == "areatemplate" then
+
+            local shape = dmhub.CalculateShape {
+                shape = "areatemplate",
+                token = g_token,
+                objectTemplate = g_currentAbility:try_get("areaTemplateObjectId"),
+            }
+
+            if shape ~= nil and shape.locations ~= nil then
+                locs = shape.locations
+            end
+        end
+
         for _, targetToken in ipairs(dmhub.allTokensIncludingObjects) do
             if targetToken.valid and targetToken.sheet ~= nil then
                 if targetToken.sheet.data.targetInfo ~= nil then
@@ -3977,6 +4014,22 @@ local function CalculateSpellTargetFocusing(range)
                     canTarget = false
                 end
 
+                if locs ~= nil and canTarget then
+                    canTarget = false
+                    local locsOccupying = targetToken.locsOccupying
+                    for _,loc in ipairs(locsOccupying) do
+                        for _,shapeLoc in ipairs(locs) do
+                            if loc.x == shapeLoc.x and loc.y == shapeLoc.y then
+                                canTarget = true
+                                break
+                            end
+                        end
+                        if canTarget then
+                            break
+                        end
+                    end
+                end
+
                 local failReason = nil
 
                 if canTarget then
@@ -3990,7 +4043,7 @@ local function CalculateSpellTargetFocusing(range)
 
                 if canTarget then
                     --give us an extra square of range to account for diagonals.
-                    if failReason == nil and (not g_token.properties.minion) and not (range + dmhub.unitsPerSquare > targetToken:Distance(casterLocOverride or g_token)) then
+                    if failReason == nil and spell.targetType ~= "areatemplate" and (not g_token.properties.minion) and not (range + dmhub.unitsPerSquare > targetToken:Distance(casterLocOverride or g_token)) then
                         failReason = "Out of range"
                     end
                     local valid = failReason == nil
@@ -4173,9 +4226,10 @@ CalculateSpellTargeting = function(forceCast, initialSetup)
 
                 local filterTargetPredicate = g_currentAbility:TargetLocPassesFilterPredicate(g_token, g_currentSymbols)
 
+                print("MovementRadius:: MARK", range)
                 g_radiusMarkers[#g_radiusMarkers + 1] = g_token:MarkMovementRadius(range,
                     { moveFlags = moveFlags, waypoints = waypoints, mask = mask, filter = filterTargetPredicate })
-            elseif (g_currentAbility.targetType ~= 'line' or g_currentAbility.canChooseLowerRange) and g_currentAbility.targetType ~= 'cone' and g_currentAbility.targetType ~= 'self' and g_currentAbility.targetType ~= 'all' and g_currentAbility.targetType ~= 'map' then
+            elseif (g_currentAbility.targetType ~= 'line' or g_currentAbility.canChooseLowerRange) and g_currentAbility.targetType ~= 'cone' and g_currentAbility.targetType ~= 'self' and g_currentAbility.targetType ~= 'all' and g_currentAbility.targetType ~= 'map' and g_currentAbility.targetType ~= 'areatemplate' then
                 local loc = g_currentAbility:try_get("casterLocOverride")
 
                 if g_currentAbility.proximityTargeting and g_firstTarget ~= nil then
@@ -4197,12 +4251,8 @@ CalculateSpellTargeting = function(forceCast, initialSetup)
                     local filterTargetPredicate = g_currentAbility:TargetLocPassesFilterPredicate(g_token,
                         g_currentSymbols)
 
+                print("MovementRadius:: MARK", range)
                     AddRadiusMarker(loc, range, 'white', filterTargetPredicate)
-
-                    local rangeDisadvantage = g_currentAbility:GetRangeDisadvantage(g_token.properties, g_currentSymbols)
-                    if rangeDisadvantage ~= nil and rangeDisadvantage > range then
-                        AddRadiusMarker(loc, rangeDisadvantage, 'grey', filterTargetPredicate)
-                    end
 
                     m_allowedAltitudeCalculator = g_currentAbility:TargetLocMaxElevationChangeFunction(g_token,
                         g_currentSymbols)
@@ -4210,7 +4260,7 @@ CalculateSpellTargeting = function(forceCast, initialSetup)
                 else
                     AddCustomAreaMarker(customLocs, 'white')
                 end
-            elseif g_currentAbility.targetType == 'all' then
+            elseif g_currentAbility.targetType == 'all' or g_currentAbility.targetType == 'areatemplate' then
                 --synthesize a map hover event to highlight the area.
                 assert(g_abilityController ~= nil)
                 g_abilityController:FireEvent("maphover", nil, 'all')

@@ -22,6 +22,7 @@ function ActivatedAbilityFloatTextBehavior:SummarizeBehavior(ability, creatureLo
 end
 
 function ActivatedAbilityFloatTextBehavior:Cast(ability, casterToken, targets, options)
+    print("CAST:: FLOAT", #targets)
     for _,target in ipairs(targets) do
         if target.token ~= nil then
             target.token:ModifyProperties{

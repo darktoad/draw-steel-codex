@@ -1745,8 +1745,6 @@ function RollPropertiesPowerTable:GetDamageTypes()
             if not table.contains(result, t) then
                 result[#result+1] = t
             end
-        else
-            return true
         end
     end
 

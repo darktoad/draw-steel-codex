@@ -400,3 +400,31 @@ function CreatePartyInfo(partyid)
 		partyid = partyid,
 	}
 end
+
+--- @return table<string, CharacterToken>
+function Party.GetPlayerCharacters()
+    local charids = {}
+
+    for _,token in ipairs(dmhub.GetTokens{playerControlled = true}) do
+        if token.name ~= "" then
+            charids[token.charid] = true
+        end
+    end
+
+    local partyid = GetDefaultPartyID()
+    local partyids = dmhub.GetCharacterIdsInParty(partyid)
+
+    for _,charid in ipairs(partyids) do
+        charids[charid] = true
+    end
+
+    for charid,_ in pairs(charids) do
+        charids[charid] = dmhub.GetCharacterById(charid)
+        if charids[charid].name == "" or charids[charid].name == nil then
+            charids[charid] = nil
+        end
+    end
+
+
+    return charids
+end

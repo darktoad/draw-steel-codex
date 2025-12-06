@@ -816,6 +816,29 @@ creature.RegisterSymbol {
     },
 }
 
+creature.RegisterSymbol{
+    symbol = "playerallied",
+    lookup = function(c)
+        local token = dmhub.LookupToken(c)
+        if token ~= nil and token.valid and token.playerControlled then
+            return true
+        end
+
+        local initiativeid = InitiativeQueue.GetInitiativeId(token)
+        if initiativeid ~= nil and dmhub.initiativeQueue ~= nil and not dmhub.initiativeQueue.hidden then
+            return dmhub.initiativeQueue:IsEntryPlayer(initiativeid)
+        end
+
+        return false
+    end,
+    help = {
+        name = "Player Allied",
+        type = "boolean",
+        desc = "If this creature is a player or allied with the players this will be true.",
+        seealso = {},
+    },
+}
+
 creature.RegisterSymbol {
     symbol = "dying",
     lookup = function(c)

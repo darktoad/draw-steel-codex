@@ -648,7 +648,9 @@ function GameHud:CreateAdventureDocumentsManager()
 
             local documentids = {}
             for docid,info in pairs(m_docs) do
-                documentids[#documentids+1] = docid
+                if docid ~= "meta" then
+                    documentids[#documentids+1] = docid
+                end
             end
 
             table.sort(documentids, function(a,b)
@@ -662,7 +664,12 @@ function GameHud:CreateAdventureDocumentsManager()
 
             print("AdventureDoc:: MONITOR", docs, "->", documentids)
 
-            TopBar.SetAdventureDocuments(documentids)
+            local meta = m_docs["meta"] or {
+                icon = "panels/drawsteel/delian-tomb.png",
+                name = "Delian Tomb",
+            }
+
+            TopBar.SetAdventureDocuments(meta, documentids)
         end,
 
         create = function(element)
@@ -670,7 +677,11 @@ function GameHud:CreateAdventureDocumentsManager()
         end,
 
         destroy = function(element)
-            TopBar.SetAdventureDocuments({})
+            local meta = m_docs["meta"] or {
+                icon = "panels/drawsteel/delian-tomb.png",
+                name = "Delian Tomb",
+            }
+            TopBar.SetAdventureDocuments(nil, {})
             print("ADVENTURE:: DESTROY DOC")
         end,
     }

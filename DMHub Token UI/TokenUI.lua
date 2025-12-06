@@ -2171,6 +2171,10 @@ function CreateTokenHud(token)
                     return 
                 end
 
+                if IsCurrentlyUsingAbility() then
+                    return
+                end
+
 				element.popupPositioning = 'panel'
 
 				token:ConsumeClick()

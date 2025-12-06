@@ -590,7 +590,7 @@ function CreateSettingsScreen(dialog, args)
 							height = "auto",
 							gui.Label{
 								fontSize = 16,
-								text = string.format("Logged in as %s", dmhub.userEmail),
+								text = string.format("Logged in as %s", dmhub.userDisplayName),
 								width = "auto",
 								height = "auto",
 							},
@@ -616,16 +616,21 @@ function CreateSettingsScreen(dialog, args)
 								height = "auto",
 							},
 
-							gui.Label{
-								text = "Support us on Patreon for more bandwidth and other benefits",
-								classes = {"link", cond(dmhub.hasStoreAccess, "collapsed")},
-								fontSize = 14,
-								width = "auto",
-								height = "auto",
-								click = function(element)
-									dmhub.OpenRegisteredURL("Patreon")
-								end,
-							},
+                            gui.Label{
+                                styles = Styles.Default,
+                                text = "See our <color=#00FFFF><link=https://www.mcdmproductions.com/draw-steel-codex-terms-of-service>Terms of Service</link></color> and <color=#00FFFF><link=https://www.mcdmproductions.com/draw-steel-codex-privacy-policy>Privacy Policy</link></color>",
+                                markdown = true,
+                                maxWidth = 600,
+                                fontSize = 14,
+                                links = true,
+                                width = "auto",
+                                height = "auto",
+                                press = function(element)
+                                    if element.linkHovered ~= nil then
+                                        dmhub.OpenURL(element.linkHovered)
+                                    end
+                                end,
+                            },
 
 							gui.Panel{
 								vmargin = 16,

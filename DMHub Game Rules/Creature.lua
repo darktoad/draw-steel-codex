@@ -458,6 +458,11 @@ function creature:GetSpeed(movementType)
 		return self:WalkingSpeed()
 	end
 
+    if self:try_get("_tmp_prone") and movementType ~= "teleport" then
+        --non-walking movement is not possible while prone.
+        return 0
+    end
+
 	local result
 	if self:has_key('movementSpeeds') then
 		result = (self.movementSpeeds[movementType] or 0)
@@ -4211,6 +4216,7 @@ end
 creature._tmp_grabbedby = false
 
 local g_grabbedid = "70504ebe-3899-41d3-9f60-74b52ce35e39"
+local g_proneid = "da6867b1-01e3-4570-8d1b-1b94ea1ea343"
 
 function creature:Invalidate()
 	self._tmp_modifiers = nil
@@ -4225,6 +4231,7 @@ function creature:Invalidate()
     self._tmp_grabbedby = nil
     self._tmp_aggroColor = nil
     self._tmp_suspended = nil
+    self._tmp_prone = nil
     self._tmp_conditionExplanations = nil
 end
 
@@ -4257,6 +4264,7 @@ function creature:RefreshToken(token)
 	end
 
     self._tmp_suspended = nil
+    self._tmp_prone = nil
 	self._tmp_builtinOngoingEffects = builtinEffects
     self._tmp_modifiersRefresh = nil
     self._tmp_conditionExplanations = nil
@@ -4286,6 +4294,10 @@ function creature:RefreshToken(token)
         local grabbed = inflictedConditions[g_grabbedid]
         if grabbed ~= nil and grabbed.casterInfo ~= nil then
             self._tmp_grabbedby = grabbed.casterInfo.tokenid
+        end
+
+        if inflictedConditions[g_proneid] ~= nil then
+            self._tmp_prone = true
         end
     end
 

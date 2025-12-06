@@ -21,11 +21,11 @@ function ActivatedAbilityRemoveCreatureBehavior:SummarizeBehavior(ability, creat
 	return "Remove Creatures"
 end
 
-function ActivatedAbilityRemoveCreatureBehavior:DropLoot(token)
+function ActivatedAbilityRemoveCreatureBehavior:DropLoot(token, newObj)
 	local objects = assets:GetObjectsWithKeyword("corpse")
 
 	if #objects == 0 then
-		return
+		return newObj
 	end
 
 	local inventory = DeepCopy(token.properties:try_get("inventory", {}))
@@ -73,24 +73,26 @@ function ActivatedAbilityRemoveCreatureBehavior:DropLoot(token)
 	end
 
 	if haveItems == false then
-		return
+		return newObj
 	end
 
 
 
 	local floor = game.GetFloor(token.floorid)
 
-	local newObj = floor:CreateLocalObjectFromBlueprint{
-		assetid = objects[1].id,
-	}
+    if newObj == nil then
+        newObj = floor:CreateLocalObjectFromBlueprint{
+            assetid = objects[1].id,
+        }
 
-	newObj.scale = newObj.scale * token.radiusInTiles * 2
-	newObj.x = token.pos.x
-	newObj.y = token.pos.y
+        newObj.scale = newObj.scale * token.radiusInTiles * 2
+        newObj.x = token.pos.x
+        newObj.y = token.pos.y
+    end
 
 	local loot = {
 		["@class"] = "ObjectComponentLoot",
-		destroyOnEmpty = true,
+		destroyOnEmpty = false,
 		instantLoot = false,
 		locked = false,
 		properties = {
@@ -102,7 +104,7 @@ function ActivatedAbilityRemoveCreatureBehavior:DropLoot(token)
 
 	newObj:AddComponentFromJson("LOOT", loot)
 
-	newObj:Upload()
+    return newObj
 end
 
 local g_damageTypeToDescription = {
@@ -120,25 +122,28 @@ local g_damageTypeToDescription = {
     fall = {"forced over an edge", "thrown to their death", "hurled to their death"}
 }
 
-function ActivatedAbilityRemoveCreatureBehavior:LeaveCorpse(token)
+function ActivatedAbilityRemoveCreatureBehavior:LeaveCorpse(token, newObj)
     local objects = assets:GetObjectsWithKeyword("corpse")
 
     if #objects == 0 then
-        return
+        return newObj
     end
 
     local floor = game.GetFloor(token.floorid)
     if floor == nil then
-        return
+        return newObj
     end
 
-    local newObj = floor:CreateLocalObjectFromBlueprint{
-        assetid = objects[1].id,
-    }
+    if newObj == nil then
+        newObj = floor:CreateLocalObjectFromBlueprint{
+            assetid = objects[1].id,
+        }
 
-    newObj.scale = newObj.scale * token.radiusInTiles * 2
-    newObj.x = token.pos.x
-    newObj.y = token.pos.y
+        newObj.scale = newObj.scale * token.radiusInTiles * 2
+        newObj.x = token.pos.x
+        newObj.y = token.pos.y
+    end
+
 
     newObj:AddComponentFromJson("CORPSE", {
         ["@class"] = "ObjectComponentCorpse",
@@ -194,7 +199,7 @@ function ActivatedAbilityRemoveCreatureBehavior:LeaveCorpse(token)
         
     end
 
-    newObj:Upload()
+    return newObj
 end
 
 function ActivatedAbilityRemoveCreatureBehavior:Cast(ability, casterToken, targets, options)
@@ -232,12 +237,17 @@ function ActivatedAbilityRemoveCreatureBehavior:Cast(ability, casterToken, targe
         end
 
         if targetPasses then
-            if self.dropsLoot then
-                self:DropLoot(target.token)
+            local corpse = nil
+            if self.leavesCorpse then
+                corpse = self:LeaveCorpse(target.token, corpse)
             end
 
-            if self.leavesCorpse then
-                self:LeaveCorpse(target.token)
+            if self.dropsLoot then
+                corpse = self:DropLoot(target.token, corpse)
+            end
+
+            if corpse ~= nil then
+                corpse:Upload()
             end
 
             if target.token.properties:IsMonster() then

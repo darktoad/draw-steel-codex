@@ -4183,17 +4183,17 @@ function CharacterPanel.SingleCharacterDisplaySidePanel(token)
 
                     bgimage = true,
                     bgcolor = "clear",
-                    height = 50,
+                    height = 20,
                     width = "80%",
                     borderWidth = 0,
-                    tmargin = 10,
+                    tmargin = 4,
 
                     flow = "horizontal",
 
                     refresh = function(element)
                         local tok = dmhub.currentToken
                         if tok ~= nil then
-                            if not tok.properties:CanFly() then
+                            if (not tok.properties:CanFly()) and (not tok.canCurrentlyClimb) then
                                 element:SetClass("collapsed", true)
                             else
                                 element:SetClass("collapsed", false)
@@ -4213,7 +4213,11 @@ function CharacterPanel.SingleCharacterDisplaySidePanel(token)
                         refresh = function(element)
                             local tok = dmhub.currentToken
                             if tok ~= nil then
-                                element.text = string.format("Flying: " .. tostring(tok.floorAltitude))
+                                if tok.properties:CanFly() then
+                                    element.text = string.format("Flying: " .. tostring(tok.floorAltitude))
+                                elseif tok.canCurrentlyClimb then
+                                    element.text = string.format("Climb: " .. tostring(tok.floorAltitude))
+                                end
                             end
                         end
 
@@ -4222,7 +4226,8 @@ function CharacterPanel.SingleCharacterDisplaySidePanel(token)
 
                     gui.Button {
                         text = "-",
-                        width = 30,
+                        width = 16,
+                        height = 16,
 
 
                         click = function()
@@ -4230,6 +4235,8 @@ function CharacterPanel.SingleCharacterDisplaySidePanel(token)
                             if tok ~= nil then
                                 if tok.properties:CanFly() then
                                     tok.properties:SetAndUploadCurrentMoveType("fly")
+                                elseif tok.properties:CanClimb() then
+                                    tok.properties:SetAndUploadCurrentMoveType("climb")
                                 end
 
                                 tok:MoveVertical(tok.floorAltitude - 1)
@@ -4240,13 +4247,16 @@ function CharacterPanel.SingleCharacterDisplaySidePanel(token)
 
                     gui.Button {
                         text = "+",
-                        width = 30,
+                        width = 16,
+                        height = 16,
 
                         click = function()
                             local tok = dmhub.currentToken
                             if tok ~= nil then
                                 if tok.properties:CanFly() then
                                     tok.properties:SetAndUploadCurrentMoveType("fly")
+                                elseif tok.properties:CanClimb() then
+                                    tok.properties:SetAndUploadCurrentMoveType("climb")
                                 end
 
                                 tok:MoveVertical(tok.floorAltitude + 1)
@@ -4262,7 +4272,7 @@ function CharacterPanel.SingleCharacterDisplaySidePanel(token)
                     text = "Light",
                     width = 50,
                     height = "auto",
-                    tmargin = 15,
+                    tmargin = 10,
 
 
                     refresh = function(element)

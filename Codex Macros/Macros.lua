@@ -370,6 +370,23 @@ Commands.objectcommand = function(str)
     end
 end
 
+Commands.printlocs = function(str)
+    local objects = game.currentFloor.objects
+    for key, obj in pairs(objects) do
+        local keywords = obj.keywords
+        if keywords and keywords["test"] then
+            for key, component in pairs(obj.components) do
+                local name = string.lower(component.name)
+                if name == "area template" then
+                    local locs = component:GetFilledLocs()
+                    print("PRINT::", name, locs)
+
+                end
+            end
+        end
+    end
+end
+
 Commands.activateobjects = function(str)
     local args = string.split(str, " ")
     if not args[1] then

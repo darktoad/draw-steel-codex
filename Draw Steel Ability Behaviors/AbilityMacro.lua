@@ -19,6 +19,7 @@ ActivatedAbilityMacroBehavior.summary = 'Macro Execution'
 
 function ActivatedAbilityMacroBehavior:Cast(ability, casterToken, targets, options)
     local macro = StringInterpolateGoblinScript(self.macro, casterToken.properties:LookupSymbol(options.symbols))
+    print("MACRO:: EXECUTE:", macro)
     dmhub.Execute(macro)
 end
 

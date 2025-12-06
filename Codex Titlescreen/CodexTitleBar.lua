@@ -611,8 +611,12 @@ TopBar = {}
 
 
 --- @param documentids {string}
-TopBar.SetAdventureDocuments = function(documentids)
+TopBar.SetAdventureDocuments = function(info, documentids)
     if g_adventureDocumentsBar ~= nil and g_adventureDocumentsBar.valid then
+        if info then
+            g_adventureDocumentsBar:FireEventTree("setname", info.name or "Adventure Documents")
+            g_adventureDocumentsBar:FireEventTree("seticon", info.icon)
+        end
         g_adventureDocumentsBar:FireEventTree("documents", documentids)
     end
 end

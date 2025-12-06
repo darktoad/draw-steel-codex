@@ -439,6 +439,15 @@ local CreateInventorySlot = function(dmhud, options)
 								parentDialog.data.close()
 							end
 							token:DestroyObject()
+                        elseif token.type == "component" and token.properties:Empty() then
+                            local obj = token.objectComponent ~= nil and token.objectComponent.levelObject
+                            if obj ~= nil then
+                                local appearanceComponent = obj:GetComponent("Appearance")
+                                if appearanceComponent ~= nil then
+                                    --TODO: set to empty appearance.
+                                    
+                                end
+                            end
 						end
 					else
 						target.data.AddItem(item, item:TradedQuantity(), { slot = slotPanel.data.inventoryIndex })
