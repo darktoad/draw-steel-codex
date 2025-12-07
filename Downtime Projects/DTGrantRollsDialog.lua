@@ -51,33 +51,24 @@ function DTGrantRollsDialog:ShowDialog()
                 end
             end
 
-            -- Apply validation rules
-            local isValid = true
-            local buttonLabel = "Grant"
+            local isValid = anyHeroSelected or anyFollowerSelected
+            if isValid and anyHeroSelected then isValid = heroRolls ~= 0 end
+            if isValid and anyFollowerSelected then isValid = followerRolls ~= 0 end
 
-            -- Rule 1: If both numeric fields are 0, disabled
-            if heroRolls == 0 and followerRolls == 0 then
-                isValid = false
-            -- Rule 2: If nothing selected, disabled
-            elseif not anyHeroSelected and not anyFollowerSelected then
-                isValid = false
-            -- Rule 3: If heroes field is 0 and any heroes selected, disabled
-            elseif heroRolls == 0 and anyHeroSelected then
-                isValid = false
-            -- Rule 4: If followers field is 0 and any followers selected, disabled
-            elseif followerRolls == 0 and anyFollowerSelected then
-                isValid = false
-            -- Rule 5: If heroes field non-zero and NO heroes selected, disabled
-            elseif heroRolls ~= 0 and not anyHeroSelected then
-                isValid = false
-            -- Rule 6: If followers field non-zero and NO followers selected, disabled
-            elseif followerRolls ~= 0 and not anyFollowerSelected then
-                isValid = false
-            end
-
-            -- Determine label (Revoke if either value is negative)
-            if heroRolls < 0 or followerRolls < 0 then
-                buttonLabel = "Revoke"
+            local buttonLabel = ""
+            if isValid then
+                if anyHeroSelected then
+                    buttonLabel = heroRolls < 0 and "Revoke" or "Grant"
+                end
+                if anyFollowerSelected then
+                    local followerAction = (followerRolls < 0) and "Revoke" or "Grant"
+                    if followerAction ~= buttonLabel then
+                        if #buttonLabel > 0 then buttonLabel = buttonLabel .. " | " end
+                        buttonLabel = buttonLabel .. followerAction
+                    end
+                end
+            else
+                buttonLabel = "(invalid)"
             end
 
             element:FireEventTree("enableConfirm", isValid, buttonLabel)
@@ -224,7 +215,7 @@ function DTGrantRollsDialog:ShowDialog()
                                 enableConfirm = function(element, enabled, label)
                                     if label and #label then
                                         element.text = label
-                                        element:SetClass("DTDanger", string.lower(label) == "revoke")
+                                        element:SetClass("DTDanger", string.lower(label):find("revoke"))
                                     end
                                     element:SetClass("DTDisabled", not enabled)
                                     element.interactable = enabled
