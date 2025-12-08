@@ -1389,7 +1389,7 @@ function ActivatedAbility:FireUseAbility(casterToken, options)
 			}
 		end
 
-        casterToken.properties:DispatchEvent("useability", {usedability = GenerateSymbols(self), cast = options.cast})
+        casterToken.properties:DispatchEvent("useability", {usedability = self, cast = options.cast})
 
         for _,target in ipairs(options.targets or {}) do
             if target.token ~= nil then
@@ -2052,6 +2052,7 @@ function CastActivatedAbilityChatMessage.Render(self, message)
 	                    element.tooltipParent = dock
 
 					    local tooltip = CreateAbilityTooltip(ability, {halign = dock.data.TooltipAlignment(), token = token, width = 540})
+                        print("HOVER ABILITY::", ability)
                         element.tooltip = tooltip
                     end,
                 },
@@ -2128,6 +2129,7 @@ function ActivatedAbility:Cast(casterToken, targets, options)
 
     if options.chatMessage == nil and self:ShowChatMessageOnCast() then
         local abilityClone = table.shallow_copy(self)
+        setmetatable(abilityClone, getmetatable(self))
         abilityClone.invoker = nil
         local message = CastActivatedAbilityChatMessage.new{
             castid = options.symbols.castid,
