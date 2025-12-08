@@ -3308,6 +3308,16 @@ function creature:AuraDamage(token, info)
     }
 end
 
+function creature:CanMoveThroughWalls()
+    local customAttr = CustomAttribute.attributeInfoByLookupSymbol["canmovethroughwalls"]
+    if customAttr == nil then
+        return false
+    end
+
+    local result = self:GetCustomAttribute(customAttr) > 0
+    return result
+end
+
 function creature:IgnoreDifficultTerrain()
     local customAttr = CustomAttribute.attributeInfoByLookupSymbol["ignoredifficultterrain"]
     if customAttr == nil then
@@ -3480,6 +3490,26 @@ creature.RegisterSymbol {
     symbol = "keywords",
     lookup = function(c)
         local keywords = table.keys(c:Keywords())
+
+        --add any keywords from the object.
+        local token = dmhub.LookupToken(c)
+        if token ~= nil and token.valid and token.isObject then
+            local component = token.objectComponent
+            if component ~= nil then
+                local levelObject = component.levelObject
+                if levelObject ~= nil then
+                    local otherKeywords = levelObject.keywords
+                    if otherKeywords then
+                        for k,_ in pairs(otherKeywords) do
+                            if not table.contains(keywords, k) then
+                                keywords[#keywords + 1] = k
+                            end
+                        end
+                    end
+                end
+            end
+        end
+
         return StringSet.new{
             strings = keywords,
         }
