@@ -6,11 +6,6 @@ dmhub.InvalidateTokenUI()
 
 TokenUI = {}
 
-local g_profileRibbon = dmhub.ProfileMarker("tokenui.ribbon")
-local g_profileName = dmhub.ProfileMarker("tokenui.name")
-local g_profileStatus = dmhub.ProfileMarker("tokenui.status")
-local g_profileMain = dmhub.ProfileMarker("tokenui.main")
-
 local g_menuGradient = gui.Gradient{
     point_a = {x = 0, y = 0},
     point_b = {x = 1, y = 1},
@@ -504,7 +499,6 @@ TokenHud.RegisterPanel{
 				italics = false,
 				events = {
 					refresh = function(element)
-						g_profileName:Begin()
 						if token.properties ~= nil and (token.canControl or not token.namePrivate) then
 							element.selfStyle.color = token.playerColor
 							element.selfStyle.italics = token.namePrivate
@@ -513,7 +507,6 @@ TokenHud.RegisterPanel{
 						else
 							element.text = ''
 						end
-						g_profileName:End()
 					end,
 				},
 			},
@@ -557,7 +550,6 @@ TokenHud.RegisterPanel{
                         return
                     end
 
-					g_profileStatus:Begin()
 					local children = {}
 
 					local statusBars = CalculateStatusBars(token)
@@ -1078,7 +1070,6 @@ TokenHud.RegisterPanel{
 
 					element.children = children
 					statusIcons = newStatusIcons
-					g_profileStatus:End()
 				end,
 			},
 		}
@@ -1842,8 +1833,6 @@ function CreateTokenHud(token)
                     return
                 end
 
-				g_profileMain:Begin()
-
                 local damageEntries = token.properties:GetAndRemoveDamageEntries()
                 if damageEntries ~= nil then
                     local sound = nil
@@ -1920,7 +1909,6 @@ function CreateTokenHud(token)
 						element.thinkTime = 12
 					end
 				end
-				g_profileMain:End()
 			end,
 
 			focus = function(element)
