@@ -24,17 +24,16 @@ function CharacterBuilder._ancestryDetail()
         options.borderColor = CharacterBuilder.COLORS.GRAY02
         if options.click == nil then
             options.click = function(element)
-                ancestryPanel:FireEventTree("categoryChange", element.data.category)
-            end
-        end
-        if options.categoryChange == nil then
-            options.categoryChange = function(element, newCategory)
-                element:FireEvent("setSelected", newCategory == element.data.category)
+                _fireControllerEvent(element, "updateState", {
+                    key = SELECTOR .. ".category.selectedId",
+                    value = element.data.category
+                })
             end
         end
         if options.refreshBuilderState == nil then
             options.refreshBuilderState = function(element, state)
-                element:FireEvent("setAvailable", state:Get("ancestry.selectedId") ~= nil)
+                element:FireEvent("setAvailable", state:Get(SELECTOR .. ".selectedId") ~= nil)
+                element:FireEvent("setSelected", state:Get(SELECTOR .. ".category.selectedId") == element.data.category)
             end
         end
         return gui.SelectorButton(options)
@@ -73,7 +72,6 @@ function CharacterBuilder._ancestryDetail()
                 _fireControllerEvent(element, "tokenDataChanged")
             end
         end,
-        categoryChange = function() end,
         refreshBuilderState = function(element)
             element:FireEvent("refreshToken")
         end,
@@ -94,17 +92,13 @@ function CharacterBuilder._ancestryDetail()
         },
 
         create = function(element)
-            element:FireEventTree("categoryChange", element.data.category)
-        end,
-
-        categoryChange = function(element, newCategory)
-            element.data.catgory = newCategory
+            _fireControllerEvent(element, "updateState", {
+                key = SELECTOR .. ".category.selectedId",
+                value = INITIAL_CATEGORY,
+            })
         end,
 
         refreshBuilderState = function(element)
-            dmhub.Schedule(0.1, function()
-                element:FireEventTree("categoryChange", element.data.category)
-            end)
         end,
 
         overview,
@@ -128,13 +122,9 @@ function CharacterBuilder._ancestryDetail()
             category = "overview",
         },
 
-        categoryChange = function(element, currentCategory)
-            element:SetClass("collapsed", currentCategory ~= element.data.category)
-        end,
-
         refreshBuilderState = function(element, state)
-            element:FireEvent("categoryChange", element.data.category)
-            local ancestryId = state:Get("ancestry.selectedId")
+            element:SetClass("collapsed", state:Get(SELECTOR.. ".category.selectedId") ~= element.data.category)
+            local ancestryId = state:Get(SELECTOR .. ".selectedId")
             if ancestryId == nil then
                 element.bgimage = mod.images.ancestryHome
                 return
@@ -202,8 +192,8 @@ function CharacterBuilder._ancestryDetail()
             category = "lore",
         },
 
-        categoryChange = function(element, currentCategory)
-            element:SetClass("collapsed", currentCategory ~= element.data.category)
+        refreshBuilderState = function(element, state)
+            element:SetClass("collapsed", state:Get(SELECTOR .. ".category.selectedId") ~= element.data.category)
         end,
 
         gui.Label{
@@ -217,7 +207,6 @@ function CharacterBuilder._ancestryDetail()
             textAlignment = "left",
 
             refreshBuilderState = function(element, state)
-                element:FireEvent("categoryChange", element.data.category)
                 local ancestryId = state:Get("ancestry.selectedId")
                 if ancestryId then
                     local race = dmhub.GetTable(Race.tableName)[ancestryId]
