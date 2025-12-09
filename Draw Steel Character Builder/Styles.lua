@@ -9,27 +9,30 @@ CharacterBuilder.COLORS = {
     BLACK = "#000000",
     BLACK03 = "#191A18",
     CREAM = "#BC9B7B",
+    CREAM03 = "#DFCFC0",
     GOLD = "#966D4B",
     GRAY02 = "#666663",
     PANEL_BG = "#080B09",
 }
 
 CharacterBuilder.SIZES = {
-    CHARACTER_PANEL_WIDTH = 447,
-
     ACTION_BUTTON_WIDTH = 225,
     ACTION_BUTTON_HEIGHT = 45,
-
-    SELECTOR_BUTTON_WIDTH = 200,
-    SELECTOR_BUTTON_HEIGHT = 48,
 
     CATEGORY_BUTTON_WIDTH = 250,
     CATEGORY_BUTTON_HEIGHT = 48,
     CATEGORY_BUTTON_MARGIN = 16,
 
-    AVATAR_DIAMETER = 185,
+    SELECTOR_BUTTON_WIDTH = 200,
+    SELECTOR_BUTTON_HEIGHT = 48,
+
+    SELECT_BUTTON_WIDTH = 200,
+    SELECT_BUTTON_HEIGHT = 36,
 
     BUTTON_SPACING = 12,
+
+    CHARACTER_PANEL_WIDTH = 447,
+    AVATAR_DIAMETER = 185,
 }
 CharacterBuilder.SIZES.BUTTON_PANEL_WIDTH = CharacterBuilder.SIZES.ACTION_BUTTON_WIDTH + 60
 CharacterBuilder.SIZES.CENTER_PANEL_WIDTH = "100%-" .. (30 + CharacterBuilder.SIZES.BUTTON_PANEL_WIDTH + CharacterBuilder.SIZES.CHARACTER_PANEL_WIDTH)
@@ -43,7 +46,7 @@ function CharacterBuilder._baseStyles()
         {
             selectors = {"builder-base"},
             fontSize = 14,
-            fontFace = "Newzald",
+            fontFace = "Berling",
             color = Styles.textColor,
             bold = false,
         },
@@ -146,6 +149,17 @@ function CharacterBuilder._buttonStyles()
             cornerRadius = 5,
             textAlignment = "left",
             bold = false,
+        },
+        {
+            selectors = {"button-select"},
+            width = CharacterBuilder.SIZES.SELECT_BUTTON_WIDTH,
+            height = CharacterBuilder.SIZES.SELECT_BUTTON_HEIGHT,
+            fontSize = 36,
+            bold = true,
+            cornerRadius = 5,
+            border = 1,
+            borderWidth = 1,
+            borderColor = CharacterBuilder.COLORS.CREAM03,
         },
         {
             selectors = {"available"},

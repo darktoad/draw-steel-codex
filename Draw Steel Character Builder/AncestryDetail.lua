@@ -6,9 +6,11 @@ local mod = dmhub.GetModLoading()
 
 local SELECTOR = "ancestry"
 local INITIAL_CATEGORY = "overview"
+local UNAVAILABLE_WITHOUT_ANCESTRY = {features = true, traits = true}
 
 local _fireControllerEvent = CharacterBuilder._fireControllerEvent
 local _getCreature = CharacterBuilder._getCreature
+local _getState = CharacterBuilder._getState
 local _getToken = CharacterBuilder._getToken
 
 --- Placeholder for content in a center panel
@@ -50,20 +52,34 @@ function CharacterBuilder._ancestryDetail()
     local features = makeCategoryButton{
         text = "Features",
         data = { category = "features" },
+        refreshBuilderState = function(element, state)
+            local creature = _getCreature(element)
+            if creature then
+                element:FireEvent("setAvailable", creature:try_get("raceid") ~= nil)
+                element:FireEvent("setSelected", state:Get(SELECTOR .. ".category.selectedId") == element.data.category)
+            end
+        end,
+        refreshToken = function(element)
+            element:FireEvent("refreshBuilderState", _getState(element))
+        end,
     }
     local traits = makeCategoryButton{
         text = "Traits",
         data = { category = "traits" },
+        refreshBuilderState = function(element, state)
+            local creature = _getCreature(element)
+            if creature then
+                element:FireEvent("setAvailable", creature:try_get("raceid") ~= nil)
+                element:FireEvent("setSelected", state:Get(SELECTOR .. ".category.selectedId") == element.data.category)
+            end
+        end,
+        refreshToken = function(element)
+            element:FireEvent("refreshBuilderState", _getState(element))
+        end,
     }
     local change = makeCategoryButton{
         text = "Change Ancestry",
         data = { category = "change" },
-        refreshToken = function(element)
-            local creature = _getCreature(element)
-            if creature then
-                element:FireEvent("setAvailable", creature:try_get("raceid") ~= nil)
-            end
-        end,
         click = function(element)
             local creature = _getCreature(element)
             if creature then
@@ -74,6 +90,12 @@ function CharacterBuilder._ancestryDetail()
         end,
         refreshBuilderState = function(element)
             element:FireEvent("refreshToken")
+        end,
+        refreshToken = function(element)
+            local creature = _getCreature(element)
+            if creature then
+                element:FireEvent("setAvailable", creature:try_get("raceid") ~= nil)
+            end
         end,
     }
 
@@ -123,8 +145,11 @@ function CharacterBuilder._ancestryDetail()
         },
 
         refreshBuilderState = function(element, state)
-            element:SetClass("collapsed", state:Get(SELECTOR.. ".category.selectedId") ~= element.data.category)
             local ancestryId = state:Get(SELECTOR .. ".selectedId")
+
+            local visible = ancestryId == nil or state:Get(SELECTOR .. ".category.selectedId") == element.data.category
+            element:SetClass("collapsed", not visible)
+
             if ancestryId == nil then
                 element.bgimage = mod.images.ancestryHome
                 return
@@ -149,11 +174,13 @@ function CharacterBuilder._ancestryDetail()
                 text = "ANCESTRY",
                 textAlignment = "left",
                 refreshBuilderState = function(element, state)
-                    local ancestryId = state:Get("ancestry.selectedId")
+                    local text = "ANCESTRY"
+                    local ancestryId = state:Get(SELECTOR .. ".selectedId")
                     if ancestryId then
                         local race = dmhub.GetTable(Race.tableName)[ancestryId]
-                        if race then element.text = race.name end
+                        if race then text = race.name end
                     end
+                    element.text = text
                 end
             },
             gui.Label{
@@ -165,6 +192,15 @@ function CharacterBuilder._ancestryDetail()
                 bmargin = 12,
                 textAlignment = "left",
                 text = CharacterBuilder.STRINGS.ANCESTRY.INTRO,
+                refreshBuilderState = function(element, state)
+                    local text = CharacterBuilder.STRINGS.ANCESTRY.INTRO
+                    local ancestryId = state:Get(SELECTOR .. ".selectedId")
+                    if ancestryId then
+                        local race = dmhub.GetTable(Race.tableName)[ancestryId]
+                        if race then text = CharacterBuilder._trimToLength(race.details, 300) end
+                    end
+                    element.text = text
+                end,
             },
             gui.Label{
                 classes = {"builder-base", "label", "label-info"},
@@ -174,7 +210,37 @@ function CharacterBuilder._ancestryDetail()
                 hpad = 12,
                 tmargin = 12,
                 textAlignment = "left",
+                bold = false,
                 text = CharacterBuilder.STRINGS.ANCESTRY.OVERVIEW,
+                refreshBuilderState = function(element, state)
+                    local text = CharacterBuilder.STRINGS.ANCESTRY.OVERVIEW
+                    local ancestryId = state:Get(SELECTOR .. ".selectedId")
+                    if ancestryId then
+                        local race = dmhub.GetTable(Race.tableName)[ancestryId]
+                        if race then
+                            local textItems = {
+                                string.format(tr("<b>Size.</b>  Your people are size %s creatures."), race.size),
+                                string.format(tr("<b>Height.</b>  Your people are %s tall."), race.height),
+                                string.format(tr("<b>Weight.</b>  Your people weigh %s pounds."), race.weight),
+                                string.format(tr("<b>Life Expectancy.</b>  Your people live %s years."), race.lifeSpan),
+                                string.format(tr("<b>Speed.</b>  Your base walking speed is %s"),
+                                MeasurementSystem.NativeToDisplayStringWithUnits(race.moveSpeeds.walk)),
+                            }
+
+                            local featureDetails = {}
+                            race:FillFeatureDetails(nil, {}, featureDetails)
+                            for _,item in ipairs(featureDetails) do
+                                local s = item.feature:GetSummaryText()
+                                if s ~= nil and #s > 0 then
+                                    textItems[#textItems+1] = s
+                                end
+                            end
+
+                            text = table.concat(textItems, "\n\n")
+                        end
+                    end
+                    element.text = text
+                end
             }
         }
     }
@@ -193,7 +259,8 @@ function CharacterBuilder._ancestryDetail()
         },
 
         refreshBuilderState = function(element, state)
-            element:SetClass("collapsed", state:Get(SELECTOR .. ".category.selectedId") ~= element.data.category)
+            local visible = state:Get(SELECTOR .. ".selectedId") ~= nil and state:Get(SELECTOR .. ".category.selectedId") == element.data.category
+            element:SetClass("collapsed", not visible)
         end,
 
         gui.Label{
@@ -207,13 +274,42 @@ function CharacterBuilder._ancestryDetail()
             textAlignment = "left",
 
             refreshBuilderState = function(element, state)
-                local ancestryId = state:Get("ancestry.selectedId")
+                local ancestryId = state:Get(SELECTOR .. ".selectedId")
                 if ancestryId then
                     local race = dmhub.GetTable(Race.tableName)[ancestryId]
-                    element.text = race and race.lore or "No lore found for " .. race.name
+                    element.text = (race and race.lore and #race.lore > 0) and race.lore or string.format("No lore found for %s.", race.name)
                 end
             end,
         }
+    }
+
+    local selectButton = gui.PrettyButton{
+        classes = {"builder-base", "button", "button-select"},
+        width = CharacterBuilder.SIZES.SELECT_BUTTON_WIDTH,
+        height = CharacterBuilder.SIZES.SELECT_BUTTON_HEIGHT,
+        text = "SELECT",
+        halign = "center",
+        valign = "bottom",
+        bmargin = -10,
+        fontSize = 24,
+        bold = true,
+        cornerRadius = 5,
+        border = 1,
+        borderWidth = 1,
+        borderColor = CharacterBuilder.COLORS.CREAM03,
+        click = function(element)
+            _fireControllerEvent(element, "selectCurrentAncestry")
+        end,
+        refreshBuilderState = function(element, state)
+            local creature = _getCreature(element)
+            if creature then
+                local canSelect = creature:try_get("raceid") == nil and state:Get(SELECTOR .. ".selectedId") ~= nil
+                element:SetClass("collapsed", not canSelect)
+            end
+        end,
+        refreshToken = function(element)
+            element:FireEvent("refreshBuilderState", _getState(element))
+        end,
     }
 
     local ancestryDetailPanel = gui.Panel{
@@ -227,6 +323,7 @@ function CharacterBuilder._ancestryDetail()
 
         ancestryOverviewPanel,
         ancestryLorePanel,
+        selectButton,
     }
 
     ancestryPanel = gui.Panel{
@@ -243,8 +340,23 @@ function CharacterBuilder._ancestryDetail()
         },
 
         refreshBuilderState = function(element, state)
+            local creature = _getCreature(element)
+            if creature then
+                local hasAncestry = creature:try_get("raceid") ~= nil
+                if not hasAncestry then
+                    local categoryKey = SELECTOR .. ".category.selectedId"
+                    local currentCategory = state:Get(categoryKey)
+                    if currentCategory and UNAVAILABLE_WITHOUT_ANCESTRY[currentCategory] then
+                        state:Set(categoryKey, INITIAL_CATEGORY)
+                    end
+                end
+            end
             local visible = state:Get("activeSelector") == element.data.selector
             element:SetClass("collapsed", not visible)
+        end,
+
+        refreshToken = function(element)
+            element:FireEvent("refreshBuilderState", _getState(element))
         end,
 
         categoryNavPanel,

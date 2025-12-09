@@ -237,6 +237,17 @@ function CharacterBuilder.CreatePanel()
             element:FireEventTree("refreshBuilderState", element.data.state)
         end,
 
+        selectCurrentAncestry = function(element)
+            local ancestryId = element.data.state:Get("ancestry.selectedId")
+            if ancestryId then
+                local token = element.data.GetToken(element)
+                if token then
+                    token.properties.raceid = ancestryId
+                    element:FireEvent("tokenDataChanged")
+                end
+            end
+        end,
+
         updateState = function(element, info)
             if info then
                 element.data.state:Set(info.key, info.value)
@@ -249,7 +260,6 @@ function CharacterBuilder.CreatePanel()
                 element.data.charSheetInstance:FireEvent("refreshAll")
             else
                 element:FireEvent("refreshBuilderState", element.data.state)
-                element:FireEvent("refreshBuilder", element.data.selectorData)
             end
         end,
 

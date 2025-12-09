@@ -113,3 +113,26 @@ function CharacterBuilder._toArray(t)
     end
     return a
 end
+
+--- Trims and truncates a string to a maximum length
+--- @param str string The string to process
+--- @param maxLength number The maximum length before truncation
+--- @return string The processed string
+function CharacterBuilder._trimToLength(str, maxLength)
+    -- Trim leading whitespace
+    str = str:match("^%s*(.*)") or str
+
+    -- Cut at first newline if exists
+    local newlinePos = str:find("\n")
+    if newlinePos then
+        str = str:sub(1, newlinePos - 1)
+    end
+
+    -- Check if length is within acceptable range
+    if #str <= maxLength + 3 then
+        return str
+    end
+
+    -- Truncate and add ellipsis
+    return str:sub(1, maxLength) .. "..."
+end
