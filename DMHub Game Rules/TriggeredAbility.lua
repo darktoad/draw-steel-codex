@@ -313,7 +313,7 @@ TriggeredAbility.triggers = {
 
 function TriggeredAbility:GenerateManualVersion()
     local clone = DeepCopy(self)
-    clone.temporaryClone = true
+    clone._tmp_temporaryClone = true
     clone.manualVersionOfTrigger = true
 
     clone.typeName = "ActivatedAbility"

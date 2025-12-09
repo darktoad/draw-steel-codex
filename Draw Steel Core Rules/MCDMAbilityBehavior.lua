@@ -605,6 +605,20 @@ local g_rulePatterns = {
             ability:CommitToPaying(casterToken, options)
             local shift = MCDMUtils.GetStandardAbility("Shift")
 
+            local shiftDisabled = casterToken.properties:CalculateNamedCustomAttribute("Shift Disabled") > 0
+            if shiftDisabled  then
+
+                local abilityBase = MCDMUtils.GetStandardAbility("Float Text")
+                if abilityBase then
+                    local abilityClone = DeepCopy(abilityBase)
+                    MCDMUtils.DeepReplace(abilityClone, "<<text>>", "Cannot Shift")
+                    abilityClone.behaviors[1].color = "#FF0000"
+                    InvokeAbility(ability, abilityClone, casterToken, casterToken, options)
+                    ability:CommitToPaying(casterToken, options)
+                end
+                return
+            end
+
 			local abilityClone = DeepCopy(shift)
             AbilityUtils.DeepReplaceAbility(abilityClone, "<<targetfilter>>", "")
             AbilityUtils.DeepReplaceAbility(abilityClone, "<<distance>>", match.distance)

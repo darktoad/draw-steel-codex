@@ -3360,7 +3360,7 @@ function creature:ListPreparedSpells()
 					local spellInfo = spellsTable[id]
 					if spellInfo ~= nil then
 						spellInfo = DeepCopy(spellInfo)
-						spellInfo.temporaryClone = true
+						spellInfo._tmp_temporaryClone = true
 						spellInfo.spellcastingFeature = feature
 
 						if level ~= nil then
@@ -3380,7 +3380,7 @@ function creature:ListPreparedSpells()
 			local spellInfo = spellsTable[spellid]
 			if spellInfo ~= nil then
 				spellInfo = DeepCopy(spellInfo)
-				spellInfo.temporaryClone = true
+				spellInfo._tmp_temporaryClone = true
 				spellInfo.spellcastingFeature = feature
 
 				result[#result+1] = spellInfo
@@ -3488,7 +3488,7 @@ function creature:GetActivatedAbilities(options)
 			_tmp_boundCaster = boundCaster,
 			name = attack.name,
 			iconid = attack.iconid,
-			temporaryClone = true, --this is local only and can be freely modified.
+			_tmp_temporaryClone = true, --this is local only and can be freely modified.
 			attackOverride = attack,
 			description = attack:try_get("details", ""),
 			targetType = 'target',
@@ -4250,6 +4250,8 @@ local g_conditionHiddenId = "31daf7f6-f77c-4f73-8eab-43e2d0f123c0"
 function creature:RefreshToken(token)
 	self:ValidateAndRepair()
 
+    self:Invalidate()
+
 	local builtinEffects = {}
 
 	if token.squeezed then
@@ -4263,11 +4265,7 @@ function creature:RefreshToken(token)
 		end
 	end
 
-    self._tmp_suspended = nil
-    self._tmp_prone = nil
 	self._tmp_builtinOngoingEffects = builtinEffects
-    self._tmp_modifiersRefresh = nil
-    self._tmp_conditionExplanations = nil
 
 	local modifiers = self:GetActiveModifiers()
     self._tmp_down = self:IsDown()

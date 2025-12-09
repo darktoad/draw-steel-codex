@@ -28,7 +28,7 @@ function ActivatedAbilityAugmentedAbilityBehavior:SynthesizeAbilities(ability, c
 	for _,a in ipairs(abilities) do
 		if a ~= ability and filterFunction(self.modifier, creature, a) then
 			local synth = DeepCopy(a)
-			synth.temporaryClone = true
+			synth._tmp_temporaryClone = true
 
 	        local OnBeginCast = ability:try_get("OnBeginCast")
 	        local OnFinishCast = ability:try_get("OnFinishCast")

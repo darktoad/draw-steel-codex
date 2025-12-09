@@ -2068,7 +2068,7 @@ function creature:GetActivatedAbilities(options)
     local nitems = #result
     for i = 1, #result do
         local ability = result[i]
-        if ability.temporaryClone or (not options.characterSheet) then
+        if ability._tmp_temporaryClone or (not options.characterSheet) then
             for i, mod in ipairs(modifiers) do
                 ability = mod.mod:ModifyAbility(mod, self, ability)
                 if ability == nil then

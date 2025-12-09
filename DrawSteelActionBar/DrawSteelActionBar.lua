@@ -4198,6 +4198,7 @@ CalculateSpellTargeting = function(forceCast, initialSetup)
             g_forcedMovementTypePanel:FireEvent("refreshForcedMovement")
 
             local range = g_currentAbility:GetRange(g_token.properties, g_currentSymbols)
+            print("MovementRadius:: RANGE", range)
             g_currentSymbols.range = range
             g_range = range
 

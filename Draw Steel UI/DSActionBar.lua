@@ -3302,7 +3302,7 @@ function GameHud.CreateActionBar(self, dialog, tokenInfo)
 							end
 
 							local synthesizedSpell = DeepCopy(ammoChoicePanel.data.baseSpell)
-							synthesizedSpell.temporaryClone = true
+							synthesizedSpell._tmp_temporaryClone = true
 							
 							if itemInfo:try_get("ammoAugmentation") then
 								itemInfo:AmmoModifyAbility(creature, synthesizedSpell)

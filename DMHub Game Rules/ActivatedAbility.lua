@@ -206,7 +206,7 @@ ActivatedAbility.targeting = "direct"
 ActivatedAbility.canChooseLowerRange = false
 
 --if this is a temporary clone that doesn't get serialized etc.
-ActivatedAbility.temporaryClone = false
+ActivatedAbility._tmp_temporaryClone = false
 
 ActivatedAbility.displayOrder = 1
 
@@ -217,11 +217,11 @@ end
 
 --- @return ActivatedAbility
 function ActivatedAbility:MakeTemporaryClone()
-	if self.temporaryClone then
+	if self._tmp_temporaryClone then
 		return self
 	else
 		local result = DeepCopy(self)
-		result.temporaryClone = true
+		result._tmp_temporaryClone = true
 		return result
 	end
 end
@@ -1725,7 +1725,7 @@ function ActivatedAbilityCastSpellBehavior:SynthesizeAbilities(ability, creature
 		local spellInfo = spellsTable[spellid]
 		if spellInfo ~= nil and filterFunction(self.modifier, creature, spellInfo) then
 			local synth = DeepCopy(spellInfo)
-			synth.temporaryClone = true
+			synth._tmp_temporaryClone = true
 
 			--we copy some casting time and resource usage aspects of the synthesizer into the synthesized
 			--ability. Note that we must take care to make sure that it's still a valid instance of
@@ -2379,7 +2379,7 @@ function ActivatedAbility.CastCoroutine(self, casterToken, targets, options)
 
 
     if self:IsStrain() and self:WillBecomeStrained(casterToken, options) then
-        local strainedAbility = MCDMUtils.GetStandardAbility("Strained During Ability")
+        local strainedAbility = DeepCopy(MCDMUtils.GetStandardAbility("Strained During Ability"))
         if strainedAbility == nil then
             return
         end

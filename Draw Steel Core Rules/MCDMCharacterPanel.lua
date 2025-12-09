@@ -1212,6 +1212,14 @@ local function InflictedConditionsPanel(m_token)
                                 return
                             end
 
+                            local conditionsTable = dmhub.GetTable(CharacterCondition.tableName)
+                            local ongoingEffectInfo = conditionsTable[key]
+
+                            if ongoingEffectInfo == nil or not ongoingEffectInfo.trackCaster then
+                                element:SetClass("collapsed", true)
+                                return
+                            end
+
                             local conditions = m_token.properties:try_get("inflictedConditions", {})
                             local cond = conditions[key]
                             if cond == nil or cond.casterInfo ~= nil then
