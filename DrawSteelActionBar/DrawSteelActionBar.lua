@@ -4239,7 +4239,7 @@ CalculateSpellTargeting = function(forceCast, initialSetup)
                         loc = firstTargetToken.locsOccupying
                         range = dmhub.EvalGoblinScriptDeterministic(g_currentAbility.proximityRange,
                             g_token.properties:LookupSymbol(), dmhub.unitsPerSquare,
-                            string.format("Calculate proximity: %s", spell.name))
+                            "Calculate proximity")
                     end
                 end
 
