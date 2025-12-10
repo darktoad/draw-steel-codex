@@ -1457,7 +1457,7 @@ function gui.Slider(args)
 			width = 1,
 			height = 2,
 			borderWidth = 0,
-			bgcolor = fillColor,
+			bgcolor = "white",
 			halign = 'left',
 			valign = notchAlign,
 		},
