@@ -362,9 +362,9 @@ local ShowPDFViewerDialogInternal = function(doc, starting_page)
         elseif type(starting_page) == "number" then
             m_npage = starting_page
         end
-        for i,label in ipairs(document.summary.pageLabels) do
+        for i, label in ipairs(document.summary.pageLabels) do
             if starting_page == string.lower(label) then
-                m_npage = i-1
+                m_npage = i - 1
                 break
             end
         end
@@ -597,51 +597,51 @@ local ShowPDFViewerDialogInternal = function(doc, starting_page)
                             click = function(element)
                                 document:RenderToData(m_npage, document.summary.pageWidth * (args.x2 - args.x1),
                                     document.summary.pageHeight * (args.y2 - args.y1), args, function(data)
-                                    if data == nil then
-                                        return
-                                    end
+                                        if data == nil then
+                                            return
+                                        end
 
-                                    local assetid
-                                    assetid = assets:UploadImageAsset {
-                                        data = data,
-                                        imageType = "Avatar",
-                                        error = function(text)
-                                            gui.ModalMessage {
-                                                title = 'Error Uploading',
-                                                message = "There was an error uploading the image: " .. text,
-                                            }
-                                        end,
-                                        upload = function(imageid)
-                                            local libraries = assets.imageLibrariesTable
-                                            local assetid = nil
-                                            for k, v in pairs(libraries) do
-                                                printf("AVIMAGE:: EXISTING DOC %s vs src = %s", doc.id,
-                                                    json(v.docsourceid))
-                                                if v.docsourceid == doc.id then
-                                                    assetid = k
-                                                    break
-                                                end
-                                            end
-
-                                            if assetid ~= nil then
-                                                printf("AVIMAGE:: Upload to found library %s", assetid)
-                                                dmhub.AddAndUploadImageToLibrary(assetid, imageid)
-                                            else
-                                                assetid = assets:CreateNewImageLibrary {
-                                                    name = doc.description,
-                                                    docsourceid = doc.id,
-                                                    images = { imageid },
+                                        local assetid
+                                        assetid = assets:UploadImageAsset {
+                                            data = data,
+                                            imageType = "Avatar",
+                                            error = function(text)
+                                                gui.ModalMessage {
+                                                    title = 'Error Uploading',
+                                                    message = "There was an error uploading the image: " .. text,
                                                 }
-                                                printf("AVIMAGE:: CREATED NEW LIBRARY %s", assetid)
-                                            end
+                                            end,
+                                            upload = function(imageid)
+                                                local libraries = assets.imageLibrariesTable
+                                                local assetid = nil
+                                                for k, v in pairs(libraries) do
+                                                    printf("AVIMAGE:: EXISTING DOC %s vs src = %s", doc.id,
+                                                        json(v.docsourceid))
+                                                    if v.docsourceid == doc.id then
+                                                        assetid = k
+                                                        break
+                                                    end
+                                                end
 
-                                            gui.ModalMessage {
-                                                title = 'Image uploaded',
-                                                message = "The image was added to your avatar collection.",
-                                            }
-                                        end,
-                                    }
-                                end)
+                                                if assetid ~= nil then
+                                                    printf("AVIMAGE:: Upload to found library %s", assetid)
+                                                    dmhub.AddAndUploadImageToLibrary(assetid, imageid)
+                                                else
+                                                    assetid = assets:CreateNewImageLibrary {
+                                                        name = doc.description,
+                                                        docsourceid = doc.id,
+                                                        images = { imageid },
+                                                    }
+                                                    printf("AVIMAGE:: CREATED NEW LIBRARY %s", assetid)
+                                                end
+
+                                                gui.ModalMessage {
+                                                    title = 'Image uploaded',
+                                                    message = "The image was added to your avatar collection.",
+                                                }
+                                            end,
+                                        }
+                                    end)
 
 
                                 m_dragPanel.children = {}
@@ -658,21 +658,21 @@ local ShowPDFViewerDialogInternal = function(doc, starting_page)
                             click = function(element)
                                 document:RenderToData(m_npage, document.summary.pageWidth * (args.x2 - args.x1) * 2,
                                     document.summary.pageHeight * (args.y2 - args.y1) * 2, args, function(data)
-                                    if data == nil then
-                                        return
-                                    end
+                                        if data == nil then
+                                            return
+                                        end
 
-                                    local path = data:TemporaryFilePath()
+                                        local path = data:TemporaryFilePath()
 
-                                    mod.shared.ImportMap({
-                                        paths = { path },
-                                        finish = function(info)
-                                            mod.shared.FinishMapImport(
-                                            string.format("%s page %d", doc.description, m_npage + 1), info)
-                                            gui.CloseModal()
-                                        end,
-                                    })
-                                end)
+                                        mod.shared.ImportMap({
+                                            paths = { path },
+                                            finish = function(info)
+                                                mod.shared.FinishMapImport(
+                                                    string.format("%s page %d", doc.description, m_npage + 1), info)
+                                                gui.CloseModal()
+                                            end,
+                                        })
+                                    end)
 
 
                                 m_dragPanel.children = {}
@@ -953,7 +953,7 @@ local ShowPDFViewerDialogInternal = function(doc, starting_page)
                                         local startPos = spaceAtStart + 1
                                         local endPos = #text - spaceAtEnd
                                         text = text:sub(1, startPos - 1) ..
-                                        "<b>" .. text:sub(startPos, endPos) .. "</b>" .. text:sub(endPos + 1)
+                                            "<b>" .. text:sub(startPos, endPos) .. "</b>" .. text:sub(endPos + 1)
 
                                         if a > rect.a then
                                             text = "..." .. text
@@ -1290,7 +1290,7 @@ local ShowPDFViewerDialogInternal = function(doc, starting_page)
                                         linger = function(element)
                                             if element.data.bookmark ~= nil then
                                                 gui.Tooltip(string.format("Bookmark: %s", element.data.bookmark.title))(
-                                                element)
+                                                    element)
                                             end
                                         end,
                                     },
@@ -1304,7 +1304,8 @@ local ShowPDFViewerDialogInternal = function(doc, starting_page)
                                     floating = true,
                                     y = 12,
                                     npage = function(element, npage)
-                                        local text = document.summary.pageLabels[npage+1] or string.format("%d", npage + 1)
+                                        local text = document.summary.pageLabels[npage + 1] or
+                                            string.format("%d", npage + 1)
                                         element.text = text
                                     end,
                                 },
@@ -1729,7 +1730,7 @@ local ShowPDFViewerDialogInternal = function(doc, starting_page)
                 end
 
                 local hitlink = nil
-                for _,link in ipairs(element.data.textLayout.links or {}) do
+                for _, link in ipairs(element.data.textLayout.links or {}) do
                     local rect = link.rect
                     if x >= rect.x1 and x <= rect.x2 and y >= rect.y1 and y <= rect.y2 then
                         hitlink = link
@@ -1745,7 +1746,6 @@ local ShowPDFViewerDialogInternal = function(doc, starting_page)
 
                 if (not middleButtonDown) and element.data.anchorTextDrag == nil and hitlink then
                     dmhub.OverrideMouseCursor("hand", 0.2)
-
                 elseif (not middleButtonDown) and (hit or element.data.anchorTextDrag ~= nil) then
                     dmhub.OverrideMouseCursor("text", 0.2)
                 else
@@ -1790,7 +1790,6 @@ local ShowPDFViewerDialogInternal = function(doc, starting_page)
             end,
 
             press = function(element)
-
                 if element.data.hoveredLink and element.popup == nil and (m_dragPanel == nil or m_dragPanel:HasClass("hidden")) then
                     --see if we are over a link we can jump to.
                     m_npage = element.data.hoveredLink.destpage
@@ -1975,9 +1974,9 @@ local ShowPDFViewerDialogInternal = function(doc, starting_page)
             end
 
             m_npage = nil
-            for i,label in ipairs(document.summary.pageLabels) do
+            for i, label in ipairs(document.summary.pageLabels) do
                 if npage == string.lower(label) then
-                    m_npage = i-1
+                    m_npage = i - 1
                     break
                 end
             end
@@ -2186,11 +2185,11 @@ local ShowPDFViewerDialogInternal = function(doc, starting_page)
                     height = 20,
                     textAlignment = "right",
                     page = function(element)
-                        element.text = document.summary.pageLabels[m_npage+1] or string.format("%d", m_npage + 1)
+                        element.text = document.summary.pageLabels[m_npage + 1] or string.format("%d", m_npage + 1)
                     end,
                     change = function(element)
                         local text = trim(string.lower(element.text))
-                        for i,label in ipairs(document.summary.pageLabels) do
+                        for i, label in ipairs(document.summary.pageLabels) do
                             if text == string.lower(label) then
                                 m_npage = i - 1
                                 m_searchResults = nil
@@ -2763,6 +2762,7 @@ function PDFFragment:Render(options)
 
     local ourAspect = self.width / self.height
 
+
     local panelWidth = "100%"
     if ourAspect < minAspectRatio then
         panelWidth = string.format("%f%%", 100 * ourAspect / minAspectRatio)
@@ -2773,10 +2773,13 @@ function PDFFragment:Render(options)
     local link = nil
     local doc = assets.pdfDocumentsTable[self.refid]
 
+
     if doc ~= nil and doc.canView then
+        local document = doc.doc
+        local pagelabel = document.summary.pageLabels[self.page+1]
         --if we have access to this document give a link to the source.
         link = gui.Label {
-            text = string.format("%s Page %d", doc.description, self.page + 1),
+            text = string.format("%s Page %s", doc.description, pagelabel),
             classes = { "link" },
             halign = "center",
             fontSize = 14,
@@ -2786,7 +2789,7 @@ function PDFFragment:Render(options)
             hoverCursor = "hand",
             swallowPress = true,
             click = function(element)
-                local link = string.format("pdf:%s&page=%d", self.refid, self.page)
+                local link = string.format("pdf:%s&page=%s", self.refid, pagelabel)
                 dmhub.OpenDocument(link)
             end,
         }

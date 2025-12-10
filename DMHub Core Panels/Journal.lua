@@ -40,7 +40,7 @@ Commands.clearadventuredocuments = function(str)
 
     local doc = GetCurrentAdventuresDocument()
     doc:BeginChange()
-    for k,v in pairs(doc.data) do
+    for k, v in pairs(doc.data) do
         if doc.data[k] ~= nil then
             doc.data[k] = nil
         end
@@ -50,7 +50,8 @@ end
 
 Commands.setadventuredocumentstitle = function(str)
     if str == "help" then
-        dmhub.Log("Usage: /setadventuredocumentstitle name [icon]\nSets the title for adventure documents, and optionally an icon.")
+        dmhub.Log(
+            "Usage: /setadventuredocumentstitle name [icon]\nSets the title for adventure documents, and optionally an icon.")
         return
     end
 
@@ -402,7 +403,7 @@ CreateFolderContentsPanel = function(journalPanel, folderid)
                 if member.nodeType == "pdf" or member.nodeType == "image" or member.nodeType == "pdffragment" or member.nodeType == "custom" then
                     p = m_documentPanels[k] or gui.Panel {
                         draggable = dragTarget,
-                        hover = function(element)
+                        hover = function(element) --vback
                             if member.nodeType ~= "pdf" then
                                 return
                             end
@@ -826,7 +827,7 @@ CreateFolderContentsPanel = function(journalPanel, folderid)
                                 click = function(element)
                                 end,
                             },
-                            gui.Label{
+                            gui.Label {
                                 width = 18,
                                 height = 18,
                                 cornerRadius = 9,
@@ -854,7 +855,7 @@ CreateFolderContentsPanel = function(journalPanel, folderid)
                                                         element.text = bubble.icon
                                                         found = true
                                                         break
-                                                    end 
+                                                    end
                                                 end
                                             end
                                         end
@@ -872,7 +873,8 @@ CreateFolderContentsPanel = function(journalPanel, folderid)
                                         element:SetClass("collapsed", true)
                                     else
                                         element:SetClass("collapsed", false)
-                                        element.bgimage = cond(member.nodeType == "pdf", "icons/icon_app/icon_app_137.png", "icons/icon_app/icon_app_34.png") --choose pdf or image icon.
+                                        element.bgimage = cond(member.nodeType == "pdf",
+                                            "icons/icon_app/icon_app_137.png", "icons/icon_app/icon_app_34.png") --choose pdf or image icon.
                                     end
                                 end,
                             },
@@ -923,6 +925,144 @@ CreateFolderContentsPanel = function(journalPanel, folderid)
     return contentPanel
 end
 
+local function GetRecentDocuments()
+    local result = {}
+    local docs = assets.pdfDocumentsTable
+    for k, doc in pairs(docs or {}) do
+        if not doc.hidden then
+            result[#result + 1] = doc
+        end
+    end
+
+    return result
+end
+
+local function MakeRecentDocumentPanel(documentnumber)
+    local documents = GetRecentDocuments()
+
+    if documents[documentnumber] == nil then
+        return nil
+    end
+
+    return gui.Panel {
+        flow = "horizontal",
+        bgimage = documents[documentnumber].doc:GetPageThumbnailId(0),
+        bgcolor = "white",
+        width = 80,
+        height = 110,
+        tmargin = 10,
+        halign = "center",
+
+        click = function(element)
+            CustomDocument.OpenContent(documents[documentnumber])
+            element.parent.tooltip = nil
+        end,
+
+
+
+
+        dehover = function(element)
+            element.selfStyle.borderWidth = 0
+        end,
+
+        hover = function(element)       
+            
+            element.selfStyle.borderWidth = 2
+            element.selfStyle.borderColor = "white"
+
+            local member = documents[documentnumber]
+            
+            if member.nodeType ~= "pdf" then
+                return
+            end
+
+            local halign = "left"
+            local xadjustment = -35
+            local dock = element:FindParentWithClass("dock")
+
+            
+
+            if dock ~= nil then
+                halign = dock.data.TooltipAlignment()
+                if halign == "right" then
+                    xadjustment = 0
+                end
+            end
+
+            local document = member.doc
+            element.parent.tooltip = gui.Panel {
+
+                bgimage = true,
+                bgcolor = "clear",
+                width = 180,
+                height = 180 * 1.3 + 24,
+                x = xadjustment,
+                y = 145,
+                cornerRadius = { x1 = 4, y1 = 4, x2 = 0, y2 = 0 },
+                halign = halign,
+
+                flow = "vertical",
+
+                gui.Panel {
+                    bgimage = true,
+                    bgcolor = Styles.RichBlack02,
+                    width = "100%",
+                    height = 24,
+                    halign = "center",
+                    valign = "top",
+                    cornerRadius = { x1 = 4, y1 = 4, x2 = 0, y2 = 0 },
+
+                    flow = "horizontal",
+
+                    gui.Label {
+                        text = member.description,
+                        fontFace = "newzald",
+                        lmargin = 5,
+                        fontSize = 10,
+                        width = 140,
+                        textWrap = false,
+                        textOverflow = "ellipsis",
+                        height = "100%",
+                        bold = true,
+                    },
+
+                    gui.Label {
+                        text = "",
+                        fontFace = "newzald",
+                        halign = "right",
+                        fontSize = 10,
+                        rmargin = 5,
+                        width = "auto",
+                        height = "100%",
+                        bold = true,
+
+
+                        create = function(element)
+                            if document.summary ~= nil then
+                                element.text = document.summary["npages"]
+                            else
+                                element:ScheduleEvent("create", 0.01)
+                            end
+                        end
+                    },
+                },
+
+                gui.Panel {
+                    bgimage = document:GetPageThumbnailId(0),
+                    bgcolor = "white",
+                    width = "100%",
+                    height = "100%-24",
+                    halign = "center",
+                    valign = "top",
+
+                },
+            }
+
+            element.parent.tooltip:MakeNonInteractiveRecursive()
+        end,
+    }
+end
+
 CreateJournalPanel = function()
     local journalPanel
     journalPanel = gui.Panel {
@@ -936,6 +1076,20 @@ CreateJournalPanel = function()
 
             --A copy of assets.documentFoldersTable with added built-in tables.
             documentFoldersTable = {},
+        },
+
+        --vback
+        gui.Panel {
+            flow = "horizontal",
+            bgcolor = "clear",
+            width = "100%",
+            height = 130,
+
+
+
+            MakeRecentDocumentPanel(1),
+            MakeRecentDocumentPanel(2),
+            MakeRecentDocumentPanel(3),
         },
 
         gui.Panel {
