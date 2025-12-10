@@ -13,6 +13,9 @@ function FullscreenDisplay.Create(options)
         height = "100%",
         bgimage = doc.data.coverart,
         bgcolor = "white",
+        halign = "center",
+        valign = "center",
+        floating = true,
 
         styles = {
             {
@@ -21,30 +24,31 @@ function FullscreenDisplay.Create(options)
             }
         },
 
+        imageLoaded = function(element)
+            local w = element.parent.renderedWidth
+            local h = element.parent.renderedHeight
+            local aspect = h / w
 
-        gui.CloseButton{
-            classes = {"closebutton"},
-            halign = "right",
-            valign = "top",
-            hmargin = 8,
-            vmargin = 8,
-            width = 24,
-            height = 24,
+            local imageAspect = element.bgsprite.dimensions.y/element.bgsprite.dimensions.x
 
-            click = function(element)
-	            local doc = mod:GetDocumentSnapshot(FullscreenDisplay.docid)
-                doc:BeginChange()
-                doc.data.show = true --hide from dm but not players.
-                doc:CompleteChange("Hide Fullscreen Display")
-            end,
-        },
-
+            if aspect == imageAspect then
+                element.selfStyle.width = "100%"
+                element.selfStyle.height = "100%"
+            elseif aspect > imageAspect then
+                element.selfStyle.height = "100%"
+                element.selfStyle.width = string.format("%f%% height", 100/imageAspect)
+            else
+                element.selfStyle.width = "100%"
+                element.selfStyle.height = string.format("%f%% width", 100*imageAspect)
+            end
+        end,
     }
 
     return gui.Panel{
         width = "100%",
         height = "100%",
-        valign = "bottom",
+        halign = "center",
+        valign = "center",
         displayPanel,
 
         data = {
