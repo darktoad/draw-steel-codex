@@ -16,7 +16,7 @@ end
 --- Creates intermediate tables as needed
 --- @param key string Dot-separated path (e.g., "path.to.value")
 --- @param value any The value to set at the path
-function CharacterBuilderState:Set(key, value)
+function CharacterBuilderState:_setKey(key, value)
     local parts = {}
     for part in key:gmatch("[^.]+") do
         parts[#parts + 1] = part
@@ -34,6 +34,18 @@ function CharacterBuilderState:Set(key, value)
 
     -- Set the final value
     current[parts[#parts]] = value
+end
+
+--- Sets values in paths in the data table
+--- @param items table {key = x1, value = y1} or {{key = x1, value = y1}, {key = x2, value = y2},---}
+function CharacterBuilderState:Set(items)
+    if items[1] ~= nil then
+        for _,item in ipairs(items) do
+            self:_setKey(item.key, item.value)
+        end
+    else
+        self:_setKey(items.key, items.value)
+    end
 end
 
 --- Gets a value at the specified path in the data table

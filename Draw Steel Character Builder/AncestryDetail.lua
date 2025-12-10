@@ -11,11 +11,10 @@ local UNAVAILABLE_WITHOUT_ANCESTRY = {features = true, traits = true}
 local _fireControllerEvent = CharacterBuilder._fireControllerEvent
 local _getCreature = CharacterBuilder._getCreature
 local _getState = CharacterBuilder._getState
-local _getToken = CharacterBuilder._getToken
 
---- Placeholder for content in a center panel
-function CharacterBuilder._ancestryDetail()
-    local ancestryPanel
+--- Generate the Ancestry Category Navigation panel
+--- @return Panel
+function CharacterBuilder._ancestryNavPanel()
 
     local function makeCategoryButton(options)
         options.width = CharacterBuilder.SIZES.CATEGORY_BUTTON_WIDTH
@@ -99,7 +98,7 @@ function CharacterBuilder._ancestryDetail()
         end,
     }
 
-    local categoryNavPanel = gui.Panel{
+    return gui.Panel{
         classes = {"categoryNavPanel", "panel-base", "builder-base"},
         width = CharacterBuilder.SIZES.BUTTON_PANEL_WIDTH + 20,
         height = "99%",
@@ -109,18 +108,11 @@ function CharacterBuilder._ancestryDetail()
         vscroll = true,
         borderColor = "teal",
 
-        data = {
-            category = INITIAL_CATEGORY,
-        },
-
         create = function(element)
             _fireControllerEvent(element, "updateState", {
                 key = SELECTOR .. ".category.selectedId",
                 value = INITIAL_CATEGORY,
             })
-        end,
-
-        refreshBuilderState = function(element)
         end,
 
         overview,
@@ -129,8 +121,96 @@ function CharacterBuilder._ancestryDetail()
         traits,
         change,
     }
+end
 
-    local ancestryOverviewPanel = gui.Panel{
+--- Build the Ancestry Overview panel
+--- Used when no Ancestry is selected and to overview a selected ancestry
+--- @return Panel
+function CharacterBuilder._ancestryOverviewPanel()
+
+    local nameLabel = gui.Label{
+        classes = {"builder-base", "label", "label-info", "label-header"},
+        width = "100%",
+        height = "auto",
+        hpad = 12,
+        text = "ANCESTRY",
+        textAlignment = "left",
+
+        refreshBuilderState = function(element, state)
+            local text = "ANCESTRY"
+            local ancestryId = state:Get(SELECTOR .. ".selectedId")
+            if ancestryId then
+                local race = dmhub.GetTable(Race.tableName)[ancestryId]
+                if race then text = race.name end
+            end
+            element.text = text
+        end
+    }
+
+    local introLabel = gui.Label{
+        classes = {"builder-base", "label", "label-info"},
+        width = "100%",
+        height = "auto",
+        vpad = 6,
+        hpad = 12,
+        bmargin = 12,
+        textAlignment = "left",
+        text = CharacterBuilder.STRINGS.ANCESTRY.INTRO,
+
+        refreshBuilderState = function(element, state)
+            local text = CharacterBuilder.STRINGS.ANCESTRY.INTRO
+            local ancestryId = state:Get(SELECTOR .. ".selectedId")
+            if ancestryId then
+                local race = dmhub.GetTable(Race.tableName)[ancestryId]
+                if race then text = CharacterBuilder._trimToLength(race.details, 300) end
+            end
+            element.text = text
+        end,
+    }
+
+    local detailLabel = gui.Label{
+        classes = {"builder-base", "label", "label-info"},
+        width = "100%",
+        height = "auto",
+        vpad = 6,
+        hpad = 12,
+        tmargin = 12,
+        textAlignment = "left",
+        bold = false,
+        text = CharacterBuilder.STRINGS.ANCESTRY.OVERVIEW,
+
+        refreshBuilderState = function(element, state)
+            local text = CharacterBuilder.STRINGS.ANCESTRY.OVERVIEW
+            local ancestryId = state:Get(SELECTOR .. ".selectedId")
+            if ancestryId then
+                local race = dmhub.GetTable(Race.tableName)[ancestryId]
+                if race then
+                    local textItems = {
+                        string.format(tr("<b>Size.</b>  Your people are size %s creatures."), race.size),
+                        string.format(tr("<b>Height.</b>  Your people are %s tall."), race.height),
+                        string.format(tr("<b>Weight.</b>  Your people weigh %s pounds."), race.weight),
+                        string.format(tr("<b>Life Expectancy.</b>  Your people live %s years."), race.lifeSpan),
+                        string.format(tr("<b>Speed.</b>  Your base walking speed is %s"),
+                        MeasurementSystem.NativeToDisplayStringWithUnits(race.moveSpeeds.walk)),
+                    }
+
+                    local featureDetails = {}
+                    race:FillFeatureDetails(nil, {}, featureDetails)
+                    for _,item in ipairs(featureDetails) do
+                        local s = item.feature:GetSummaryText()
+                        if s ~= nil and #s > 0 then
+                            textItems[#textItems+1] = s
+                        end
+                    end
+
+                    text = table.concat(textItems, "\n\n")
+                end
+            end
+            element.text = text
+        end
+    }
+
+    return gui.Panel{
         id = "ancestryOverviewPanel",
         classes = {"ancestryOverviewPanel", "builder-base", "panel-base", "panel-border", "collapsed"},
         width = "96%",
@@ -166,92 +246,24 @@ function CharacterBuilder._ancestryDetail()
             flow = "vertical",
             bgimage = true,
             vpad = 8,
-            gui.Label{
-                classes = {"builder-base", "label", "label-info", "label-header"},
-                width = "100%",
-                height = "auto",
-                hpad = 12,
-                text = "ANCESTRY",
-                textAlignment = "left",
-                refreshBuilderState = function(element, state)
-                    local text = "ANCESTRY"
-                    local ancestryId = state:Get(SELECTOR .. ".selectedId")
-                    if ancestryId then
-                        local race = dmhub.GetTable(Race.tableName)[ancestryId]
-                        if race then text = race.name end
-                    end
-                    element.text = text
-                end
-            },
-            gui.Label{
-                classes = {"builder-base", "label", "label-info"},
-                width = "100%",
-                height = "auto",
-                vpad = 6,
-                hpad = 12,
-                bmargin = 12,
-                textAlignment = "left",
-                text = CharacterBuilder.STRINGS.ANCESTRY.INTRO,
-                refreshBuilderState = function(element, state)
-                    local text = CharacterBuilder.STRINGS.ANCESTRY.INTRO
-                    local ancestryId = state:Get(SELECTOR .. ".selectedId")
-                    if ancestryId then
-                        local race = dmhub.GetTable(Race.tableName)[ancestryId]
-                        if race then text = CharacterBuilder._trimToLength(race.details, 300) end
-                    end
-                    element.text = text
-                end,
-            },
-            gui.Label{
-                classes = {"builder-base", "label", "label-info"},
-                width = "100%",
-                height = "auto",
-                vpad = 6,
-                hpad = 12,
-                tmargin = 12,
-                textAlignment = "left",
-                bold = false,
-                text = CharacterBuilder.STRINGS.ANCESTRY.OVERVIEW,
-                refreshBuilderState = function(element, state)
-                    local text = CharacterBuilder.STRINGS.ANCESTRY.OVERVIEW
-                    local ancestryId = state:Get(SELECTOR .. ".selectedId")
-                    if ancestryId then
-                        local race = dmhub.GetTable(Race.tableName)[ancestryId]
-                        if race then
-                            local textItems = {
-                                string.format(tr("<b>Size.</b>  Your people are size %s creatures."), race.size),
-                                string.format(tr("<b>Height.</b>  Your people are %s tall."), race.height),
-                                string.format(tr("<b>Weight.</b>  Your people weigh %s pounds."), race.weight),
-                                string.format(tr("<b>Life Expectancy.</b>  Your people live %s years."), race.lifeSpan),
-                                string.format(tr("<b>Speed.</b>  Your base walking speed is %s"),
-                                MeasurementSystem.NativeToDisplayStringWithUnits(race.moveSpeeds.walk)),
-                            }
-
-                            local featureDetails = {}
-                            race:FillFeatureDetails(nil, {}, featureDetails)
-                            for _,item in ipairs(featureDetails) do
-                                local s = item.feature:GetSummaryText()
-                                if s ~= nil and #s > 0 then
-                                    textItems[#textItems+1] = s
-                                end
-                            end
-
-                            text = table.concat(textItems, "\n\n")
-                        end
-                    end
-                    element.text = text
-                end
-            }
+            nameLabel,
+            introLabel,
+            detailLabel,
         }
     }
+end
 
-    local ancestryLorePanel = gui.Panel{
+--- Create the Ancestry Lore panel
+--- @return Panel
+function CharacterBuilder._ancestryLorePanel()
+    return gui.Panel{
         id = "ancestryLorePanel",
         classes = {"ancestryLorePanel", "builder-base", "panel-base", "collapsed"},
         width = "96%",
-        height = "99%",
-        valign = "center",
+        height = "96%",
+        valign = "top",
         halign = "center",
+        tmargin = 12,
         vscroll = true,
 
         data = {
@@ -277,26 +289,19 @@ function CharacterBuilder._ancestryDetail()
                 local ancestryId = state:Get(SELECTOR .. ".selectedId")
                 if ancestryId then
                     local race = dmhub.GetTable(Race.tableName)[ancestryId]
-                    element.text = (race and race.lore and #race.lore > 0) and race.lore or string.format("No lore found for %s.", race.name)
+                    element.text = (race and race.lore and #race.lore > 0)
+                        and race.lore
+                        or string.format("No lore found for %s.", race.name)
                 end
             end,
         }
     }
+end
 
-    local selectButton = gui.PrettyButton{
-        classes = {"builder-base", "button", "button-select"},
-        width = CharacterBuilder.SIZES.SELECT_BUTTON_WIDTH,
-        height = CharacterBuilder.SIZES.SELECT_BUTTON_HEIGHT,
-        text = "SELECT",
-        halign = "center",
-        valign = "bottom",
-        bmargin = -10,
-        fontSize = 24,
-        bold = true,
-        cornerRadius = 5,
-        border = 1,
-        borderWidth = 1,
-        borderColor = CharacterBuilder.COLORS.CREAM03,
+--- Build the Ancestry Select button
+--- @return PrettyButton|Panel
+function CharacterBuilder._ancestrySelectButton()
+    return CharacterBuilder._selectButton{
         click = function(element)
             _fireControllerEvent(element, "selectCurrentAncestry")
         end,
@@ -311,6 +316,18 @@ function CharacterBuilder._ancestryDetail()
             element:FireEvent("refreshBuilderState", _getState(element))
         end,
     }
+end
+
+--- Build the Ancestry Detail Panel - the main center panel for Ancestry work
+--- @return Panel
+function CharacterBuilder._ancestryDetail()
+
+    local ancestryNavPanel = CharacterBuilder._ancestryNavPanel()
+
+    local ancestryOverviewPanel = CharacterBuilder._ancestryOverviewPanel()
+    local ancestryLorePanel = CharacterBuilder._ancestryLorePanel()
+
+    local ancestrySelectButton = CharacterBuilder._ancestrySelectButton()
 
     local ancestryDetailPanel = gui.Panel{
         id = "ancestryDetailPanel",
@@ -323,10 +340,10 @@ function CharacterBuilder._ancestryDetail()
 
         ancestryOverviewPanel,
         ancestryLorePanel,
-        selectButton,
+        ancestrySelectButton,
     }
 
-    ancestryPanel = gui.Panel{
+    return gui.Panel{
         id = "ancestryPanel",
         classes = {"builder-base", "panel-base", "ancestryPanel"},
         width = "100%",
@@ -347,7 +364,7 @@ function CharacterBuilder._ancestryDetail()
                     local categoryKey = SELECTOR .. ".category.selectedId"
                     local currentCategory = state:Get(categoryKey)
                     if currentCategory and UNAVAILABLE_WITHOUT_ANCESTRY[currentCategory] then
-                        state:Set(categoryKey, INITIAL_CATEGORY)
+                        state:Set({key = categoryKey, value = INITIAL_CATEGORY})
                     end
                 end
             end
@@ -359,9 +376,7 @@ function CharacterBuilder._ancestryDetail()
             element:FireEvent("refreshBuilderState", _getState(element))
         end,
 
-        categoryNavPanel,
+        ancestryNavPanel,
         ancestryDetailPanel,
     }
-
-    return ancestryPanel
 end

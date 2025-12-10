@@ -4,11 +4,10 @@
 ]]
 
 local _fireControllerEvent = CharacterBuilder._fireControllerEvent
-local _getCreature = CharacterBuilder._getCreature
 local _getToken = CharacterBuilder._getToken
 
 --- Minimal implementation for the center panel. Non-reactive.
-function CharacterBuilder._detailPanel(builderPanel)
+function CharacterBuilder._detailPanel()
     local detailPanel
 
     detailPanel = gui.Panel{
@@ -23,136 +22,6 @@ function CharacterBuilder._detailPanel(builderPanel)
     return detailPanel
 end
 
--- Minimal implementation for the character panel. Non-reactive.
-function CharacterBuilder._characterPanel(builderPanel)
-
-    local characterPanel
-
-    local popoutAvatar = gui.Panel {
-        classes = { "hidden" },
-        interactable = false,
-        width = 800,
-        height = 800,
-        halign = "center",
-        valign = "center",
-        bgcolor = "white",
-    }
-
-    local avatar = gui.IconEditor {
-        library = cond(dmhub.GetSettingValue("popoutavatars"), "popoutavatars", "Avatar"),
-        restrictImageType = "Avatar",
-        allowPaste = true,
-        borderColor = Styles.textColor,
-        borderWidth = 2,
-        cornerRadius = math.floor(0.5 * CharacterBuilder.SIZES.AVATAR_DIAMETER),
-        width = CharacterBuilder.SIZES.AVATAR_DIAMETER,
-        height = CharacterBuilder.SIZES.AVATAR_DIAMETER,
-        autosizeimage = true,
-        halign = "center",
-        valign = "top",
-        tmargin = 20,
-        bgcolor = "white",
-
-        children = { popoutAvatar, },
-
-        thinkTime = 0.2,
-        think = function(element)
-            element:FireEvent("imageLoaded")
-        end,
-
-        updatePopout = function(element, ispopout)
-            if not ispopout then
-                popoutAvatar:SetClass("hidden", true)
-            else
-                popoutAvatar:SetClass("hidden", false)
-                popoutAvatar.bgimage = element.value
-                popoutAvatar.selfStyle.scale = .25
-                element.bgimage = false --"panels/square.png"
-            end
-
-            local parent = element:FindParentWithClass("avatarSelectionParent")
-            if parent ~= nil then
-                parent:SetClassTree("popout", ispopout)
-            end
-        end,
-
-        imageLoaded = function(element)
-            if element.bgsprite == nil then
-                return
-            end
-
-            local maxDim = max(element.bgsprite.dimensions.x, element.bgsprite.dimensions.y)
-            if maxDim > 0 then
-                local yratio = element.bgsprite.dimensions.x / maxDim
-                local xratio = element.bgsprite.dimensions.y / maxDim
-                element.selfStyle.imageRect = { x1 = 0, y1 = 1 - yratio, x2 = xratio, y2 = 1 }
-            end
-        end,
-
-        refreshAppearance = function(element, info)
-            print("APPEARANCE:: Set avatar", info.token.portrait)
-            element.SetValue(element, info.token.portrait, false)
-            element:FireEvent("imageLoaded")
-            element:FireEvent("updatePopout", info.token.popoutPortrait)
-        end,
-
-        change = function(element)
-            -- local info = CharacterSheet.instance.data.info
-            -- info.token.portrait = element.value
-            -- info.token:UploadAppearance()
-            -- CharacterSheet.instance:FireEvent("refreshAll")
-            -- element:FireEvent("imageLoaded")
-        end,
-    }
-
-    local characterName = gui.Label {
-        classes = {"label", "builder-base"},
-        text = "calculating...",
-        width = "98%",
-        height = "auto",
-        halign = "center",
-        valign = "top",
-        textAlignment = "center",
-        tmargin = 12,
-        fontSize = 24,
-        editable = true,
-        data = {
-            text = "",
-        },
-        refreshToken = function(element)
-            local t = _getToken(element)
-            element.data.text = (t and t.name and #t.name > 0) and t.name or "Unnamed Character"
-            element.text = string.upper(element.data.text)
-        end,
-        change = function(element)
-            if element.data.text ~= element.text then
-                element.data.text = element.text
-                local t = _getToken(element)
-                if t then
-                    t.name = element.data.text
-                    _fireControllerEvent(element, "tokenDataChanged")
-                end
-            end
-        end,
-    }
-
-    characterPanel = gui.Panel{
-        id = "characterPanel",
-        classes = {"builder-base", "panel-base", "panel-border", "characterPanel"},
-        width = CharacterBuilder.SIZES.CHARACTER_PANEL_WIDTH,
-        height = "99%",
-        valign = "center",
-        bgimage = true,
-        -- halign = "right",
-        flow = "vertical",
-
-        avatar,
-        characterName,
-    }
-
-    return characterPanel
-end
-
 --- Create the main panel for the builder.
 --- Supports being placed inside the CharacterSheet as a tab
 --- or as a stand-alone dialog.
@@ -160,13 +29,11 @@ end
 --- @return Panel
 function CharacterBuilder.CreatePanel()
 
-    local builderPanel
+    local selectorsPanel = CharacterBuilder._selectorsPanel()
+    local detailPanel = CharacterBuilder._detailPanel()
+    local characterPanel = CharacterBuilder._characterPanel()
 
-    local selectorsPanel = CharacterBuilder._selectorsPanel(builderPanel)
-    local detailPanel = CharacterBuilder._detailPanel(builderPanel)
-    local characterPanel = CharacterBuilder._characterPanel(builderPanel)
-
-    builderPanel = gui.Panel{
+    return gui.Panel{
         id = CharacterBuilder.CONTROLLER_CLASS,
         styles = CharacterBuilder._getStyles(),
         classes = {"panel-base", "builder-base", CharacterBuilder.CONTROLLER_CLASS},
@@ -175,19 +42,20 @@ function CharacterBuilder.CreatePanel()
         halign = "center",
         valign = "center",
         flow = "horizontal",
-        borderColor = "red",  
+        borderColor = "red",
 
         data = {
             state = CharacterBuilderState:new(),
 
             detailPanels = {},
 
-            selectorData = {},
-
             cachedCharSheetInstance = false,
             charSheetInstance = nil,
             token = nil,
             _cacheToken = function(element)
+                -- Importantly, we might not be running in the context of a character sheet
+                -- so we can't just grab the singleton object. This code is designed to
+                -- help us retrieve the token from the context we're running under.
                 if element.data.charSheetInstance == nil and not element.data.cachedCharSheetInstance then
                     element.data.charSheetInstance = CharacterBuilder._getCharacterSheet(element)
                     element.data.cachedCharSheetInstance = true
@@ -199,6 +67,7 @@ function CharacterBuilder.CreatePanel()
                 end
                 return element.data.token
             end,
+
             GetToken = function(element)
                 if element.data.token ~= nil then return element.data.token end
                 return element.data._cacheToken(element)
@@ -218,7 +87,15 @@ function CharacterBuilder.CreatePanel()
                 element.data._cacheToken(element)
             end
             if element.data.token then
-                element.data.state:Set("ancestry.selectedId", element.data.token.properties:try_get("raceid"))
+                local ancestryId = element.data.token.properties:try_get("raceid")
+                local ancestryItem
+                if ancestryId then ancestryItem = dmhub.GetTableVisible(Race.tableName)[ancestryId] end
+                local updateState = {
+                    { key = "token", value = element.data.token },
+                    { key = "ancestry.selectedId", value = ancestryId },
+                    { key = "ancestry.selectedItem", value = ancestryItem },
+                }
+                element.data.state:Set(updateState)
                 element:FireEventTree("refreshBuilderState", element.data.state)
             end
         end,
@@ -233,7 +110,7 @@ function CharacterBuilder.CreatePanel()
                     detailPanel:AddChild(selectorDetail)
                 end
             end
-            element.data.state:Set("activeSelector", newSelector)
+            element.data.state:Set({key = "activeSelector", value = newSelector})
             element:FireEventTree("refreshBuilderState", element.data.state)
         end,
 
@@ -248,13 +125,6 @@ function CharacterBuilder.CreatePanel()
             end
         end,
 
-        updateState = function(element, info)
-            if info then
-                element.data.state:Set(info.key, info.value)
-            end
-            element:FireEventTree("refreshBuilderState", element.data.state)
-        end,
-
         tokenDataChanged = function(element)
             if element.data.charSheetInstance then
                 element.data.charSheetInstance:FireEvent("refreshAll")
@@ -263,12 +133,15 @@ function CharacterBuilder.CreatePanel()
             end
         end,
 
+        updateState = function(element, info)
+            if info then element.data.state:Set(info) end
+            element:FireEventTree("refreshBuilderState", element.data.state)
+        end,
+
         selectorsPanel,
         detailPanel,
         characterPanel,
     }
-
-    return builderPanel
 end
 
 -- TODO: Remove the gate on dev mode

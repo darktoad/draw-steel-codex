@@ -11,6 +11,7 @@ CharacterBuilder.COLORS = {
     CREAM = "#BC9B7B",
     CREAM03 = "#DFCFC0",
     GOLD = "#966D4B",
+    GOLD03 = "#F1D3A5",
     GRAY02 = "#666663",
     PANEL_BG = "#080B09",
 }
@@ -159,7 +160,8 @@ function CharacterBuilder._buttonStyles()
             cornerRadius = 5,
             border = 1,
             borderWidth = 1,
-            borderColor = CharacterBuilder.COLORS.CREAM03,
+            borderColor = CharacterBuilder.COLORS.GOLD03,
+            color = CharacterBuilder.COLORS.GOLD03,
         },
         {
             selectors = {"available"},
@@ -192,6 +194,21 @@ function CharacterBuilder._inputStyles()
     }
 end
 
+function CharacterBuilder._characterPanelTabStyles()
+    return {
+        {
+            selectors = {"char-tab-btn"},
+            width = 24,
+            height = 24,
+            bgcolor = CharacterBuilder.COLORS.GOLD,
+        },
+        {
+            selectors = {"char-tab-btn", "selected"},
+            bgcolor = CharacterBuilder.COLORS.CREAM03,
+        },
+    }
+end
+
 function CharacterBuilder._getStyles()
     local styles = {}
 
@@ -206,6 +223,7 @@ function CharacterBuilder._getStyles()
     mergeStyles(CharacterBuilder._labelStyles())
     mergeStyles(CharacterBuilder._buttonStyles())
     mergeStyles(CharacterBuilder._inputStyles())
+    mergeStyles(CharacterBuilder._characterPanelTabStyles())
 
     return styles
 end

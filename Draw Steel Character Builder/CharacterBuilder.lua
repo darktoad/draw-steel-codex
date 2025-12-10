@@ -1,9 +1,14 @@
 --- Character Sheet Builder  building a character step by step
 --- Functions standalone or plugs in to CharacterSheet
 --- 
---- - Data is managed in the main window state.
----   Respond to event `refreshBuilderState` which receives a state object
----   Send state updates back to the controller by using `_fireControllerEvent("updateState", {key = x, value = y})`
+--- - State of the builder is managed via the main window's data.state object,
+---   which you should always pass to the refreshBuilderState event.
+---   Reference `CharacterBuilderState` to understand this object.
+--- - You should always update the state object via firing the updateState event
+---   on the main window and passing {key = x, value = y} to it. It will then
+---   fire the refreshBuilderState event tree for you.
+--- - There are lots of helper functions, the most frequently used of which
+---   are probably `_fireControllerEvent()`, `_getCreature()`, and `_getToken()`. 
 CharacterBuilder = RegisterGameType("CharacterBuilder")
 
 CharacterBuilder.CONTROLLER_CLASS = "builderPanel"
@@ -135,4 +140,31 @@ function CharacterBuilder._trimToLength(str, maxLength)
 
     -- Truncate and add ellipsis
     return str:sub(1, maxLength) .. "..."
+end
+
+--[[
+    Consistent UI
+]]
+
+--- Build a Select button, forcing consistent styling
+--- @param options ButtonOptions 
+--- @return PrettyButton|Panel
+function CharacterBuilder._selectButton(options)
+    local opts = dmhub.DeepCopy(options)
+
+    opts.classes = {"builder-base", "button", "button-select"}
+    opts.width = CharacterBuilder.SIZES.SELECT_BUTTON_WIDTH
+    opts.height = CharacterBuilder.SIZES.SELECT_BUTTON_HEIGHT
+    opts.text = "SELECT"
+    opts.halign = "center"
+    opts.valign = "bottom"
+    opts.bmargin = -10
+    opts.fontSize = 24
+    opts.bold = true
+    opts.cornerRadius = 5
+    opts.border = 1
+    opts.borderWidth = 1
+    opts.borderColor = CharacterBuilder.COLORS.CREAM03
+
+    return gui.PrettyButton(opts)
 end
