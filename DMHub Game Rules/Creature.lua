@@ -1973,6 +1973,27 @@ function creature:ProficientInSkill(skillInfo)
 	return self:SkillProficiencyMultiplier(skillInfo) >= 1
 end
 
+function creature:GetCategorizedSkills()
+	local categorizedSkills = {}
+
+	for _,cat in ipairs(Skill.categories) do
+		local skills = {}
+		for _,skill in ipairs(Skill.SkillsInfo) do
+			if skill.category == cat.id and self:ProficientInSkill(skill) then
+				skills[#skills+1] = { id = skill.id, name = skill.name }
+			end
+		end
+		table.sort(skills, function(a,b) return a.name < b.name end)
+		categorizedSkills[#categorizedSkills+1] = {
+			id = cat.id,
+			skills = skills,
+		}
+	end
+	table.sort(categorizedSkills, function(a,b) return a.id < b.id end)
+
+	return categorizedSkills
+end
+
 function creature:ShowSkillRollDialog(skillInfo, args)
 	local attrDesc = skillInfo.name
 
