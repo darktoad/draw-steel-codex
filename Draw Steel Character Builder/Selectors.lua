@@ -8,7 +8,7 @@ local _getToken = CharacterBuilder._getToken
 
 --- Creates a panel of selectable item buttons that expands when its selector is active.
 --- Items must have `id` and `name` fields.
---- @param config {items: table[], selectorName: string, getSelected: fun(creature): table|nil}
+--- @param config {items: table[], selectorName: string, getSelected: fun(creature): table|nil, getItem: fun(id): table|nil}
 --- @return Panel
 function CharacterBuilder._createDetailedSelectorPanel(config)
     local selectorPanel
@@ -25,31 +25,32 @@ function CharacterBuilder._createDetailedSelectorPanel(config)
             text = item.name,
             data = { id = item.id },
             available = true,
+            
             create = function(element)
                 element:FireEvent("refreshToken")
             end,
-            refreshBuilderState = function(element, state)
-                if state then
-                    element:FireEvent("setSelected", state:Get(config.selectorName .. ".selectedId") == element.data.id)
+            
+            click = function(element)
+                local newState = {
+                    { key = config.selectorName .. ".selectedId", value = element.data.id }
+                }
+                if config.getItem then
+                    newState[#newState+1] = { key = config.selectorName .. ".selectedItem", value = config.getItem(element.data.id) }
                 end
+                _fireControllerEvent(element, "updateState", newState)
             end,
-            refreshToken = function(element)
-                local creature = _getCreature(element)
+
+            refreshBuilderState = function(element, state)
+                local creature = state:Get("token").properties
                 if creature then
-                    local selected = config.getSelected(creature)
-                    element:FireEvent("setAvailable", not selected or selected == element.data.id)
-                    element:FireEvent("setSelected", selected == element.data.id)
-                    element:SetClass("collapsed", selected and selected ~= element.data.id)
-                    if selected and selected == element.data.id then
+                    local tokenSelected = config.getSelected(creature)
+                    element:SetClass("collapsed", tokenSelected and tokenSelected ~= element.data.id)
+                    element:FireEvent("setAvailable", not tokenSelected or tokenSelected == element.data.id)
+                    if tokenSelected and tokenSelected == element.data.id and tokenSelected ~= state:Get(config.selectorName .. ".selectedId") then
                         element:FireEvent("click")
                     end
                 end
-            end,
-            click = function(element)
-                _fireControllerEvent(element, "updateState", {
-                    key = config.selectorName .. ".selectedId",
-                    value = element.data.id
-                })
+                element:FireEvent("setSelected", state:Get(config.selectorName .. ".selectedId") == element.data.id)
             end,
         }
     end
@@ -76,7 +77,12 @@ function CharacterBuilder._ancestrySelectorPanel()
     return CharacterBuilder._createDetailedSelectorPanel{
         items = CharacterBuilder._sortArrayByProperty(CharacterBuilder._toArray(dmhub.GetTableVisible(Race.tableName)), "name"),
         selectorName = "ancestry",
-        getSelected = function(creature) return creature:try_get("raceid") end,
+        getSelected = function(creature)
+            return creature:try_get("raceid")
+        end,
+        getItem = function(id)
+            return dmhub.GetTableVisible(Race.tableName)[id]
+        end,
     }
 end
 
@@ -89,6 +95,9 @@ function CharacterBuilder._careerSelectorPanel()
             local bg = creature:Background()
             return bg and bg.id or nil
         end,
+        getItem = function(id)
+            return dmhub.GetTableVisible(Background.tableName)[id]
+        end,
     }
 end
 
@@ -100,6 +109,9 @@ function CharacterBuilder._classSelectorPanel()
         getSelected = function(creature)
             local c = creature:GetClass()
             return c and c.id or nil
+        end,
+        getItem = function(id)
+            return dmhub.GetTableVisible(Class.tableName)[id]
         end,
     }
 end

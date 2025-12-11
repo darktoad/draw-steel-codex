@@ -2,13 +2,15 @@
 --- Functions standalone or plugs in to CharacterSheet
 --- 
 --- - State of the builder is managed via the main window's data.state object,
----   which you should always pass to the refreshBuilderState event.
+---   which you should always pass to the `refreshBuilderState` event.
 ---   Reference `CharacterBuilderState` to understand this object.
 --- - You should always update the state object via firing the updateState event
 ---   on the main window and passing {key = x, value = y} to it. It will then
----   fire the refreshBuilderState event tree for you.
+---   fire the `refreshBuilderState` event tree for you.
 --- - There are lots of helper functions, the most frequently used of which
 ---   are probably `_fireControllerEvent()`, `_getCreature()`, and `_getToken()`. 
+--- - Do not respond to `refreshToken`. The controller processes this event and
+---   translates into call to `refreshBuilderState`. Respond to that instead.
 CharacterBuilder = RegisterGameType("CharacterBuilder")
 
 CharacterBuilder.CONTROLLER_CLASS = "builderPanel"
@@ -62,7 +64,11 @@ end
 --- Returns the builder controller
 --- @return Panel
 function CharacterBuilder._getController(element)
-    return element:FindParentWithClass(CharacterBuilder.CONTROLLER_CLASS)
+    if element.data == nil then element.data = {} end
+    if element.data.controller == nil then
+        element.data.controller = element:FindParentWithClass(CharacterBuilder.CONTROLLER_CLASS)
+    end
+    return element.data.controller
 end
 
 --- Returns the creature (character) we're working on
@@ -70,14 +76,6 @@ end
 function CharacterBuilder._getCreature(element)
     local token = CharacterBuilder._getToken(element)
     if token then return token.properties end
-    return nil
-end
-
---- Returns the selector data
---- @return table|nil
-function CharacterBuilder._getData(element)
-    local controller = CharacterBuilder._getController(element)
-    if controller then return controller.data.selectorData end
     return nil
 end
 
@@ -92,13 +90,8 @@ end
 --- Returns the character token we are working with or nil if we can't get to it
 --- @return LuaCharacterToken|nil
 function CharacterBuilder._getToken(element)
-    if element.data == nil then element.data = {} end
-    if element.data.controller == nil then
-        element.data.controller = CharacterBuilder._getController(element)
-    end
-    if element.data.controller then
-        return element.data.controller.data.GetToken(element.data.controller)
-    end
+    local state = CharacterBuilder._getState(element)
+    if state then return state:Get("token") end
     return nil
 end
 
