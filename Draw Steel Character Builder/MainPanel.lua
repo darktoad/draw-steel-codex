@@ -3,9 +3,6 @@
     ... plus some other WIP that will eventually move out
 ]]
 
-local _fireControllerEvent = CharacterBuilder._fireControllerEvent
-local _getToken = CharacterBuilder._getToken
-
 --- Minimal implementation for the center panel. Non-reactive.
 function CharacterBuilder._detailPanel()
     local detailPanel
@@ -42,7 +39,6 @@ function CharacterBuilder.CreatePanel()
         halign = "center",
         valign = "center",
         flow = "horizontal",
-        borderColor = "red",
 
         data = {
             state = CharacterBuilderState:new(),
@@ -51,7 +47,7 @@ function CharacterBuilder.CreatePanel()
 
             cachedCharSheetInstance = false,
             charSheetInstance = nil,
-            token = nil,
+
             _cacheToken = function(element)
                 -- Importantly, we might not be running in the context of a character sheet
                 -- so we can't just grab the singleton object. This code is designed to
@@ -61,16 +57,11 @@ function CharacterBuilder.CreatePanel()
                     element.data.cachedCharSheetInstance = true
                 end
                 if element.data.charSheetInstance and element.data.charSheetInstance.data and element.data.charSheetInstance.data.info then
-                    element.data.token = element.data.charSheetInstance.data.info.token
+                    element.data.state:Set{key = "token", value = element.data.charSheetInstance.data.info.token}
                 else
                     -- TODO: Can we create a token without attaching it to the game immediately?
                 end
-                return element.data.token
-            end,
-
-            GetToken = function(element)
-                if element.data.token ~= nil then return element.data.token end
-                return element.data._cacheToken(element)
+                return element.data.state:Get("token")
             end,
         },
 
@@ -81,21 +72,25 @@ function CharacterBuilder.CreatePanel()
         end,
 
         refreshToken = function(element, info)
+            local token
             if info then
-                element.data.token = info.token
+                token = info.token
+                element.data.state:Set{key = "token", value = token}
             else
-                element.data._cacheToken(element)
+                token = element.data._cacheToken(element)
             end
-            if element.data.token then
-                local ancestryId = element.data.token.properties:try_get("raceid")
+            
+            if token then
+
+                local ancestryId = token.properties:try_get("raceid")
                 local ancestryItem
                 if ancestryId then ancestryItem = dmhub.GetTableVisible(Race.tableName)[ancestryId] end
                 local updateState = {
-                    { key = "token", value = element.data.token },
                     { key = "ancestry.selectedId", value = ancestryId },
                     { key = "ancestry.selectedItem", value = ancestryItem },
                 }
                 element.data.state:Set(updateState)
+
                 element:FireEventTree("refreshBuilderState", element.data.state)
             end
         end,
@@ -117,7 +112,7 @@ function CharacterBuilder.CreatePanel()
         selectCurrentAncestry = function(element)
             local ancestryId = element.data.state:Get("ancestry.selectedId")
             if ancestryId then
-                local token = element.data.GetToken(element)
+                local token = element.data.state:Get("token")
                 if token then
                     token.properties.raceid = ancestryId
                     element:FireEvent("tokenDataChanged")

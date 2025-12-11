@@ -41,9 +41,6 @@ function CharacterBuilder._descriptorsPanel()
             width = "50%",
             halign = "right",
             text = "--",
-            refreshToken = function(element)
-                element:FireEvent("updateState", _getState())
-            end,
         }
 
         if eventHandlers then
@@ -184,9 +181,6 @@ function CharacterBuilder._characterDescriptionPanel(tabId)
             -- bgimage = true,
             border = 1,
             borderColor = "purple",
-            refreshToken = function(element)
-                element:FireEvent("updateState", _getState())
-            end,
             updateState = function(element, state)
                 -- TODO: Update the label's .text property from the state
             end,
@@ -458,8 +452,8 @@ function CharacterBuilder._characterHeaderPanel()
         data = {
             text = "",
         },
-        refreshToken = function(element)
-            local t = _getToken(element)
+        refreshBuilderState = function(element, state)
+            local t = state:Get("token")
             element.data.text = (t and t.name and #t.name > 0) and t.name or "Unnamed Character"
             element.text = string.upper(element.data.text)
         end,

@@ -468,10 +468,10 @@ function CharSheet.FeaturePanel()
                         hasCustomPanels = hasCustomPanels,
                     },
 					textDefault = "Choose...",
-                    centerPopup = hasCustomPanels,
+                    centerPopup = true,
                     width = 400,
-                    menuWidth = cond(hasCustomPanels, 616),
-                    menuHeight = cond(hasCustomPanels, 920),
+                    menuWidth = cond(hasCustomPanels, 616, 545),
+                    menuHeight = cond(hasCustomPanels, 920, 545),
 					sort = true,
 					change = function(element)
 						local choice = element.idChosen
@@ -687,34 +687,49 @@ end
 function CharSheet.BuilderSettingsPanel()
 	local banner
 
+	local featsPanel = CharSheet.FeatureDetailsPanel{
+		alert = function(element)
+			banner:FireEvent("showAlert")
+		end,
+	}
+
 	local characteristicsPanel = CharSheet.BackgroundCharacteristicPanel{
 		GetSelectedBackground = function()
 			return g_creature:CharacterType()
 		end,
 	}
 
-    local complicationOptions = {}
-    local complicationsTable = dmhub.GetTable(CharacterComplication.tableName) or {}
+	local function GetComplicationOptions()
+		local complicationOptions = {}
+		local complicationsTable = dmhub.GetTable(CharacterComplication.tableName) or {}
 
-    for k,complication in pairs(complicationsTable) do
-        complicationOptions[#complicationOptions+1] = {
-            id = k,
-            text = complication.name,
-            tooltip = function()
-                return complication:Render{
-                    x = 8,
-                    halign = "right",
-                    width = 400,
-                    bgimage = true,
-                    bgcolor = Styles.backgroundColor,
-                    borderColor = Styles.textColor,
-                    borderWidth = 2,
-                    cornerRadius = 8,
-                }
+		for k,complication in pairs(complicationsTable) do
+			local passFilter = true
+			if complication.prerequisite ~= nil and (trim(complication.prerequisite) ~= "") then
+				passFilter = GoblinScriptTrue(dmhub.EvalGoblinScriptDeterministic(complication.prerequisite, g_creature:LookupSymbol(), 0, string.format("Complication %s prerequisite", complication.name)))
+			end
+			if passFilter then
+				complicationOptions[#complicationOptions+1] = {
+					id = k,
+					text = complication.name,
+					tooltip = function()
+						return complication:Render{
+							x = 8,
+							halign = "right",
+							width = 400,
+							bgimage = true,
+							bgcolor = Styles.backgroundColor,
+							borderColor = Styles.textColor,
+							borderWidth = 2,
+							cornerRadius = 8,
+						}
 
-            end,
-        }
-    end
+					end,
+				}
+			end
+		end
+		return complicationOptions
+	end
 
     local complicationPanel
     complicationPanel = gui.Panel {
@@ -734,7 +749,7 @@ function CharSheet.BuilderSettingsPanel()
                 valign = "center",
             },
 			gui.Multiselect{
-				options = complicationOptions,
+				options = GetComplicationOptions(),
 				width = "auto",
 				height = "auto",
 				margin = 3,
@@ -768,7 +783,7 @@ function CharSheet.BuilderSettingsPanel()
 
 				refreshAll = function(element)
 					local selected = g_creature.complications or {}
-					element:FireEvent("refreshSet", complicationOptions, selected)
+					element:FireEvent("refreshSet", GetComplicationOptions(), selected)
 				end,
 
 				refreshBuilder = function(element)
@@ -950,9 +965,22 @@ function CharSheet.BuilderSettingsPanel()
 				height = "auto",
 				flow = "horizontal",
 				complicationPanel,
+				gui.Panel{
+					width = "100%",
+					height = "auto",
+					flow = "vertical",
+					pad = 15,
+					vmargin = 32,
+					vscroll = true,
+					featsPanel,
+				},
 			},
 
 			refreshBuilder = function(element)
+				featsPanel.data.hide = false
+				featsPanel.data.criteria = {
+					feat = "*",
+				}
 			end,
 		},
 

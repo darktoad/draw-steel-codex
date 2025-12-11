@@ -52,28 +52,22 @@ function CharacterBuilder._ancestryNavPanel()
         text = "Features",
         data = { category = "features" },
         refreshBuilderState = function(element, state)
-            local creature = _getCreature(element)
+            local creature = state:Get("token").properties
             if creature then
                 element:FireEvent("setAvailable", creature:try_get("raceid") ~= nil)
                 element:FireEvent("setSelected", state:Get(SELECTOR .. ".category.selectedId") == element.data.category)
             end
-        end,
-        refreshToken = function(element)
-            element:FireEvent("refreshBuilderState", _getState(element))
         end,
     }
     local traits = makeCategoryButton{
         text = "Traits",
         data = { category = "traits" },
         refreshBuilderState = function(element, state)
-            local creature = _getCreature(element)
+            local creature = state:Get("token").properties
             if creature then
                 element:FireEvent("setAvailable", creature:try_get("raceid") ~= nil)
                 element:FireEvent("setSelected", state:Get(SELECTOR .. ".category.selectedId") == element.data.category)
             end
-        end,
-        refreshToken = function(element)
-            element:FireEvent("refreshBuilderState", _getState(element))
         end,
     }
     local change = makeCategoryButton{
@@ -87,11 +81,8 @@ function CharacterBuilder._ancestryNavPanel()
                 _fireControllerEvent(element, "tokenDataChanged")
             end
         end,
-        refreshBuilderState = function(element)
-            element:FireEvent("refreshToken")
-        end,
-        refreshToken = function(element)
-            local creature = _getCreature(element)
+        refreshBuilderState = function(element, state)
+            local creature = state:Get("token").properties
             if creature then
                 element:FireEvent("setAvailable", creature:try_get("raceid") ~= nil)
             end
@@ -140,7 +131,11 @@ function CharacterBuilder._ancestryOverviewPanel()
             local text = "ANCESTRY"
             local ancestryId = state:Get(SELECTOR .. ".selectedId")
             if ancestryId then
-                local race = dmhub.GetTable(Race.tableName)[ancestryId]
+                local race = state:Get(SELECTOR .. ".selectedItem")
+                if not race then
+                    race = dmhub.GetTable(Race.tableName)[ancestryId]
+                    print("THC:: NOCACHE:: RACE:: NAME::", race.name)
+                end
                 if race then text = race.name end
             end
             element.text = text
@@ -161,7 +156,11 @@ function CharacterBuilder._ancestryOverviewPanel()
             local text = CharacterBuilder.STRINGS.ANCESTRY.INTRO
             local ancestryId = state:Get(SELECTOR .. ".selectedId")
             if ancestryId then
-                local race = dmhub.GetTable(Race.tableName)[ancestryId]
+                local race = state:Get(SELECTOR .. ".selectedItem")
+                if not race then
+                    race = dmhub.GetTable(Race.tableName)[ancestryId]
+                    print("THC:: NOCACHE:: RACE:: INTRO::", race.name)
+                end
                 if race then text = CharacterBuilder._trimToLength(race.details, 300) end
             end
             element.text = text
@@ -183,7 +182,11 @@ function CharacterBuilder._ancestryOverviewPanel()
             local text = CharacterBuilder.STRINGS.ANCESTRY.OVERVIEW
             local ancestryId = state:Get(SELECTOR .. ".selectedId")
             if ancestryId then
-                local race = dmhub.GetTable(Race.tableName)[ancestryId]
+                local race = state:Get(SELECTOR .. ".selectedItem")
+                if not race then
+                    race = dmhub.GetTable(Race.tableName)[ancestryId]
+                    print("THC:: NOCACHE:: RACE:: DETAIL::", race.name)
+                end
                 if race then
                     local textItems = {
                         string.format(tr("<b>Size.</b>  Your people are size %s creatures."), race.size),
@@ -234,8 +237,12 @@ function CharacterBuilder._ancestryOverviewPanel()
                 element.bgimage = mod.images.ancestryHome
                 return
             end
-            local race = dmhub.GetTable(Race.tableName)[ancestryId]
-            element.bgimage = race.portraitid
+            local race = state:Get(SELECTOR .. ".selectedItem")
+            if not race then
+                race = dmhub.GetTable(Race.tableName)[ancestryId]
+                print("THC:: NOCACHE:: RACE:: IMAGE::", race.name)
+            end
+            if race then element.bgimage = race.portraitid end
         end,
 
         gui.Panel{
@@ -288,7 +295,11 @@ function CharacterBuilder._ancestryLorePanel()
             refreshBuilderState = function(element, state)
                 local ancestryId = state:Get(SELECTOR .. ".selectedId")
                 if ancestryId then
-                    local race = dmhub.GetTable(Race.tableName)[ancestryId]
+                    local race = state:Get(SELECTOR .. ".selectedItem")
+                    if not race then
+                        race = dmhub.GetTable(Race.tableName)[ancestryId]
+                        print("THC:: NOCACHE:: RACE:: LORE::", race.name)
+                    end
                     element.text = (race and race.lore and #race.lore > 0)
                         and race.lore
                         or string.format("No lore found for %s.", race.name)
@@ -306,14 +317,11 @@ function CharacterBuilder._ancestrySelectButton()
             _fireControllerEvent(element, "selectCurrentAncestry")
         end,
         refreshBuilderState = function(element, state)
-            local creature = _getCreature(element)
+            local creature = state:Get("token").properties
             if creature then
                 local canSelect = creature:try_get("raceid") == nil and state:Get(SELECTOR .. ".selectedId") ~= nil
                 element:SetClass("collapsed", not canSelect)
             end
-        end,
-        refreshToken = function(element)
-            element:FireEvent("refreshBuilderState", _getState(element))
         end,
     }
 end
@@ -357,7 +365,7 @@ function CharacterBuilder._ancestryDetail()
         },
 
         refreshBuilderState = function(element, state)
-            local creature = _getCreature(element)
+            local creature = state:Get("token").properties
             if creature then
                 local hasAncestry = creature:try_get("raceid") ~= nil
                 if not hasAncestry then
