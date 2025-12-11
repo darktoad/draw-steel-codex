@@ -468,10 +468,10 @@ function CharSheet.FeaturePanel()
                         hasCustomPanels = hasCustomPanels,
                     },
 					textDefault = "Choose...",
-                    centerPopup = hasCustomPanels,
+                    centerPopup = true,
                     width = 400,
-                    menuWidth = cond(hasCustomPanels, 616),
-                    menuHeight = cond(hasCustomPanels, 920),
+                    menuWidth = cond(hasCustomPanels, 616, 545),
+                    menuHeight = cond(hasCustomPanels, 920, 545),
 					sort = true,
 					change = function(element)
 						local choice = element.idChosen
