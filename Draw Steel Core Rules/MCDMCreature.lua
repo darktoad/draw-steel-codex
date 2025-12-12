@@ -1692,7 +1692,6 @@ creature.RegisterSymbol {
                 for i, info in ipairs(aurasTouching) do
                     if string.lower(info.auraInstance.aura.name) == auraname and info.auraInstance.casterid then
                         local casterToken = dmhub.GetTokenById(info.auraInstance.casterid)
-                        print("Caster::", creature.GetTokenDescription(casterToken))
                         if casterToken ~= nil then
                             return casterToken.properties
                         end
