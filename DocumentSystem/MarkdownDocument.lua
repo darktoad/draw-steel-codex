@@ -354,7 +354,7 @@ BreakdownRichTags = function(content, result, options, extraOutput)
 
         local powerRollMatch = (not parsingRollableTable) and
         regex.MatchGroups(str, "^\\|(?<name>[^|]+): (?<attr>[^|]+)$")
-        if powerRollMatch then
+        if powerRollMatch and lines[i+2] then
             local tiers = {}
             local hasMatch = true
             local nextLine = string.lower(trim(lines[i+1]))
