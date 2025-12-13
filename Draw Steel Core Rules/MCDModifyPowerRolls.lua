@@ -450,7 +450,7 @@ CharacterModifier.TypeInfo.power = {
                 if damageModifier ~= "" then
                     local damageModifierType = self:try_get("damageModifierType", "none")
                     local damageStr = dmhub.EvalGoblinScript(damageModifier, lookupFunction, "Power Roll Damage Modifier")
-                    local damage = tonumber(damageStr)
+                    local damage = safe_toint(damageStr)
                     if damage ~= nil then
                         damage = round(damage)
                         if description ~= "" then
@@ -615,7 +615,7 @@ CharacterModifier.TypeInfo.power = {
             local damage = dmhub.EvalGoblinScript(damageModifier, lookupFunction, "Power Roll Damage Modifier")
 
             --local damage = dmhub.EvalGoblinScriptDeterministic(damageModifier, lookupFunction, 0, "Power Roll Damage Modifier")
-            if damage ~= "" and tonumber(damage) ~= 0 then
+            if damage ~= "" and safe_toint(damage) ~= 0 then
 
                 for i,tier in ipairs(rollProperties.tiers) do
                     if damageModifierType == "none" then
@@ -628,10 +628,10 @@ CharacterModifier.TypeInfo.power = {
                             local before = string.sub(tier, 1, index-1)
                             local after = string.sub(tier, index+length)
 
-                            local damageValue = round(tonumber(match.damage.value))
+                            local damageValue = round(safe_toint(match.damage.value))
 
-                            if tonumber(damage) ~= nil then
-                                damageValue = round(damageValue + tonumber(damage))
+                            if safe_toint(damage) ~= nil then
+                                damageValue = round(damageValue + safe_toint(damage))
                                 tier = string.format("%s%d%s", before, damageValue, after)
                             else
                                 tier = string.format("%s%d + %s%s", before, damageValue, damage, after)
@@ -680,7 +680,7 @@ CharacterModifier.TypeInfo.power = {
                 local match = regex.MatchGroups(tier, pattern)
                 if match ~= nil then
                     local adj = dmhub.EvalGoblinScriptDeterministic(adjustment.value, lookupFunction, 1, "Determine adjustment")
-                    local value = tonumber(match.value)
+                    local value = safe_toint(match.value)
                     local newValue = math.max(0, value + (adj or 0))
                     rollProperties.tiers[j] = string.format("%s%s %d%s", match.prefix, match.type, newValue, match.postfix)
                 end
