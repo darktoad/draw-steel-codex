@@ -674,6 +674,7 @@ function CharSheet.CharacterSheetAndAvatarPanel()
             halign = "center",
             width = 256,
             height = 256,
+            tmargin = 88,
 
             gui.CreateTokenImage(nil, {
                 width = "100%",
