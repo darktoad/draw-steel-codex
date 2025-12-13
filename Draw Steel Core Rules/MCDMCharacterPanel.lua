@@ -1224,7 +1224,6 @@ local function InflictedConditionsPanel(m_token)
                             local cond = conditions[key]
                             if cond == nil or cond.casterInfo ~= nil then
                                 element:SetClass("collapsed", true)
-                                quantityLabel:SetClass("collapsed", true)
                             else
                                 element:SetClass("collapsed", false)
                             end
@@ -1264,7 +1263,7 @@ local function InflictedConditionsPanel(m_token)
                             width = 12,
                             height = 12,
 
-                            lmargin = 24,
+                            lmargin = 8,
                             halign = "left",
                             valign = "center",
                             data = {
@@ -1329,12 +1328,27 @@ local function InflictedConditionsPanel(m_token)
                         end,
 
                         linger = function(element)
+                            element:FireEvent("clearTargetingMarkers")
                             local cond = m_conditions[element.data.condid]
                             if cond == nil then
                                 return
                             end
                             local ongoingEffectsTable = dmhub.GetTable(CharacterCondition.tableName)
                             local ongoingEffectInfo = ongoingEffectsTable[element.data.condid]
+
+                            local caster = cond.casterInfo
+                            if caster ~= nil and type(caster.tokenid) == "string" then
+                                local casterToken = dmhub.GetTokenById(caster.tokenid)
+                                if casterToken ~= nil then
+
+									element.data.targetingMarkers[#element.data.targetingMarkers+1] = dmhub.HighlightLine{
+										color = "red",
+										a = casterToken.pos,
+										b = m_token.pos,
+									}
+                                end
+                            end
+
 
                             local duration = cond.duration
                             if duration == "eot" then
