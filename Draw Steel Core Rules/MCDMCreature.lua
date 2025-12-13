@@ -273,6 +273,17 @@ function monster:IsSage()
     return self:try_get("followerType") == "sage"
 end
 
+function creature:IsFollower()
+    return false
+end
+
+function monster:IsFollower()
+    local follower = false
+    if self:IsRetainer() or self:IsArtisan() or self:IsSage() then
+        follower = true
+    end
+    return follower
+end
 
 function creature:Retainers()
     return {}
