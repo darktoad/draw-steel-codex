@@ -225,11 +225,11 @@ end
 
 function AttributeType:ApplyOperation(currentValue, mod, op)
 	if op == "add" then
-		return currentValue + mod
+		return (currentValue or 0) + (mod or 0)
 	elseif op == "max" then
-		return math.max(currentValue, mod)
+		return math.max(currentValue or 0, mod or 0)
 	elseif op == "min" then
-		return math.min(currentValue, mod)
+		return math.min(currentValue or 0, mod or 0)
 	elseif op == "set" then
 		return mod
 	else
