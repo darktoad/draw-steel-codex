@@ -1600,6 +1600,16 @@ function creature:IsDying()
 end
 
 --- @return boolean
+function monster:IsDying()
+    if self:IsRetainer() then
+        local hp = self:CurrentHitpoints()
+        return hp <= 0 and hp > -(self:MaxHitpoints()/2)
+    end
+
+    return false
+end
+
+--- @return boolean
 function creature:IsDown()
     return self:IsDead()
 end
@@ -1611,6 +1621,9 @@ end
 
 --- @return boolean
 function monster:IsDead()
+    if self:IsRetainer() then
+        return self:CurrentHitpoints() <= -self:BloodiedThreshold()
+    end
     return self:CurrentHitpoints() <= 0
 end
 
