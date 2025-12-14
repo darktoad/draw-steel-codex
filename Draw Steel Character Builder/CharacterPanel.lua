@@ -10,12 +10,13 @@ local _getToken = CharacterBuilder._getToken
 
 local INITIAL_TAB = "builder"
 
-function CharacterBuilder._characterBulderPanel(tabId)
+function CharacterBuilder._characterBuilderPanel(tabId)
     return gui.Panel {
-        width = "96%",
-        height = "60%",
-        halign = "center",
-        valign = "top",
+        classes = {"builder-base", "panel-base", "panel-charpanel-detail"},
+        -- width = "96%",
+        -- height = "60%",
+        -- halign = "center",
+        -- valign = "top",
         data = {
             id = tabId,
         },
@@ -25,9 +26,7 @@ function CharacterBuilder._characterBulderPanel(tabId)
         end,
 
         gui.Label{
-            width = "100%",
-            height = "auto",
-            valign = "top",
+            classes = {"builder-base", "label-panel-placeholder"},
             text = "Builder content here...",
         }
     }
@@ -37,7 +36,7 @@ function CharacterBuilder._descriptorsPanel()
 
     local function makeDescriptionLabel(labelText, eventHandlers)
         local itemConfig = {
-            classes = {"label", "description-item"},
+            classes = {"label", "label-desc-item"},
             width = "50%",
             halign = "right",
             text = "--",
@@ -55,7 +54,7 @@ function CharacterBuilder._descriptorsPanel()
             width = "auto",
             flow = "horizontal",
             gui.Label{
-                classes = {"label", "description-label"},
+                classes = {"label", "label-description"},
                 halign = "left",
                 width = "50%",
                 text = labelText .. ":",
@@ -165,14 +164,14 @@ function CharacterBuilder._characterDescriptionPanel(tabId)
         vscroll = true,
 
         gui.Label{
-            classes = {"label", "description-label"},
+            classes = {"label", "label-description"},
             halign = "left",
             valign = "top",
             width = "auto",
             text = "Physical Features:",
         },
         gui.Label{
-            classes = {"label", "description-item"},
+            classes = {"label", "label-desc-item"},
             hmargin = 4,
             width = "98%",
             halign = "left",
@@ -188,14 +187,12 @@ function CharacterBuilder._characterDescriptionPanel(tabId)
     }
 
     return gui.Panel {
-        width = "96%",
-        height = "90%",
-        halign = "center",
-        valign = "top",
-        flow = "vertical",
+        classes = {"builder-base", "panel-base", "panel-charpanel-detail"},
+        -- width = "96%",
+        -- height = "60%",
+        -- halign = "center",
+        -- valign = "top",
         -- bgimage = true,
-        border = 1,
-        borderColor = "yellow",
         data = {
             id = tabId,
         },
@@ -210,51 +207,181 @@ function CharacterBuilder._characterDescriptionPanel(tabId)
 end
 
 function CharacterBuilder._characterExplorationPanel(tabId)
-    return gui.Panel {
-        width = "96%",
-        height = "80%",
+
+    local skillsPane = gui.Panel{
+        classes = {"panel-base"},
+        width = "98%",
+        height = "auto",
         halign = "center",
-        valign = "top",
+        flow = "vertical",
+
+        gui.Panel{
+            classes = {"panel-base"},
+            width = "100%",
+            height = "auto",
+            valign = "top",
+            flow = "horizontal",
+            bgimage = true,
+            borderColor = Styles.textColor,
+            border = {y1 = 1, y2 = 0, x1 = 0, x2 = 0},
+            gui.Label{
+                classes = {"builder-base", "label", "label-description"},
+                text = "Skills",
+            }
+        },
+
+        gui.Label{
+            classes = {"builder-base", "label", "label-desc-item"},
+            width = "98%",
+            valign = "top",
+            text = "calculating...",
+
+            refreshBuilderState = function(element, state)
+                local creature = state:Get("token").properties
+                if creature then
+                    local catSkills = creature:GetCategorizedSkills()
+                    if catSkills then
+                        local allSkills = ""
+                        for _,cat in ipairs(catSkills) do
+                            local skillStr = ""
+                            for _,skill in ipairs(cat.skills) do
+                                if #skillStr > 0 then skillStr = skillStr .. ", " end
+                                skillStr = skillStr .. skill.name
+                            end
+
+                            if #skillStr == 0 then skillStr = "--" end
+                            allSkills = string.format("%s%s<b>%s:</b> %s",
+                                allSkills,
+                                #allSkills > 0 and "\n" or "",
+                                cat.id:sub(1,1):upper() .. cat.id:sub(2),
+                                skillStr)
+                        end
+                        element.text = allSkills
+                    end
+                end
+            end
+        }
+    }
+
+    local languagesPane = gui.Panel{
+        classes = {"panel-base"},
+        width = "98%",
+        height = "auto",
+        halign = "center",
+        tmargin = 14,
+        flow = "vertical",
+
+        gui.Panel{
+            classes = {"panel-base"},
+            width = "100%",
+            height = "auto",
+            valign = "top",
+            flow = "horizontal",
+            bgimage = true,
+            borderColor = Styles.textColor,
+            border = {y1 = 1, y2 = 0, x1 = 0, x2 = 0},
+            gui.Label{
+                classes = {"builder-base", "label", "label-description"},
+                text = "Languages",
+            }
+        },
+
+        gui.Label{
+            classes = {"builder-base", "label", "label-desc-item"},
+            width = "98%",
+            valign = "top",
+            text = "calculating...",
+
+            refreshBuilderState = function(element, state)
+                local creature = state:Get("token").properties
+                if creature then
+                    local knownLangs = {}
+                    local langs = creature:LanguagesKnown()
+                    local langTable = dmhub.GetTableVisible(Language.tableName)
+                    for k,_ in pairs(langs) do
+                        local lang = langTable[k]
+                        if lang then
+                            local speakers = (lang.speakers and #lang.speakers > 0) and string.format(" (%s)", lang.speakers) or ""
+                            knownLangs[#knownLangs+1] = lang.name .. speakers
+                        end
+                    end
+                    local langString = "--"
+                    if #knownLangs > 0 then
+                        table.sort(knownLangs)
+                        langString = table.concat(knownLangs, ", ")
+                    end
+                    element.text = langString
+                end
+            end
+        }
+    }
+
+    return gui.Panel {
+        classes = {"builder-base", "panel-base", "panel-charpanel-detail"},
         data = {
             id = tabId,
         },
+
+        create = function(element)
+            element:FireEventTree("refreshBuilderState", _getState(element))
+        end,
 
         _refreshTabs = function(element, tabId)
             element:SetClass("collapsed", tabId ~= element.data.id)
         end,
 
-        gui.Label{
-            width = "100%",
-            height = "auto",
-            valign = "top",
-            text = "Exploration content here...",
-        }
+        skillsPane,
+        languagesPane,
     }
 end
 
 function CharacterBuilder._characterTacticalPanel(tabId)
     return gui.Panel {
-        width = "96%",
-        height = "60%",
-        halign = "center",
-        valign = "top",
+        classes = {"builder-base", "panel-base", "panel-charpanel-detail"},
+        -- width = "96%",
+        -- height = "60%",
+        -- halign = "center",
+        -- valign = "top",
+        vscroll = true,
         data = {
             id = tabId,
         },
+
+        create = function(element)
+            element:FireEventTree("refreshBuilderState", _getState(element))
+        end,
 
         _refreshTabs = function(element, tabId)
             element:SetClass("collapsed", tabId ~= element.data.id)
         end,
 
-        gui.Label{
-            width = "100%",
-            height = "auto",
-            valign = "top",
-            text = "Tactical content here...",
-        }
+        refreshBuilderState = function(element, state)
+            local t = state:Get("token")
+            if #element.children == 0 then
+                print("THC:: CREATEPANEL::")
+                element:AddChild(CharacterPanel.CreateCharacterDetailsPanel(t))
+                element:AddChild(gui.Label{
+                    width = "auto",
+                    height= "auto",
+                    fontSize = 60,
+                    floating = true,
+                    valign = "center",
+                    halign = "center",
+                    rotate = 35,
+                    color = "red",
+                    textAlignment = "center",
+                    text = "PLACEHOLDER",
+                })
+            else
+                print("THC:: REFRESHTOKEN::")
+                element:FireEventTree("refreshToken", t)
+            end
+        end
     }
 end
 
+--- Create the tabbed detail panel for the character pane
+--- @return Panel
 function CharacterBuilder._characterDetailPanel()
 
     local detailPanel
@@ -262,7 +389,7 @@ function CharacterBuilder._characterDetailPanel()
     local tabs = {
         builder = {
             icon = "panels/gamescreen/settings.png",
-            content = CharacterBuilder._characterBulderPanel,
+            content = CharacterBuilder._characterBuilderPanel,
         },
         description = {
             icon = "icons/icon_app/icon_app_31.png",
@@ -341,7 +468,7 @@ function CharacterBuilder._characterDetailPanel()
 
     detailPanel = gui.Panel{
         width = "100%",
-        height = "100%-240",
+        height = "100%-" .. CharacterBuilder.SIZES.CHARACTER_PANEL_HEADER_HEIGHT,
         flow = "vertical",
 
         create = function(element)
@@ -359,6 +486,8 @@ function CharacterBuilder._characterDetailPanel()
     return detailPanel
 end
 
+--- Create the header panel for the character pane
+--- @return Panel
 function CharacterBuilder._characterHeaderPanel()
 
     local popoutAvatar = gui.Panel {
@@ -439,15 +568,8 @@ function CharacterBuilder._characterHeaderPanel()
     }
 
     local characterName = gui.Label {
-        classes = {"label", "builder-base"},
+        classes = {"builder-base", "label", "label-charname"},
         text = "calculating...",
-        width = "98%",
-        height = "auto",
-        halign = "center",
-        valign = "top",
-        textAlignment = "center",
-        tmargin = 12,
-        fontSize = 24,
         editable = true,
         data = {
             text = "",
@@ -469,15 +591,30 @@ function CharacterBuilder._characterHeaderPanel()
         end,
     }
 
+    local levelClass = gui.Label {
+        classes = {"builder-base", "label", "label-charname"},
+        text = "calculating...",
+        tmargin = 4,
+        refreshBuilderState = function(element, state)
+            local c = state:Get("token").properties
+            if c then
+                local class = c:GetClass()
+                local level = c:GetLevelInClass(class.id)
+                element.text = string.format("Level %d %s", level, class.name):upper()
+            end
+        end,
+    }
+
     return gui.Panel{
         classes = {"builder-base", "panel-base"},
         width = "99%",
-        height = 240,
+        height = CharacterBuilder.SIZES.CHARACTER_PANEL_HEADER_HEIGHT,
         flow = "vertical",
         halign = "center",
         valign = "top",
         avatar,
         characterName,
+        levelClass,
     }
 end
 

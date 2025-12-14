@@ -71,6 +71,10 @@ function CharacterBuilder.CreatePanel()
             end
         end,
 
+        refreshBuilderState = function(element, state)
+            
+        end,
+
         refreshToken = function(element, info)
             local token
             if info then
@@ -79,7 +83,7 @@ function CharacterBuilder.CreatePanel()
             else
                 token = element.data._cacheToken(element)
             end
-            
+
             if token then
 
                 local ancestryId = token.properties:try_get("raceid")
@@ -124,7 +128,7 @@ function CharacterBuilder.CreatePanel()
             if element.data.charSheetInstance then
                 element.data.charSheetInstance:FireEvent("refreshAll")
             else
-                element:FireEvent("refreshBuilderState", element.data.state)
+                element:FireEventTree("refreshBuilderState", element.data.state)
             end
         end,
 

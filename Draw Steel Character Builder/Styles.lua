@@ -19,6 +19,8 @@ CharacterBuilder.COLORS = {
 CharacterBuilder.SIZES = {
     -- Panels
     CHARACTER_PANEL_WIDTH = 447,
+    CHARACTER_PANEL_HEADER_HEIGHT = 270,
+
     AVATAR_DIAMETER = 185,
 
     -- Labels
@@ -85,9 +87,19 @@ function CharacterBuilder._panelStyles()
             cornerRadius = 10,
         },
         {
-            selectors = {"builderPanel"},
-            bgcolor = CharacterBuilder.COLORS.PANEL_BG,
+            selectors = {"panel-charpanel-detail"},
+            width = "96%",
+            height = "80%",
+            halign = "center",
+            valign = "top",
+            flow = "vertical",
+            borderColor = "yellow",
+            border = 1,
         },
+        -- {
+        --     selectors = {"builderPanel"},
+        --     bgcolor = CharacterBuilder.COLORS.PANEL_BG,
+        -- },
         {
             selectors = {CharacterBuilder.CONTROLLER_CLASS},
             bgcolor = "#ffffff",
@@ -136,7 +148,17 @@ function CharacterBuilder._labelStyles()
             bold = true,
         },
         {
-            selectors = {"description-label"},
+            selectors = {"label-charname"},
+            width = "98%",
+            height = "auto",
+            halign = "center",
+            valign = "top",
+            textAlignment = "center",
+            fontSize = 24,
+            tmargin = 12,
+        },
+        {
+            selectors = {"label-description"},
             width = "50%",
             height = "auto",
             halign = "left",
@@ -146,13 +168,21 @@ function CharacterBuilder._labelStyles()
             bold = true,
         },
         {
-            selectors = {"description-item"},
+            selectors = {"label-desc-item"},
             width = "50%",
             height = "auto",
             halign = "left",
             vpad = CharacterBuilder.SIZES.DESCRIPTION_LABEL_PAD,
             textAlignment = "left",
             fontSize = 18,
+        },
+        {
+            selectors = {"label-panel-placeholder"},
+            width = "auto",
+            height = "auto",
+            valign = "center",
+            halign = "center",
+            fontSize = 36,
         }
     }
 end
