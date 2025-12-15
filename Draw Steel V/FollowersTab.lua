@@ -172,8 +172,7 @@ function CharSheet.FollowersInnerPanel()
         local mentorToken
         local newFollowerType = "none"
         local follower = {}
-
-        local retainerType
+        local options = {}
 
         resultPanel = gui.Panel{
             styles = Styles,
@@ -198,7 +197,7 @@ function CharSheet.FollowersInnerPanel()
                     followerToken = "none",
                 }
                 newFollowerType = "none"
-                retainerType = nil
+                options = {}
                 mentorToken = CharacterSheet.instance.data.info.token
                 resultPanel:FireEventTree("refreshAll")
             end,
@@ -290,11 +289,11 @@ function CharSheet.FollowersInnerPanel()
                     idChosen = "none",
 
                     refreshAll = function(element)
-                        element.idChosen = retainerType or "none"
+                        element.idChosen = options.pregenid or "none"
                     end,
 
                     change = function(element)
-                        retainerType = element.idChosen
+                        options.pregenid = element.idChosen
                     end,
                 },
             },
@@ -408,14 +407,14 @@ function CharSheet.FollowersInnerPanel()
                 },
 
                 gui.Dropdown{
-                    idChosen = follower.followerToken or "none",
+                    idChosen = options.followerToken or "none",
 
                     refreshAll = function(element)
                         element.options = FollowerTokenDropdownOptions(mentorToken.partyid, true)
                     end,
                     
                     change = function(element)
-                        follower.followerToken = element.idChosen
+                        options.followerToken = element.idChosen
                         resultPanel:FireEventTree("refreshAll")
                     end,
                 },
@@ -435,7 +434,7 @@ function CharSheet.FollowersInnerPanel()
 
                 click = function(element)
                     local mentorToken = CharacterSheet.instance.data.info.token
-                    CreateFollowerMonster(follower, newFollowerType, mentorToken, retainerType)
+                    CreateFollowerMonster(follower, newFollowerType, mentorToken, options)
                     CharacterSheet.instance:FireEvent("refreshAll")
                     element.parent:SetClass("collapsed", true)
                 end,

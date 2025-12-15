@@ -311,7 +311,7 @@ function RichFollower.CreateDisplay(self)
                 if not selectedToken then return end
                 local followers = selectedToken.properties:GetFollowers()
                 if followers then
-                   CreateFollowerMonster(self.follower, self.follower.type, selectedToken, self.follower.retainerType, false)    
+                   CreateFollowerMonster(self.follower, self.follower.type, selectedToken, {pregenid = self.follower.retainerType, open = false})    
                 end
             end,
         },
