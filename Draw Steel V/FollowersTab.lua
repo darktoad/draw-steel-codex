@@ -68,8 +68,7 @@ local Styles = {
 
 local retainerDropdownOptions, retainerLookup = buildRetainerList()
 
-function CharSheet.FollowersInnerPanel()
-    local TokenDropdownOptions = function(partyid)
+FollowerTokenDropdownOptions = function(partyid, alliesOnly)
         local results = {
             {
                 id = "none",
@@ -77,24 +76,26 @@ function CharSheet.FollowersInnerPanel()
             },
         }
 
-        --Our Party
-        local partyMembers = dmhub.GetCharacterIdsInParty(partyid) or {}
-        for _, charid in ipairs(partyMembers) do
-            local token = dmhub.GetCharacterById(charid)
-            if token ~= nil then
-                if token.properties:IsRetainer() or token.properties:IsArtisan() or token.properties:IsSage() then
-                    results[#results + 1] = {
-                        id = charid,
-                        text = token.name,
-                    }
+        if not alliesOnly then
+            local parties = GetAllParties()
+            for _, id in ipairs(parties) do
+                local partyMembers = dmhub.GetCharacterIdsInParty(id) or {}
+                for _, charid in ipairs(partyMembers) do
+                    local token = dmhub.GetCharacterById(charid)
+                    if token ~= nil then
+                        if token.properties:IsRetainer() or token.properties:IsArtisan() or token.properties:IsSage() then
+                            results[#results + 1] = {
+                                id = charid,
+                                text = token.name,
+                            }
+                        end
+                    end
                 end
             end
-        end
-
-        --Allied Parties
-        local partyInfo = GetParty(partyid)
-        for id, _ in pairs(partyInfo.allyParties) do
-            partyMembers = dmhub.GetCharacterIdsInParty(id) or {}
+        else
+            local partyid = partyid or GetDefaultPartyID()
+            --Our Party
+            local partyMembers = dmhub.GetCharacterIdsInParty(partyid) or {}
             for _, charid in ipairs(partyMembers) do
                 local token = dmhub.GetCharacterById(charid)
                 if token ~= nil then
@@ -106,10 +107,30 @@ function CharSheet.FollowersInnerPanel()
                     end
                 end
             end
+
+            --Allied Parties
+            local partyInfo = GetParty(partyid)
+            for id, _ in pairs(partyInfo.allyParties) do
+                partyMembers = dmhub.GetCharacterIdsInParty(id) or {}
+                for _, charid in ipairs(partyMembers) do
+                    local token = dmhub.GetCharacterById(charid)
+                    if token ~= nil then
+                        if token.properties:IsRetainer() or token.properties:IsArtisan() or token.properties:IsSage() then
+                            results[#results + 1] = {
+                                id = charid,
+                                text = token.name,
+                            }
+                        end
+                    end
+                end
+            end
         end
+
 
         return results
     end
+
+function CharSheet.FollowersInnerPanel()
 
     local FollowerTokenSelectionPanel = function(mentorToken)
         if not mentorToken then return end
@@ -127,12 +148,12 @@ function CharSheet.FollowersInnerPanel()
             },
 
             gui.Dropdown{
-                options = TokenDropdownOptions(mentorToken.partyid),
+                options = FollowerTokenDropdownOptions(mentorToken.partyid, true),
 
                 idChosen = follower.followerToken,
 
                 refreshAll = function(element)
-                    element.options = TokenDropdownOptions(mentorToken.partyid)
+                    element.options = FollowerTokenDropdownOptions(mentorToken.partyid, true)
                 end,
                 
                 change = function(element)
@@ -390,7 +411,7 @@ function CharSheet.FollowersInnerPanel()
                     idChosen = follower.followerToken or "none",
 
                     refreshAll = function(element)
-                        element.options = TokenDropdownOptions(mentorToken.partyid)
+                        element.options = FollowerTokenDropdownOptions(mentorToken.partyid, true)
                     end,
                     
                     change = function(element)
@@ -593,13 +614,13 @@ function CharSheet.FollowersInnerPanel()
                                 idChosen = id,
                                 options = (function()
                                     local mentorToken = CharacterSheet.instance.data.info.token
-                                    return mentorToken and TokenDropdownOptions(mentorToken.partyId) or {}
+                                    return mentorToken and FollowerTokenDropdownOptions(mentorToken.partyId, true) or {}
                                 end)(),
 
                                 refreshAll = function(element)
                                     local mentorToken = CharacterSheet.instance.data.info.token
                                     if mentorToken then
-                                        element.options = TokenDropdownOptions(mentorToken.partyId)
+                                        element.options = FollowerTokenDropdownOptions(mentorToken.partyId, true)
                                         element.idChosen = id
                                     end
                                 end,
@@ -610,7 +631,7 @@ function CharSheet.FollowersInnerPanel()
                                         mentorToken:ModifyProperties{
                                             description = "Reassign Follower",
                                             execute = function()
-                                                local followers = EnsureFollowers(mentorToken.properties)
+                                                local followers = mentorToken.properties:EnsureFollowers()
                                                 followers[id] = nil
                                                 followers[element.idChosen] = true
                                             end,
@@ -682,7 +703,7 @@ function CharSheet.FollowersInnerPanel()
                     if not child then
                         child = CreateFollowersSection(followerId, {
                             delete = function()
-                                RemoveFollowerFromMentor(mentorToken, followerId)
+                                mentorToken.properties:RemoveFollowerFromMentor(followerId)
                                 CharacterSheet.instance:FireEvent("refreshAll")
                             end,
                         })

@@ -4,14 +4,26 @@ RichFollower.tag = "follower"
 
 function RichFollower.Create()
     return RichFollower.new{
-        follower = Follower.Create(),
+        follower = {
+            guid = dmhub.GenerateGuid(),
+            ancestry = Race.DefaultRace(),
+            portrait = "DEFAULT_MONSTER_AVATAR",
+            characteristic = "mgt",
+            name = "New Follower",
+            type = "retainer",
+            languages = {},
+            skills = {},
+            followerToken = "none",
+            availableRolls = 0,
+            assignedTo = "",
+        }
     }
 end
 
 function RichFollower.CreateDisplay(self)
     local resultPanel
 
-    local function isFollowerAssignedToHero(tokenId)
+    --[[ local function isFollowerAssignedToHero(tokenId)
         local assignedTo = self.follower:try_get("assignedTo")
         if assignedTo then
             local followerId = assignedTo[tokenId]
@@ -24,7 +36,7 @@ function RichFollower.CreateDisplay(self)
         local assignedTo = self.follower:try_get("assignedTo")
         if assignedTo then return assignedTo[tokenId] end
         return nil
-    end
+    end ]]
 
     local assignButtonStyles = {
         {
@@ -107,30 +119,39 @@ function RichFollower.CreateDisplay(self)
 
     local detailPanel = gui.Panel{
         width = "100%",
-        height = "auto",
+        height = 140,
         fontSize = 12,
         minFontSize = 8,
         pad = 4,
         textAlignment = "topleft",
         flow = "horizontal",
         borderWidth = 1,
-        self.follower.portrait and gui.Panel {
-            bgimage = self.follower.portrait,
+        gui.Panel {
+            bgimage = "DEFAULT_MONSTER_AVATAR",
             bgcolor = "white",
+            halign = "left",
+            valign = "top",
             width = 90,
             height = 120,
             refreshTag = function(element)
                 element.bgimage = self.follower.portrait
             end,
-        } or nil,
+        },
         gui.Label {
-            width = self.follower.portrait and "100%-90" or "100%",
+            width = "auto",
             height = "auto",
             valign = "top",
+            halign = "left",
             refreshTag = function(element)
-                element.text = self.follower:Describe()
+                element.text = DescribeFollower(self.follower)
             end,
         },
+
+        refreshEditor = function(element)
+            for _, child in ipairs(element.children) do
+                child:FireEvent("refreshTag")
+            end
+        end,
     }
 
     local assignButtons = {}
@@ -150,10 +171,10 @@ function RichFollower.CreateDisplay(self)
                     lmargin = 8,
                     vpad = 4,
                     data = {
-                        revokeMode = isFollowerAssignedToHero(token.id),
+                        revokeMode = false,
                     },
                     refreshTag = function(element)
-                        element.data.revokeMode = isFollowerAssignedToHero(token.id)
+                        element.data.revokeMode = (self.follower.assignedTo == token.id)
                     end,
                     press = function(element)
                         if element.data.revokeMode then
@@ -163,34 +184,15 @@ function RichFollower.CreateDisplay(self)
                         end
                     end,
                     assign = function(element)
-                        local followers = token.properties:GetFollowers()
-                        if followers then
-                            local retainerToken
-                            if self.follower.type == "retainer" then
-                                local locs = token.properties:AdjacentLocations()
-                                local loc = #locs and locs[1] or token.properties.locsOccupying[1]
-                                retainerToken = game.SpawnTokenFromBestiaryLocally(self.follower.retainerToken, loc, {fitLocatoin = true})
-                                retainerToken.ownerId = token.ownerId
-                                retainerToken.name = self.follower.name
-                                retainerToken:UploadToken()
-                                game.UpdateCharacterTokens()
-                            end
-                            local newFollower = self.follower:ToTable()
-                            token:ModifyProperties{
-                                description = "Grant a Follower",
-                                undoable = false,
-                                execute = function()
-                                    if newFollower.type == "retainer" then newFollower.retainerToken = retainerToken.id end
-                                    followers[#followers + 1] = newFollower
-                                end
-                            }
-                            self.follower:AddAssignedTo(token.id, newFollower.guid)
-                            element:FireEvent("saveDoc")
-                            resultPanel:FireEventTree("refreshTag")
-                        end
+                        self.follower.assignedTo = token.id
+                        element:FireEvent("saveDoc")
+                        resultPanel:FireEventTree("refreshTag")
                     end,
                     revoke = function(element)
-                        local followers = token.properties:GetFollowers()
+                        self.follower.assignedTo = ""
+                        element:FireEvent("saveDoc")
+                        resultPanel:FireEventTree("refreshTag")
+                        --[[ local followers = token.properties:GetFollowers()
                         if followers then
                             local assignedAsGuid = getFollowerAssignedAsGuid(token.id)
                             if assignedAsGuid and #assignedAsGuid > 0 then
@@ -206,11 +208,10 @@ function RichFollower.CreateDisplay(self)
                                         end
                                     end
                                 }
-                                self.follower:RemoveAssignedTo(token.id)
-                                element:FireEvent("saveDoc")
-                                resultPanel:FireEventTree("refreshTag")
-                            end
-                        end
+                                self.follower:RemoveAssignedTo(token.id) ]]
+                                
+                            --end
+                        --end
                     end,
                     saveDoc = function(element)
                         local controller = element:FindParentWithClass("documentPanel")
@@ -223,7 +224,7 @@ function RichFollower.CreateDisplay(self)
                             height = 64,
                             halign = "left",
                             valign = "center",
-                            interactable = true,
+                            interactable = false,
                             border = 0,
                             borderWidth = 0,
                             refresh = function(element)
@@ -260,6 +261,7 @@ function RichFollower.CreateDisplay(self)
         flow = "horizontal",
         wrap = true,
         children = assignButtons,
+        
     }
 
     resultPanel = gui.Panel{
@@ -292,6 +294,27 @@ function RichFollower.CreateDisplay(self)
         headerPanel,
         detailPanel,
         footerPanel,
+
+        gui.Button {
+            text = "Commit Follower to Hero",
+            width = "auto",
+            height = 30,
+            halign = "Center",
+            valign = "Bottom",
+            interactable = false,
+            refreshTag = function(element)
+                element.interactable = (self.follower.assignedTo ~= "")
+            end,
+
+            press = function(element)
+                local selectedToken = dmhub.GetTokenById(self.follower.assignedTo)
+                if not selectedToken then return end
+                local followers = selectedToken.properties:GetFollowers()
+                if followers then
+                   CreateFollowerMonster(self.follower, self.follower.type, selectedToken, self.follower.retainerType, false)    
+                end
+            end,
+        },
     }
 
     return resultPanel
@@ -328,9 +351,9 @@ function RichFollower.CreateEditor(self)
             valign = "center",
             halign = "right",
             click = function(element)
-                self.follower:CreateEditorDialog{save = function ()
+                CreateFollowerEditorDialog(self.follower, {save = function ()
                     resultPanel:FireEventTree("refreshEditor")
-                end}
+                end})
             end,
         }
     }
@@ -347,7 +370,7 @@ function RichFollower.CreateEditor(self)
         borderColor = "#ffffff88",
         borderWidth = 1,
         refreshEditor = function(element)
-            element.text = self.follower:Describe()
+            element.text = DescribeFollower(self.follower)
         end,
     }
 
