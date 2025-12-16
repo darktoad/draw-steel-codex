@@ -32,15 +32,15 @@ function DTRoller:new(object)
                     downtimeInfo:SetAvailableRolls(downtimeInfo:GetAvailableRolls() + amount)
                 end
             end
-        elseif DTRoller._isFollowerType(_object) then
-            instance.name = _object:GetName()
-            instance.characteristics = _object:GetCharacteristics()
-            instance.languages = DTHelpers.MergeFlagLists(languages, _object:GetLanguages(), true)
-            instance.skills = DTRoller._followerSkillsToList(_object)
-            instance.object = _object
-            instance._adjustRolls = function(self, amount)
-                self.object:SetAvailableRolls(self.object:GetAvailableRolls() + amount)
-            end
+        -- elseif DTRoller._isFollowerType(_object) then
+        --     instance.name = _object:GetName()
+        --     instance.characteristics = _object:GetCharacteristics()
+        --     instance.languages = DTHelpers.MergeFlagLists(languages, _object:GetLanguages(), true)
+        --     instance.skills = DTRoller._followerSkillsToList(_object)
+        --     instance.object = _object
+        --     instance._adjustRolls = function(self, amount)
+        --         self.object:SetAvailableRolls(self.object:GetAvailableRolls() + amount)
+        --     end
         end
 
         return instance
@@ -95,8 +95,8 @@ function DTRoller:GetTokenID()
         if DTRoller._isCharacterType(self.object) then
             local token = dmhub.LookupToken(self.object)
             if token then return token.id end
-        elseif DTRoller._isFollowerType(self.object) then
-            return self.object:GetTokenID()
+        -- elseif DTRoller._isFollowerType(self.object) then
+        --     return self.object:GetTokenID()
         end
     end
     return nil
@@ -184,7 +184,7 @@ end
 --- @return boolean isCharacterType
 function DTRoller._isCharacterType(object)
     local objType = string.lower(object.typeName or "")
-    return objType == "character"
+    return objType == "character" or objType == "follower"
 end
 
 --- Determines whether the object represents a follower type
