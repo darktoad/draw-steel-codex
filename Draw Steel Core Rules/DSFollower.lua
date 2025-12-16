@@ -53,6 +53,10 @@ function follower:GetAvailableRolls()
     return self:try_get("availableRolls", 0)
 end
 
+function follower:SetAvailableRolls(numRolls)
+    self.availableRolls = math.max(0, numRolls)
+end
+
 --- Modifies the available rolls counter
 --- @param rolls number The number of rolls to add
 --- @return follower self For chaining
