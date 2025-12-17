@@ -272,12 +272,35 @@ function CharacterBuilder._characterPanelTabStyles()
     return {
         {
             selectors = {"char-tab-btn"},
+            bgimage = true,
+            border = 0,
+            pad = 4,
+            borderColor = CharacterBuilder.COLORS.CREAM03,
+        },
+        {
+            selectors = {"char-tab-border"},
+            width = "100%",
+            height = "100%",
+            border = 0,
+            borderColor = CharacterBuilder.COLORS.CREAM03,
+            bgimage = "panels/square.png",
+            bgcolor = "clear",
+        },
+        {
+            selectors = {"char-tab-border", "parent:selected"},
+            border = {y1 = 0, y2 = 2, x1 = 2, x2 = 2},
+        },
+        {
+            selectors = {"char-tab-icon"},
             width = 24,
             height = 24,
             bgcolor = CharacterBuilder.COLORS.GOLD,
         },
         {
-            selectors = {"char-tab-btn", "selected"},
+            selectors = {"char-tab-label"},
+        },
+        {
+            selectors = {"char-tab-icon", "selected"},
             bgcolor = CharacterBuilder.COLORS.CREAM03,
         },
     }

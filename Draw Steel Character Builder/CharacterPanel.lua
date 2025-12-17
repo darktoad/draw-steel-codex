@@ -408,6 +408,11 @@ function CharacterBuilder._characterTacticalPanel(tabId)
     }
 end
 
+--- Create the tabs panel
+--- @return Panel
+function CharacterBuilder._characterDetailTabsPanel()
+end
+
 --- Create the tabbed detail panel for the character pane
 --- @return Panel
 function CharacterBuilder._characterDetailPanel()
@@ -417,18 +422,22 @@ function CharacterBuilder._characterDetailPanel()
     local tabs = {
         builder = {
             icon = "panels/gamescreen/settings.png",
+            text = "Builder",
             content = CharacterBuilder._characterBuilderPanel,
         },
         description = {
             icon = "icons/icon_app/icon_app_31.png",
+            text = "Description",
             content = CharacterBuilder._characterDescriptionPanel,
         },
         exploration = {
             icon = "game-icons/treasure-map.png",
+            text = "Exploration",
             content = CharacterBuilder._characterExplorationPanel,
         },
         tactical = {
             icon = "panels/initiative/initiative-icon.png",
+            text = "Tactical",
             content = CharacterBuilder._characterTacticalPanel,
         }
     }
@@ -438,33 +447,58 @@ function CharacterBuilder._characterDetailPanel()
     for _,tabId in ipairs(tabOrder) do
         local tabInfo = tabs[tabId]
         local btn = gui.Panel{
-            classes = {"char-tab-btn"},
+            classes = {"char-tab-icon"},
             halign = "right",
             hmargin = 8,
             bgimage = tabInfo.icon,
-
-            data = {
-                id = tabId,
-            },
-
-            linger = function(element)
-                gui.Tooltip(element.data.id:sub(1,1):upper() .. element.data.id:sub(2))(element)
-            end,
-
+            -- interactable = false,
+            data = { id = tabId, },
             _refreshTabs = function(element, activeTabId)
                 element:SetClass("selected", activeTabId == element.data.id)
             end,
-
+        }
+        local label = gui.Label{
+            classes = {"builder-base", "label", "char-tab-label"},
+            height = "auto",
+            width = "auto",
+            hpad = 8,
+            color = CharacterBuilder.COLORS.CREAM03,
+            -- fontSize = 18,
+            text = tabInfo.text,
+            data = { id = tabId, },
+            _refreshTabs = function(element, activeTabId)
+                element:SetClass("collapsed", activeTabId ~= element.data.id)
+            end,
+        }
+        local tab = gui.Panel{
+            classes = {"builder-base", "panel", "char-tab-btn"},
+            width = "auto",
+            height = "100%",
+            halign = "right",
+            hmargin = 8,
+            flow = "horizontal",
+            data = {
+                id = tabId,
+            },
+            _refreshTabs = function(element, activeTabId)
+                element:SetClass("selected", activeTabId == element.data.id)
+            end,
+            linger = function(element)
+                gui.Tooltip(tabInfo.text)(element)
+            end,
             press = function(element)
                 detailPanel:FireEvent("tabClick", tabId)
             end,
+
+            btn,
+            label,
         }
-        tabButtons[#tabButtons+1] = btn
+        tabButtons[#tabButtons+1] = tab
     end
 
     local tabPanel = gui.Panel{
         width = "100%",
-        height = 24,
+        height = 26,
         tmargin = 8,
         vpad = 4,
         flow = "horizontal",
