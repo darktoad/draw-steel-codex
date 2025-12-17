@@ -773,11 +773,8 @@ function CharacterSkillDialog.CreateAsChild(options)
     if not token or not token.properties or not token.properties:IsHero() then return end
 
     local levelChoices = token.properties:GetLevelChoices()
-    print("THC:: LEVELCHOICES::", json(levelChoices))
     local selectedFeatures = token.properties:GetClassFeaturesAndChoicesWithDetails()
-    print("THC:: SELECTEDFEATURES::", json(selectedFeatures))
     local customFeatures = token.properties:try_get("characterFeatures", {})
-    print("THC:: CUSTOMFEATURES::", json(customFeatures))
     local skillChoices = aggregateSkillChoices(selectedFeatures, customFeatures, levelChoices)
     local skills = loadSkills()
     addCompensatingFeatures(skillChoices, skills)
