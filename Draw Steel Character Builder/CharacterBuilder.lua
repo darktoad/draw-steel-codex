@@ -46,6 +46,14 @@ end
     Utilities
 ]]
 
+--- If the string passed is nil or empty returns '--'
+--- @param s? string The string to evaluate
+--- @return string
+function CharacterBuilder._blankToDashes(s)
+    if s == nil or #s == 0 then return "--" end
+    return s
+end
+
 --- Fires an event on the main builder panel
 --- @param element Panel The element calling this method
 --- @param eventName string

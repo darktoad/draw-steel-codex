@@ -1,3 +1,5 @@
+local mod = dmhub.GetModLoading()
+
 --[[
     Main panel of the Character Builder
     ... plus some other WIP that will eventually move out

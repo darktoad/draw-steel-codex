@@ -320,7 +320,8 @@ CharacterBuilder.RegisterSelector{
 CharacterBuilder.RegisterSelector{
     id = "character",
     ord = 2,
-    selector = CharacterBuilder._characterSelector
+    selector = CharacterBuilder._characterSelector,
+    detail = CharacterBuilder._descriptionDetail,
 }
 
 CharacterBuilder.RegisterSelector{

@@ -4,6 +4,7 @@
 
 local mod = dmhub.GetModLoading()
 
+local _blankToDashes = CharacterBuilder._blankToDashes
 local _fireControllerEvent = CharacterBuilder._fireControllerEvent
 local _getState = CharacterBuilder._getState
 local _getToken = CharacterBuilder._getToken
@@ -13,10 +14,6 @@ local INITIAL_TAB = "builder"
 function CharacterBuilder._characterBuilderPanel(tabId)
     return gui.Panel {
         classes = {"builder-base", "panel-base", "panel-charpanel-detail"},
-        -- width = "96%",
-        -- height = "60%",
-        -- halign = "center",
-        -- valign = "top",
         data = {
             id = tabId,
         },
@@ -64,43 +61,75 @@ function CharacterBuilder._descriptorsPanel()
     end
 
     local weight = makeDescriptionLabel("Weight", {
-        updateState = function(element, state)
-            -- TODO: Update the label's .text property from the state
+        refreshBuilderState = function(element, state)
+            local character = state:Get("token").properties
+            if character then
+                local desc = character:Description()
+                if desc then element.text = _blankToDashes(desc:GetWeight()) end
+            end
         end,
     })
     local height = makeDescriptionLabel("Height", {
-        updateState = function(element, state)
-            -- TODO: Update the label's .text property from the state
+        refreshBuilderState = function(element, state)
+            local character = state:Get("token").properties
+            if character then
+                local desc = character:Description()
+                if desc then element.text = _blankToDashes(desc:GetHeight()) end
+            end
         end,
     })
     local hair = makeDescriptionLabel("Hair", {
-        updateState = function(element, state)
-            -- TODO: Update the label's .text property from the state
+        refreshBuilderState = function(element, state)
+            local character = state:Get("token").properties
+            if character then
+                local desc = character:Description()
+                if desc then element.text = _blankToDashes(desc:GetHair()) end
+            end
         end,
     })
     local eyes = makeDescriptionLabel("Eyes", {
-        updateState = function(element, state)
-            -- TODO: Update the label's .text property from the state
+        refreshBuilderState = function(element, state)
+            local character = state:Get("token").properties
+            if character then
+                local desc = character:Description()
+                if desc then element.text = _blankToDashes(desc:GetEyes()) end
+            end
         end,
     })
     local build = makeDescriptionLabel("Build", {
-        updateState = function(element, state)
-            -- TODO: Update the label's .text property from the state
+        refreshBuilderState = function(element, state)
+            local character = state:Get("token").properties
+            if character then
+                local desc = character:Description()
+                if desc then element.text = _blankToDashes(desc:GetBuild()) end
+            end
         end,
     })
     local skin = makeDescriptionLabel("Skin", {
-        updateState = function(element, state)
-            -- TODO: Update the label's .text property from the state
+        refreshBuilderState = function(element, state)
+            local character = state:Get("token").properties
+            if character then
+                local desc = character:Description()
+                if desc then element.text = _blankToDashes(desc:GetSkinTone()) end
+            end
         end,
     })
     local gender = makeDescriptionLabel("Gender", {
-        updateState = function(element, state)
-            -- TODO: Update the label's .text property from the state
+        refreshBuilderState = function(element, state)
+            local character = state:Get("token").properties
+            if character then
+                local desc = character:Description()
+                if desc then element.text = _blankToDashes(desc:GetGenderPresentation()) end
+            end
         end,
     })
     local pronouns = makeDescriptionLabel("Pronouns", {
-        updateState = function(element, state)
-            -- TODO: Update the label's .text property from the state
+        refreshBuilderState = function(element, state)
+            local character = state:Get("token").properties
+            if character then
+                local desc = character:Description()
+                if desc then element.text = _blankToDashes(desc:GetPronouns()) end
+            end
         end,
     })
 
@@ -180,22 +209,25 @@ function CharacterBuilder._characterDescriptionPanel(tabId)
             -- bgimage = true,
             border = 1,
             borderColor = "purple",
-            updateState = function(element, state)
-                -- TODO: Update the label's .text property from the state
+            refreshBuilderState = function(element, state)
+                local character = state:Get("token").properties
+                if character then
+                    local desc = character:Description()
+                    if desc then element.text = _blankToDashes(desc:GetPhysicalFeatures()) end
+                end
             end,
         }
     }
 
     return gui.Panel {
         classes = {"builder-base", "panel-base", "panel-charpanel-detail"},
-        -- width = "96%",
-        -- height = "60%",
-        -- halign = "center",
-        -- valign = "top",
-        -- bgimage = true,
         data = {
             id = tabId,
         },
+
+        create = function(element)
+            element:FireEventTree("refreshBuilderState", _getState(element))
+        end,
 
         _refreshTabs = function(element, tabId)
             element:SetClass("collapsed", tabId ~= element.data.id)
@@ -338,10 +370,6 @@ end
 function CharacterBuilder._characterTacticalPanel(tabId)
     return gui.Panel {
         classes = {"builder-base", "panel-base", "panel-charpanel-detail"},
-        -- width = "96%",
-        -- height = "60%",
-        -- halign = "center",
-        -- valign = "top",
         vscroll = true,
         data = {
             id = tabId,
@@ -599,9 +627,9 @@ function CharacterBuilder._characterHeaderPanel()
             local c = state:Get("token").properties
             if c then
                 local class = c:GetClass()
-                if class then
-                    local level = c:GetLevelInClass(class.id)
-                    element.text = string.format("Level %d %s", level, class.name):upper()
+                local level = c:CharacterLevel()
+                if class or level then
+                    element.text = string.format("Level %d %s", level, class and class.name or ""):upper()
                 end
             end
         end,
@@ -634,7 +662,6 @@ function CharacterBuilder._characterPanel()
         height = "99%",
         valign = "center",
         bgimage = true,
-        -- halign = "right",
         flow = "vertical",
 
         headerPanel,

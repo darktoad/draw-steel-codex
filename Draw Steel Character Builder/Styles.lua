@@ -21,6 +21,8 @@ CharacterBuilder.SIZES = {
     CHARACTER_PANEL_WIDTH = 447,
     CHARACTER_PANEL_HEADER_HEIGHT = 270,
 
+    DESCRIPTION_PANEL_WIDTH = 450,
+
     AVATAR_DIAMETER = 185,
 
     -- Labels
@@ -96,10 +98,6 @@ function CharacterBuilder._panelStyles()
             borderColor = "yellow",
             border = 1,
         },
-        -- {
-        --     selectors = {"builderPanel"},
-        --     bgcolor = CharacterBuilder.COLORS.PANEL_BG,
-        -- },
         {
             selectors = {CharacterBuilder.CONTROLLER_CLASS},
             bgcolor = "#ffffff",
@@ -241,10 +239,31 @@ function CharacterBuilder._inputStyles()
         {
             selectors = {"primary"},
             height = 48,
+            fontSize = 20,
         },
         {
             selectors = {"secondary"},
             height = 36,
+        },
+        {
+            selectors = {"multiline"},
+            height = 48*3,
+        },
+    }
+end
+
+function CharacterBuilder._dropdownStyles()
+    return {
+        {
+            selectors = {"dropdown"},
+            bgcolor = "#191A18",
+            borderColor = "#666663",
+            fontSize = 36,
+        },
+        {
+            selectors = {"dropdownLabel"},
+            textAlignment = "left",
+            halign = "left",
         },
     }
 end
@@ -278,6 +297,7 @@ function CharacterBuilder._getStyles()
     mergeStyles(CharacterBuilder._labelStyles())
     mergeStyles(CharacterBuilder._buttonStyles())
     mergeStyles(CharacterBuilder._inputStyles())
+    mergeStyles(CharacterBuilder._dropdownStyles())
     mergeStyles(CharacterBuilder._characterPanelTabStyles())
 
     return styles
