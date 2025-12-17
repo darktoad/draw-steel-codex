@@ -37,7 +37,7 @@ local function translateChoiceSource(item)
 
     -- Translate it
     if choiceSource == "background" then
-        choiceSource "career"
+        choiceSource = "career"
     elseif choiceSource == "upbringing" or choiceSource == "organization" or choiceSource == "environment" then
         choiceSource = "culture"
     elseif choiceSource == "race" then
