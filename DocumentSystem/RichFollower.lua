@@ -4,39 +4,73 @@ RichFollower.tag = "follower"
 
 function RichFollower.Create()
     return RichFollower.new{
-        follower = {
-            guid = dmhub.GenerateGuid(),
-            ancestry = Race.DefaultRace(),
-            portrait = "DEFAULT_MONSTER_AVATAR",
-            characteristic = "mgt",
-            name = "New Follower",
-            type = "retainer",
-            languages = {},
-            skills = {},
-            followerToken = "none",
-            availableRolls = 0,
-            assignedTo = "",
-        }
+        follower = RichFollower._fresh()
     }
+end
+
+function RichFollower._fresh()
+    return {
+        guid = dmhub.GenerateGuid(),
+        ancestry = Race.DefaultRace(),
+        portrait = "DEFAULT_MONSTER_AVATAR",
+        characteristic = "mgt",
+        name = "New Follower",
+        type = "retainer",
+        languages = {},
+        skills = {},
+        followerToken = "none",
+        availableRolls = 0,
+        assignedTo = "",
+    }
+end
+
+function RichFollower:_validate()
+
+    -- Some followers are converting as retainers when they should be artisan or sage
+    local function calcFollowerType(follower)
+        if follower.type == "retainer" and follower.skills and next(follower.skills) then
+            local skillId,_ = next(follower.skills)
+            if skillId then
+                local skillItem = dmhub.GetTable(Skill.tableName)[skillId]
+                if skillItem then
+                    if skillItem.category == "lore" then
+                        follower.type = "sage"
+                    elseif skillItem.category == "crafting" then
+                        follower.type = "artisan"
+                    end
+                end
+            end
+        end
+        return follower.type
+    end
+
+    if self.follower == nil then
+        self.follower = RichFollower._fresh()
+    elseif type(self.follower.try_get) == "function" then
+        print("THC:: PREVAL::", json(self.follower))
+        local newFollower = RichFollower._fresh()
+        self.follower = {
+            guid = self.follower:try_get("guid", newFollower.guid),
+            ancestry = self.follower:try_get("ancestry", newFollower.ancestry),
+            portrait = self.follower:try_get("portrait", newFollower.portrait),
+            characteristic = self.follower:try_get("characteristic", newFollower.characteristic),
+            name = self.follower:try_get("name", newFollower.name),
+            type = self.follower:try_get("type", newFollower.type),
+            languages = self.follower:try_get("languages", newFollower.languages),
+            skills = self.follower:try_get("skills", newFollower.skills),
+            followerToken = self.follower:try_get("followerToken", newFollower.followerToken),
+            availableRolls = self.follower:try_get("availableRolls", newFollower.availableRolls),
+            assignedTo = self.follower:try_get("assignedTo", newFollower.assignedTo),
+            retainerToken = self.follower:try_get("retainerToken", "")
+        }
+        self.follower.type = calcFollowerType(self.follower)
+        print("THC:: POSTVAL::", json(self.follower))
+    end
 end
 
 function RichFollower.CreateDisplay(self)
     local resultPanel
-
-    --[[ local function isFollowerAssignedToHero(tokenId)
-        local assignedTo = self.follower:try_get("assignedTo")
-        if assignedTo then
-            local followerId = assignedTo[tokenId]
-            return followerId and type(followerId) == "string"
-        end
-        return false
-    end
-
-    local function getFollowerAssignedAsGuid(tokenId)
-        local assignedTo = self.follower:try_get("assignedTo")
-        if assignedTo then return assignedTo[tokenId] end
-        return nil
-    end ]]
+    self:_validate()
 
     local assignButtonStyles = {
         {
@@ -174,7 +208,7 @@ function RichFollower.CreateDisplay(self)
                         revokeMode = false,
                     },
                     refreshTag = function(element)
-                        element.data.revokeMode = (self.follower.assignedTo == token.id)
+                        element.data.revokeMode = self.follower.assignedTo == token.id
                     end,
                     press = function(element)
                         if element.data.revokeMode then
@@ -192,26 +226,6 @@ function RichFollower.CreateDisplay(self)
                         self.follower.assignedTo = ""
                         element:FireEvent("saveDoc")
                         resultPanel:FireEventTree("refreshTag")
-                        --[[ local followers = token.properties:GetFollowers()
-                        if followers then
-                            local assignedAsGuid = getFollowerAssignedAsGuid(token.id)
-                            if assignedAsGuid and #assignedAsGuid > 0 then
-                                token:ModifyProperties{
-                                    description = "Revoke a Follwer Grant",
-                                    undoable = false,
-                                    execute = function()
-                                        for i = #followers, 1, -1 do
-                                            if followers[i].guid == assignedAsGuid then
-                                                table.remove(followers, i)
-                                                break
-                                            end
-                                        end
-                                    end
-                                }
-                                self.follower:RemoveAssignedTo(token.id) ]]
-                                
-                            --end
-                        --end
                     end,
                     saveDoc = function(element)
                         local controller = element:FindParentWithClass("documentPanel")
@@ -261,7 +275,6 @@ function RichFollower.CreateDisplay(self)
         flow = "horizontal",
         wrap = true,
         children = assignButtons,
-        
     }
 
     resultPanel = gui.Panel{
@@ -283,7 +296,7 @@ function RichFollower.CreateDisplay(self)
         },
         classes = {"follower-panel"},
         flow = "vertical",
-        width = "80%",
+        width = "98%",
         height = "auto",
         pad = 2,
         halign = "left",
@@ -303,15 +316,18 @@ function RichFollower.CreateDisplay(self)
             valign = "Bottom",
             interactable = false,
             refreshTag = function(element)
-                element.interactable = (self.follower.assignedTo ~= "")
+                element.interactable = self.follower.assignedTo ~= ""
             end,
 
             press = function(element)
-                local selectedToken = dmhub.GetTokenById(self.follower.assignedTo)
-                if not selectedToken then return end
-                local followers = selectedToken.properties:GetFollowers()
-                if followers then
-                   CreateFollowerMonster(self.follower, self.follower.type, selectedToken, {pregenid = self.follower.retainerType, open = false})    
+                local assignedTo = self.follower.assignedTo
+                if assignedTo and type(assignedTo) == "string" then
+                    local selectedToken = dmhub.GetTokenById(self.follower.assignedTo)
+                    if not selectedToken then return end
+                    local followers = selectedToken.properties:GetFollowers()
+                    if followers then
+                        CreateFollowerMonster(self.follower, self.follower.type, selectedToken, {pregenid = self.follower.retainerType, open = false})    
+                    end
                 end
             end,
         },
@@ -322,6 +338,7 @@ end
 
 function RichFollower.CreateEditor(self)
     local resultPanel
+    self:_validate()
 
     local titleLabel = gui.Label {
         width = "100%-14",

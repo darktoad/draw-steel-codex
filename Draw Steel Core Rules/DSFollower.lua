@@ -224,7 +224,7 @@ function DescribeFollower(follower)
     local followerType = follower.type
     local s = string.format("<b>%s Follower</b>", string.upper_first(followerType))
 
-    if follower.type == "artisan" or follower.type == "sage" then
+    if followerType == "artisan" or followerType == "sage" then
         if follower.ancestry then
             s = s .. "\n<b>Ancestry:</b> "
             s = s .. dmhub.GetTable(Race.tableName)[follower.ancestry].name
@@ -252,7 +252,7 @@ function DescribeFollower(follower)
             s = s .. sList
         end
     else
-        local id = follower and follower.retainerType or ""
+        local id = follower.retainerType
         if id and #id > 0 then
             local node = assets:GetMonsterNode(id)
             if node and node.monster and node.monster.info then
@@ -285,9 +285,9 @@ function DescribeFollower(follower)
     end
 
     local atl = ""
-    if follower and follower:try_get("assignedTo") and type(follower.assignedTo) == "string" and follower.assignedTo ~= "" then
+    if follower.assignedTo ~= "" then
         local token = dmhub.GetTokenById(follower.assignedTo)
-    
+
         if token then
             local name = creature.GetTokenDescription(token)
             atl = atl .. "<b>Assigned To:</b> " .. name
