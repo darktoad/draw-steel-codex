@@ -43,7 +43,7 @@ function ActivatedAbilityTransformBehavior:Cast(ability, casterToken, targets, a
 		for k,monster in pairs(assets.monsters) do
 			args.symbols.beast = GenerateSymbols(monster.properties)
 			args.symbols.target = GenerateSymbols(target.token.properties)
-			if monster.properties:has_key("monster_type") and dmhub.EvalGoblinScriptDeterministic(self.bestiaryFilter, GenerateSymbols(casterToken.properties, args.symbols), 0, string.format("Bestiary filter for %s transform filter %s", ability.name, monster.properties.monster_type)) ~= 0 then
+			if monster.properties:has_key("monster_type") and ExecuteGoblinScript(self.bestiaryFilter, GenerateSymbols(casterToken.properties, args.symbols), 0, string.format("Bestiary filter for %s transform filter %s", ability.name, monster.properties.monster_type)) ~= 0 then
 				choices[#choices+1] = monster
 			end
 		end

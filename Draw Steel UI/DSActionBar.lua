@@ -66,10 +66,6 @@ ActionBar = {
 	hasReactionBar = true,
 }
 
-local g_profileActionBarRecalculate = dmhub.ProfileMarker("actionbar.Recalculate")
-local g_profileActionBarRecalculateResources = dmhub.ProfileMarker("actionbar.RecalculateResources")
-local g_profileCast = dmhub.ProfileMarker("actionbar.Cast")
-
 local SlotStyles = {
 	{
 		selectors = {'preview-dice'},
@@ -788,7 +784,6 @@ function GameHud.CreateActionBar(self, dialog, tokenInfo)
                             end
                         end
 
-						g_profileCast:Begin()
 						currentSpell:Cast(token, targets, {
                             attachedTriggers = attachedTriggers,
 							costOverride = currentCostProposal,
@@ -804,7 +799,6 @@ function GameHud.CreateActionBar(self, dialog, tokenInfo)
 								end,
 							},
 						})
-						g_profileCast:End()
                         m_targetLineOfSightRays = {}
 						spellPanel:FireEvent('cancel')
 					else
@@ -850,7 +844,7 @@ function GameHud.CreateActionBar(self, dialog, tokenInfo)
 								local firstTargetToken = dmhub.GetTokenById(firstTarget)
 								if firstTargetToken ~= nil then
 									loc = firstTargetToken.locsOccupying
-									range = dmhub.EvalGoblinScriptDeterministic(currentSpell.proximityRange, token.properties:LookupSymbol(), dmhub.unitsPerSquare, string.format("Calculate proximity: %s", spell.name))
+									range = ExecuteGoblinScript(currentSpell.proximityRange, token.properties:LookupSymbol(), dmhub.unitsPerSquare, string.format("Calculate proximity: %s", spell.name))
 								end
 							end
 
@@ -2514,14 +2508,12 @@ function GameHud.CreateActionBar(self, dialog, tokenInfo)
                             m_markLineOfSightSourceToken = nil
                         end
 
-						g_profileCast:Begin()
 						currentSpell:Cast(token, targets, {
 							targetArea = pointTargetShape,
 							costOverride = currentCostProposal,
 							symbols = currentSymbols,
 							markLineOfSight = m_targetLineOfSightRays,
 						})
-						g_profileCast:End()
 
                         m_targetLineOfSightRays = {}
 
@@ -3418,7 +3410,7 @@ function GameHud.CreateActionBar(self, dialog, tokenInfo)
 			for i,mode in ipairs(currentSpell.modeList) do
 				local available = true
 				if mode.condition ~= nil and mode.condition ~= "" then
-					available = dmhub.EvalGoblinScriptDeterministic(mode.condition, token.properties:LookupSymbol(), 1, "Mode condition")
+					available = ExecuteGoblinScript(mode.condition, token.properties:LookupSymbol(), 1, "Mode condition")
 					available = type(available) == "number" and available > 0
 				end
 
@@ -3820,8 +3812,6 @@ function GameHud.CreateActionBar(self, dialog, tokenInfo)
 				m_token = token
 				creature = m_token.properties
 
-				g_profileActionBarRecalculateResources:Begin()
-
 				element:SetClass("collapsed", false)
 
 				local resources = m_token.properties:GetResources()
@@ -4099,7 +4089,6 @@ function GameHud.CreateActionBar(self, dialog, tokenInfo)
 				end
 
 				element.children = children
-				g_profileActionBarRecalculateResources:End()
 			end,
 
 			data = {
@@ -4631,7 +4620,7 @@ function GameHud.CreateActionBar(self, dialog, tokenInfo)
                                         local targets = {}
                                         for _,potential in ipairs(dmhub.allTokens) do
                                             symbols.target = potential.properties:LookupSymbol{}
-                                            if trim(filterFormula) == "" or GoblinScriptTrue(dmhub.EvalGoblinScriptDeterministic(filterFormula, potential.properties:LookupSymbol(symbols), 1)) then
+                                            if trim(filterFormula) == "" or GoblinScriptTrue(ExecuteGoblinScript(filterFormula, potential.properties:LookupSymbol(symbols), 1)) then
                                                 targets[#targets+1] = potential
                                             end
                                         end
@@ -4717,7 +4706,7 @@ function GameHud.CreateActionBar(self, dialog, tokenInfo)
                                                             target = target.properties:LookupSymbol{},
                                                         }
 
-                                                        local passed = GoblinScriptTrue(dmhub.EvalGoblinScriptDeterministic(condition, triggerToken.properties:LookupSymbol(symbols), 1))
+                                                        local passed = GoblinScriptTrue(ExecuteGoblinScript(condition, triggerToken.properties:LookupSymbol(symbols), 1))
                                                         if (not passed) and trigger.triggered then
                                                             --after the trigger, we didn't meet the criteria for it to apply so it is canceled.
                                                             triggerToken:ModifyProperties{
@@ -4786,7 +4775,7 @@ function GameHud.CreateActionBar(self, dialog, tokenInfo)
                                             local targets = {}
                                             for _,potential in ipairs(dmhub.allTokens) do
                                                 symbols.target = potential.properties:LookupSymbol{}
-                                                if trim(filterFormula) == "" or GoblinScriptTrue(dmhub.EvalGoblinScriptDeterministic(filterFormula, potential.properties:LookupSymbol(symbols), 1)) then
+                                                if trim(filterFormula) == "" or GoblinScriptTrue(ExecuteGoblinScript(filterFormula, potential.properties:LookupSymbol(symbols), 1)) then
                                                     targets[#targets+1] = potential
                                                 end
                                             end
@@ -5245,8 +5234,6 @@ function GameHud.CreateActionBar(self, dialog, tokenInfo)
                     return
                 end
 
-				g_profileActionBarRecalculate:Begin()
-
 				pagingPanels = {}
 
 				local childPanels = {activeTriggersPanel, arrowPanel}
@@ -5260,7 +5247,6 @@ function GameHud.CreateActionBar(self, dialog, tokenInfo)
 				if creature == nil then
 					element:SetClass('hidden', true)
 					ActionBarElements = { actionBar = element, panels = childPanels }
-					g_profileActionBarRecalculate:End()
 					return
 				end
 
@@ -5552,7 +5538,6 @@ function GameHud.CreateActionBar(self, dialog, tokenInfo)
 				actionsContainerPanel:FireEventTree("labelkeybind")
 
 
-				g_profileActionBarRecalculate:End()
 
 			end
 		},

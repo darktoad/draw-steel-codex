@@ -383,7 +383,7 @@ CharacterModifier.TypeInfo.modifyability = {
 		if modifier:try_get("filterAbility", "") ~= '' then
 			modifier._tmp_symbols = modifier:get_or_add("_tmp_symbols", {})
 			modifier._tmp_symbols.ability = GenerateSymbols(ability)
-			local result = dmhub.EvalGoblinScriptDeterministic(modifier.filterAbility, GenerateSymbols(creature, modifier._tmp_symbols), 0, string.format("Should modify ability: %s", ability.name))
+			local result = ExecuteGoblinScript(modifier.filterAbility, GenerateSymbols(creature, modifier._tmp_symbols), 0, string.format("Should modify ability: %s", ability.name))
 			if result == 0 then
 				return false
 			end
@@ -402,7 +402,7 @@ CharacterModifier.TypeInfo.modifyability = {
 		if modifier:try_get("filterAbility", "") ~= '' then
 			modifier._tmp_symbols = modifier:get_or_add("_tmp_symbols", {})
 			modifier._tmp_symbols.ability = GenerateSymbols(ability)
-			local result = dmhub.EvalGoblinScriptDeterministic(modifier.filterAbility, GenerateSymbols(creature, modifier._tmp_symbols), 0, string.format("Should modify ability: %s", ability.name))
+			local result = ExecuteGoblinScript(modifier.filterAbility, GenerateSymbols(creature, modifier._tmp_symbols), 0, string.format("Should modify ability: %s", ability.name))
 			if result == 0 then
 				return ability
 			end

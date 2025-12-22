@@ -160,14 +160,14 @@ CharacterModifier.TypeInfo.powertabletrigger = {
         if not selfIsTarget then
             --range check.
             local distance = token:Distance(triggerTarget)
-            if tonumber(distance) > dmhub.EvalGoblinScriptDeterministic(self.range, token.properties:LookupSymbol{}, 0) then
+            if tonumber(distance) > ExecuteGoblinScript(self.range, token.properties:LookupSymbol{}, 0) then
                 return
             end
         end
 
 
         if self:try_get("castingFilter", "") ~= "" then
-            local filter = dmhub.EvalGoblinScriptDeterministic(self.castingFilter, token.properties:LookupSymbol(symbols), 0)
+            local filter = ExecuteGoblinScript(self.castingFilter, token.properties:LookupSymbol(symbols), 0)
             if not GoblinScriptTrue(filter) then
                 return
             end
@@ -177,7 +177,7 @@ CharacterModifier.TypeInfo.powertabletrigger = {
         selfClone.powerRollModifier.casterCharid = token.charid
 
         if self:try_get("castingCostOverride","") ~= "" then
-            local cost = dmhub.EvalGoblinScriptDeterministic(self.castingCostOverride, token.properties:LookupSymbol(symbols), 0)
+            local cost = ExecuteGoblinScript(self.castingCostOverride, token.properties:LookupSymbol(symbols), 0)
             selfClone.powerRollModifier.resourceCostType = "cost"
             selfClone.powerRollModifier.resourceCostAmount = cost
         end
@@ -187,7 +187,7 @@ CharacterModifier.TypeInfo.powertabletrigger = {
         end
 
         if selfClone.powerRollModifier:try_get("resourceCostType") == "cost" then
-            if token.properties:GetHeroicOrMaliceResources() < dmhub.EvalGoblinScriptDeterministic(selfClone.powerRollModifier:try_get("resourceCostAmount", "1"), token.properties:LookupSymbol(symbols), 1) then
+            if token.properties:GetHeroicOrMaliceResources() < ExecuteGoblinScript(selfClone.powerRollModifier:try_get("resourceCostAmount", "1"), token.properties:LookupSymbol(symbols), 1) then
                 return false
             end
         end
@@ -205,7 +205,7 @@ CharacterModifier.TypeInfo.powertabletrigger = {
         end
 
         if self.abilityTargets ~= "" then
-            local targets = dmhub.EvalGoblinScriptDeterministic(self.abilityTargets, token.properties:LookupSymbol(symbols), 0)
+            local targets = ExecuteGoblinScript(self.abilityTargets, token.properties:LookupSymbol(symbols), 0)
             entry.params.targetcount = targets
         end
 
@@ -287,7 +287,7 @@ CharacterModifier.TypeInfo.powertabletrigger = {
         if not selfIsTarget then
             --range check.
             local distance = token:Distance(triggerTarget)
-            if tonumber(distance) > dmhub.EvalGoblinScriptDeterministic(self.range, token.properties:LookupSymbol{}, 0) then
+            if tonumber(distance) > ExecuteGoblinScript(self.range, token.properties:LookupSymbol{}, 0) then
                 return false
             end
         end
@@ -323,7 +323,7 @@ CharacterModifier.TypeInfo.powertabletrigger = {
 
         local targetFilter = self:try_get("targetFilter", "")
         if targetFilter ~= "" then
-            local filter = dmhub.EvalGoblinScriptDeterministic(targetFilter, token.properties:LookupSymbol{
+            local filter = ExecuteGoblinScript(targetFilter, token.properties:LookupSymbol{
                 caster = casterToken.properties,
                 target = targetToken.properties,
                 triggerer = token.properties,

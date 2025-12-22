@@ -57,7 +57,7 @@ function Culture:FillFeatureDetails(choices, result)
         }
     end
 
-    local t = dmhub.GetTable(CultureAspect.tableName)
+    local t = GetTableCached(CultureAspect.tableName)
     for k,v in pairs(self.aspects) do
         if v ~= "" then
             local entry = t[v]

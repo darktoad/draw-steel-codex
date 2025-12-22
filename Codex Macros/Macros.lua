@@ -1239,9 +1239,44 @@ Commands.link = function(str)
     end
 end
 
+--to trace a panel and get info about it.
+Commands.tracepanel = function(str)
+    local args = Commands.SplitArgs(str)
+    if #args ~= 1 then
+        return
+    end
+
+    local panel = gui.GetSheetById(args[1])
+    if panel == nil then
+        local trace = dmhub.GetPanelTrace(args[1])
+        if trace ~= nil then
+            print("Trace:", trace)
+            return
+        end
+        print("Trace: No panel found")
+        return
+    end
+
+    print("Trace: panel info:", panel.classes, panel.debugBacktrace)
+end
+
+local TestGoblinScript = function(symbols)
+    --local symbols = GenerateSymbols(properties)
+    local a = 18
+    local b = 6
+    local c = 1
+    local d = symbols("level")
+    local e = d - c
+    local f = e * b
+    local g = a + f
+    return g
+end
+
+
 --for testing
 Commands.print = function(str)
-    local result = Commands.query(str)
-    print("RESULT::", result)
-    return result
+
+	local sw = dmhub.Stopwatch()
+
+    print("TIME::", sw.milliseconds, sum)
 end

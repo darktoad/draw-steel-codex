@@ -107,7 +107,7 @@ CreateInspectorPanel = function()
                     }
                 }
 
-                local value = dmhub.EvalGoblinScript(entry.text, token.properties:LookupSymbol{}, "custom entry")
+                local value = ExecuteGoblinScript(entry.text, token.properties:LookupSymbol{}, 0, "custom entry")
                 entry.panel:FireEventTree("updateValue", value)
                 children[#children+1] = entry.panel
             end

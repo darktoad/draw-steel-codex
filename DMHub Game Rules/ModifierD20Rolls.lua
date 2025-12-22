@@ -55,7 +55,7 @@ local DoesD20ModifierPassFilter = function(self, cond, creature, rollType, optio
 			})
 		end
 
-		cond = dmhub.EvalGoblinScriptDeterministic(cond, lookupFunction, 0, string.format("Should %s modifier apply to d20 roll", self.name)) ~= 0
+		cond = ExecuteGoblinScript(cond, lookupFunction, 0, string.format("Should %s modifier apply to d20 roll", self.name)) ~= 0
 	end
 
 	return cond

@@ -121,7 +121,7 @@ CharacterModifier.TypeInfo.damage = {
 		end
 
 		if self:try_get("filterCondition", false) ~= false then
-			local result = dmhub.EvalGoblinScriptDeterministic(self.filterCondition, lookupFunction, 0, string.format("Is %s valid for damage", self.name))
+			local result = ExecuteGoblinScript(self.filterCondition, lookupFunction, 0, string.format("Is %s valid for damage", self.name))
 			if result == 0 then
 				return nil
 			end
@@ -135,7 +135,7 @@ CharacterModifier.TypeInfo.damage = {
 				}
 			end
 
-			local result = dmhub.EvalGoblinScriptDeterministic(self.damageFilterCondition, lookupFunction, 0, string.format("Should %s apply to damage", self.name))
+			local result = ExecuteGoblinScript(self.damageFilterCondition, lookupFunction, 0, string.format("Should %s apply to damage", self.name))
 
 			local explanation = dmhub.ExplainDeterministicGoblinScript(self.damageFilterCondition, lookupFunction, GoblinScriptSymbolDocument)
 			return {

@@ -643,7 +643,7 @@ function TriggeredAbility:Trigger(characterModifier, creature, symbols, auraCont
         end
         local subjectRangeFormula = self:try_get("subjectRange", "")
         if subjectRangeFormula ~= "" then
-            local range = dmhub.EvalGoblinScriptDeterministic(subjectRangeFormula, creature:LookupSymbol(symbols), nil, "Calculate Subject Range")
+            local range = ExecuteGoblinScript(subjectRangeFormula, creature:LookupSymbol(symbols), nil, "Calculate Subject Range")
             if range ~= nil then
                 local distance = subjectToken:Distance(casterToken)
                 range = tonumber(range)
@@ -713,7 +713,7 @@ function TriggeredAbility:Trigger(characterModifier, creature, symbols, auraCont
     end
 
 	if trim(self.conditionFormula) ~= "" then
-		local condition = dmhub.EvalGoblinScriptDeterministic(self.conditionFormula, creature:LookupSymbol(symbols), 0, "Trigger condition")
+		local condition = ExecuteGoblinScript(self.conditionFormula, creature:LookupSymbol(symbols), 0, "Trigger condition")
 		if tonumber(condition) == 0 then
 			--we fail the trigger condition
 
@@ -837,6 +837,8 @@ function TriggeredAbility:Trigger(characterModifier, creature, symbols, auraCont
             name = self.name,
             success = true,
         }
+
+        print("DISPATCH:: HANDLE TRIGGER", self.name, "TOKEN", creature.GetTokenDescription(casterToken))
     end
 
 	local executeTrigger = function()
@@ -898,7 +900,7 @@ function TriggeredAbility:Trigger(characterModifier, creature, symbols, auraCont
                     local passes = true
                     local formula = modeEntry.condition or ""
                     if formula ~= "" then
-                        local condition = dmhub.EvalGoblinScriptDeterministic(formula, creature:LookupSymbol(symbols), 0, "Trigger condition")
+                        local condition = ExecuteGoblinScript(formula, creature:LookupSymbol(symbols), 0, "Trigger condition")
                         if tonumber(condition) == 0 then
                             passes = false
                         end
@@ -996,7 +998,7 @@ function TriggeredAbility:Trigger(characterModifier, creature, symbols, auraCont
                     end
 
                     if trim(self.conditionFormula) ~= "" then
-                        local condition = dmhub.EvalGoblinScriptDeterministic(self.conditionFormula,
+                        local condition = ExecuteGoblinScript(self.conditionFormula,
                             casterToken.properties:LookupSymbol(symbols), 0, "Trigger condition")
                         if tonumber(condition) == 0 then
                             --we no longer sustain the trigger condition

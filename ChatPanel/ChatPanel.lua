@@ -333,7 +333,7 @@ CreateChatPanel = function()
                 end
 
                 if not equal then
-                    element.data.lastLanguagesKnown = DeepCopy(creature:try_get("g_languagesKnownLocally", {}))
+                    element.data.lastLanguagesKnown = table.shallow_copy(creature:try_get("g_languagesKnownLocally", {}))
                     element:FireEventTree("refreshLanguages")
                 end
             end,

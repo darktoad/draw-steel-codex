@@ -90,7 +90,7 @@ function CharacterModifier.DeregisterType(id)
 end
 
 function CharacterModifier:GetNumberOfCharges(creature)
-	return dmhub.EvalGoblinScriptDeterministic(self:try_get("numCharges", "1"), creature:LookupSymbol(self:try_get("_tmp_symbols", {})), 0, string.format("Number of charges for %s", self.name))
+	return ExecuteGoblinScript(self:try_get("numCharges", "1"), creature:LookupSymbol(self:try_get("_tmp_symbols", {})), 0, string.format("Number of charges for %s", self.name))
 end
 
 function CharacterModifier:GetResourceRefreshType()
@@ -513,7 +513,7 @@ CharacterModifier.TypeInfo.attribute = {
 		if attributeType.enum then
 			mod = self.value
 		else
-			mod = dmhub.EvalGoblinScriptDeterministic(self.value, GenerateSymbols(creature, self:try_get("_tmp_symbols")), 0, string.format("%s modifier for %s", self.name, attribute))
+			mod = ExecuteGoblinScript(self.value, GenerateSymbols(creature, self:try_get("_tmp_symbols")), 0, string.format("%s modifier for %s", self.name, attribute))
 		end
 		
 		local op = self:try_get("operation", "add")
@@ -527,7 +527,7 @@ CharacterModifier.TypeInfo.attribute = {
 			return nil
 		end
 		
-		local mod = dmhub.EvalGoblinScriptDeterministic(self.value, GenerateSymbols(creature, self:try_get("_tmp_symbols")), 0, string.format("%s modifier for %s", self.name, attribute))
+		local mod = ExecuteGoblinScript(self.value, GenerateSymbols(creature, self:try_get("_tmp_symbols")), 0, string.format("%s modifier for %s", self.name, attribute))
 		local op = self:try_get("operation", "add")
 		if op == "add" then
 			return { key = self.name, value = ModifierStr(mod), modifier = self }
@@ -887,9 +887,9 @@ CharacterModifier.TypeInfo.resistance = {
 
 	getResistances = function(modifier, creature, resistanceList)
 		for i,entry in ipairs(modifier.resistances) do
-			local e = dmhub.DeepCopy(entry)
+			local e = table.shallow_copy_with_meta(entry)
 			if type(e:try_get("dr")) == "string" then
-				e.dr = dmhub.EvalGoblinScriptDeterministic(e.dr, GenerateSymbols(creature, modifier:try_get("_tmp_symbols")), 0, "Damage Resistance")
+				e.dr = ExecuteGoblinScript(e.dr, GenerateSymbols(creature, modifier:try_get("_tmp_symbols")), 0, "Damage Resistance")
 			end
 
             e.source = modifier.name
@@ -1358,7 +1358,7 @@ CharacterModifier.TypeInfo.rollsattacking = {
 			target = GenerateSymbols(defenderCreature),
 		}
 		local lookupFunction = attackerCreature:LookupSymbol(symbols)
-		local result = dmhub.EvalGoblinScriptDeterministic(self.filterRoll, lookupFunction, 0, string.format("Should %s apply to rolls attacking.", self.name))
+		local result = ExecuteGoblinScript(self.filterRoll, lookupFunction, 0, string.format("Should %s apply to rolls attacking.", self.name))
 		return GoblinScriptTrue(result)
 	end,
 
@@ -1381,7 +1381,7 @@ CharacterModifier.TypeInfo.rollsattacking = {
 			target = GenerateSymbols(defenderCreature),
 		}
 		local lookupFunction = attackerCreature:LookupSymbol(symbols)
-		local result = dmhub.EvalGoblinScriptDeterministic(self.filterRoll, lookupFunction, 0, string.format("Should %s apply to rolls damaging.", self.name))
+		local result = ExecuteGoblinScript(self.filterRoll, lookupFunction, 0, string.format("Should %s apply to rolls damaging.", self.name))
 		local res = GoblinScriptTrue(result)
 		return res
 	end,
@@ -1521,7 +1521,7 @@ CharacterModifier.TypeInfo.armorclasscalculation = {
 		local symbols = GenerateSymbols(creature, modifier:try_get("_tmp_symbols"))
 
 		if modifier:has_key("filterCondition") then
-			local cond = dmhub.EvalGoblinScriptDeterministic(modifier.filterCondition, symbols, 1, string.format("Should %s modifier apply armor class calculation.", modifier.name)) ~= 0
+			local cond = ExecuteGoblinScript(modifier.filterCondition, symbols, 1, string.format("Should %s modifier apply armor class calculation.", modifier.name)) ~= 0
 			if cond == 0 then
 				return armorClass
 			end
@@ -1529,7 +1529,7 @@ CharacterModifier.TypeInfo.armorclasscalculation = {
 		
 
 
-		local result = dmhub.EvalGoblinScriptDeterministic(modifier.calculation, symbols, 0, "Calculate alternative armor class")
+		local result = ExecuteGoblinScript(modifier.calculation, symbols, 0, "Calculate alternative armor class")
 		if result > armorClass then
 			return result
 		end
@@ -1618,7 +1618,7 @@ CharacterModifier.TypeInfo.attackattribute = {
 			weapon = GenerateSymbols(weapon),
 		}
 
-		local result = dmhub.EvalGoblinScriptDeterministic(modifier.weaponFilterCondition, lookupFunction, 0, string.format("Should use attribute %s for attack with %s", modifier.attribute, weapon:try_get("description", "unknown weapon")))
+		local result = ExecuteGoblinScript(modifier.weaponFilterCondition, lookupFunction, 0, string.format("Should use attribute %s for attack with %s", modifier.attribute, weapon:try_get("description", "unknown weapon")))
 		if result ~= 0 then
 			return modifier.attribute
 		end
@@ -1895,7 +1895,7 @@ CharacterModifier.TypeInfo.spell = {
 
 			if modifier:has_key("level") and modifier.level ~= "" and spellClone.level ~= 0 then
 				--forced upcasting of this spell.
-				local level = dmhub.EvalGoblinScriptDeterministic(modifier.level, creature:LookupSymbol(modifier:try_get("_tmp_symbols", {})), 1, string.format("Calculate level to cast innate spell %s at", spellClone.name))					
+				local level = ExecuteGoblinScript(modifier.level, creature:LookupSymbol(modifier:try_get("_tmp_symbols", {})), 1, string.format("Calculate level to cast innate spell %s at", spellClone.name))					
 				if type(level) == "number" and level >= spellClone.level then
 					spellClone.castingLevel = level
 				end
@@ -2315,14 +2315,14 @@ CharacterModifier.TypeInfo.resource = {
 		if modifier.resourceType ~= 'none' then
 			local resourceType = modifier.resourceType
 			if CharacterResource.levelingMap[resourceType] ~= nil and modifier:has_key("level") then
-				local level = dmhub.EvalGoblinScriptDeterministic(modifier.level, creature:LookupSymbol(modifier:try_get("_tmp_symbols", {})), 1, string.format("Calculate resource level for %s", modifier.name))					
+				local level = ExecuteGoblinScript(modifier.level, creature:LookupSymbol(modifier:try_get("_tmp_symbols", {})), 1, string.format("Calculate resource level for %s", modifier.name))					
 
 				while level < 1000 and level > 1 and CharacterResource.levelingMap[resourceType] ~= nil do
 					resourceType = CharacterResource.levelingMap[resourceType]
 					level = level-1
 				end
 			end
-			resourceTable[resourceType] = (resourceTable[resourceType] or 0) + dmhub.EvalGoblinScriptDeterministic(modifier:try_get("num", 1), creature:LookupSymbol(modifier:try_get("_tmp_symbols", {})), 0, string.format("Calculate resource %s", modifier.name))
+			resourceTable[resourceType] = (resourceTable[resourceType] or 0) + ExecuteGoblinScript(modifier:try_get("num", 1), creature:LookupSymbol(modifier:try_get("_tmp_symbols", {})), 0, string.format("Calculate resource %s", modifier.name))
 		end
 	end,
 
@@ -3122,7 +3122,7 @@ function CharacterModifier:ConsumeResourceInternal(creature, modContext)
     if costType == "surges" then
         local resourcesAvailable = creature:GetAvailableSurges()
         local charges = self:try_get("_tmp_symbols", {}).charges or 1
-        local cost = dmhub.EvalGoblinScriptDeterministic(self:try_get("resourceCostAmount", "1"), creature:LookupSymbol(self:try_get("_tmp_symbols", {})), 0)*charges
+        local cost = ExecuteGoblinScript(self:try_get("resourceCostAmount", "1"), creature:LookupSymbol(self:try_get("_tmp_symbols", {})), 0)*charges
         local note = nil
         if modContext ~= nil and modContext.modifier ~= nil then
             note = modContext.modifier.name
@@ -3130,7 +3130,7 @@ function CharacterModifier:ConsumeResourceInternal(creature, modContext)
         creature:ConsumeSurges(cost, note)
     elseif costType ~= "none" and not self:try_get("overrideCost", false) then
         local charges = self:try_get("_tmp_symbols", {}).charges or 1
-        local cost = dmhub.EvalGoblinScriptDeterministic(self:try_get("resourceCostAmount", "1"), creature:LookupSymbol(self:try_get("_tmp_symbols", {})), 0)*charges
+        local cost = ExecuteGoblinScript(self:try_get("resourceCostAmount", "1"), creature:LookupSymbol(self:try_get("_tmp_symbols", {})), 0)*charges
         print("CONSUME:: EVAL", json(self), self:try_get("resourceCostAmount", "1"), "charges =", charges)
 		local resourcesTable = dmhub.GetTable("characterResources")
         print("CONSUME:: ConsumeResources:", creature.resourceid, cost, creature.resourceRefresh)
@@ -3168,11 +3168,11 @@ function CharacterModifier:HasResourcesAvailable(creature)
     local costType = self:try_get("resourceCostType", "none")
     if costType == "surges" then
         local resourcesAvailable = creature:GetAvailableSurges()
-        local cost = dmhub.EvalGoblinScriptDeterministic(self:try_get("resourceCostAmount", "1"), creature:LookupSymbol(self:try_get("_tmp_symbols", {})), 0)
+        local cost = ExecuteGoblinScript(self:try_get("resourceCostAmount", "1"), creature:LookupSymbol(self:try_get("_tmp_symbols", {})), 0)
         return cost <= resourcesAvailable
     elseif costType ~= "none" then
         local resourcesAvailable = creature:GetHeroicOrMaliceResources()
-        local cost = dmhub.EvalGoblinScriptDeterministic(self:try_get("resourceCostAmount", "1"), creature:LookupSymbol(self:try_get("_tmp_symbols", {})), 0)
+        local cost = ExecuteGoblinScript(self:try_get("resourceCostAmount", "1"), creature:LookupSymbol(self:try_get("_tmp_symbols", {})), 0)
         return cost <= resourcesAvailable
     end
 
@@ -3219,7 +3219,7 @@ function CharacterModifier:DescribeResourceAvailability(creature, charges, expec
                 resourcesAvailable = resourcesAvailable - (expectedCostOfCurrentCast[creature:GetHeroicOrMaliceId()] or 0)
             end
         end
-        local cost = dmhub.EvalGoblinScriptDeterministic(self:try_get("resourceCostAmount", "1"), creature:LookupSymbol(self:try_get("_tmp_symbols", {})), 0)*charges
+        local cost = ExecuteGoblinScript(self:try_get("resourceCostAmount", "1"), creature:LookupSymbol(self:try_get("_tmp_symbols", {})), 0)*charges
         local result = string.format("%d/%d %s", cost, resourcesAvailable, resourceName)
         return result
     end
@@ -3515,7 +3515,7 @@ function CharacterModifier:PassesFilter(creature, modContext)
 		self:InstallSymbolsFromContext(modContext)
 	end
 
-	if dmhub.EvalGoblinScriptDeterministic(self.filterCondition, creature:LookupSymbol(self:try_get("_tmp_symbols", {})), 1, string.format("Should apply modifier %s", self.name)) ~= 0 then
+	if ExecuteGoblinScript(self.filterCondition, creature:LookupSymbol(self:try_get("_tmp_symbols", {})), 1, string.format("Should apply modifier %s", self.name)) ~= 0 then
 		return true
 	else
 		return false

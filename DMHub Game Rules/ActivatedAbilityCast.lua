@@ -227,6 +227,7 @@ ActivatedAbilityCast.lookupSymbols = {
 	end,
 
 	damagedealt = function(c)
+        print("DAMAGE:: LOOKUP", c.damagedealt, c:try_get("_tmp_guid"))
 		return c.damagedealt
 	end,
 
@@ -420,6 +421,8 @@ end
 function ActivatedAbilityCast:CountDamage(targetToken, damageDealt, damageRaw)
 	self.damagedealt = self.damagedealt + damageDealt
 	self.damageraw = self.damageraw + damageRaw
+    self._tmp_guid = dmhub.GenerateGuid()
+    print("DAMAGE:: COUNT", damageDealt, "->", self.damagedealt, self._tmp_guid)
 
 	self.damageTable = self:try_get("damageTable", {})
 

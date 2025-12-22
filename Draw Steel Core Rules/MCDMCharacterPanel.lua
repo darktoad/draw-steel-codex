@@ -825,6 +825,7 @@ local function AurasAffectingPanel(m_token)
             end
 
             element:SetClass("collapsed", false)
+            local newPanelsCache = {}
             local children = {}
 			local aurasTouching = m_token.properties:GetAurasAffecting(m_token) or {}
             for i,info in ipairs(aurasTouching) do
@@ -843,7 +844,6 @@ local function AurasAffectingPanel(m_token)
 						local tooltip = CreateAuraTooltip(auraInstance)
                         element.tooltip = gui.TooltipFrame(tooltip)
 
-                        --[[Fix me: make this area accurate
 						local area = auraInstance:GetArea()
 						if area ~= nil then
 							element.data.mark = {
@@ -853,7 +853,6 @@ local function AurasAffectingPanel(m_token)
 								}
 							}
 						end
-                        ]]
                     end,
 
 					dehover = function(element)
@@ -894,9 +893,12 @@ local function AurasAffectingPanel(m_token)
                     },
                 }
 
+                newPanelsCache[auraInstance.guid] = panel
+
                 children[#children+1] = panel
             end
 
+            m_panelsCache = newPanelsCache
             element.children = children
         end,
     }
@@ -1611,7 +1613,7 @@ CharacterPanel.CreateCharacterDetailsPanel = function(m_token)
                                                 checklistBefore[entry.guid] = {record[entry.guid], updateid}
                                                 record[entry.guid] = updateid
 
-                                                local quantity = dmhub.EvalGoblinScriptDeterministic(entry.quantity, GenerateSymbols(m_token.properties), 0, "Heroic Resource Amount")
+                                                local quantity = ExecuteGoblinScript(entry.quantity, GenerateSymbols(m_token.properties), 0, "Heroic Resource Amount")
                                                 local amount = m_token.properties:RefreshResource(CharacterResource.heroicResourceId, "unbounded", quantity, entry.name)
                                                 if amount > 0 then
                                                     chat.SendCustom(
@@ -2616,6 +2618,25 @@ function CharacterPanel.DecoratePortraitPanel(token)
                         height = "auto",
                         text = "Tokens",
                         y = 7,
+                        press = function(element)
+
+                            local n = dmhub.GetSettingValue("numheroes")
+
+                            local items = {}
+                            items[#items+1] = {
+                                text = string.format("Reset Hero Tokens For Session (%d heroes)", n),
+                                click = function()
+                                    m_token.properties:SetHeroTokens(n, "Session Reset")
+                                    element.popup = nil
+                                end,
+                            }
+
+
+                            element.popup = gui.ContextMenu{
+                                entries = items,
+                            }
+
+                        end,
                     },
 
                     --if the global resources change we want to refresh.

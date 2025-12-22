@@ -28,12 +28,12 @@ CharacterModifier.TypeInfo.altspells = {
             end
         end
 
-        local maxLevel = dmhub.EvalGoblinScriptDeterministic(self.maxLevel, creature:LookupSymbol(), 10, "Maximum level alternate spells")
+        local maxLevel = ExecuteGoblinScript(self.maxLevel, creature:LookupSymbol(), 10, "Maximum level alternate spells")
         if spell.level > maxLevel then
             return
         end
 
-        local cost = dmhub.EvalGoblinScriptDeterministic(self.costFormula, creature:LookupSymbol{ spelllevel = spell.level, spell = GenerateSymbols(spell) }, 1, "Alternative spell cost")
+        local cost = ExecuteGoblinScript(self.costFormula, creature:LookupSymbol{ spelllevel = spell.level, spell = GenerateSymbols(spell) }, 1, "Alternative spell cost")
         cost = max(cost, 1)
 
 
@@ -46,7 +46,7 @@ CharacterModifier.TypeInfo.altspells = {
 
         --now see about upcasting.
         for i=spell.level+1,min(GameSystem.maxSpellLevel, maxLevel) do
-            cost = dmhub.EvalGoblinScriptDeterministic(self.costFormula, creature:LookupSymbol{ spelllevel = i, spell = GenerateSymbols(spell) }, 1, "Alternative spell cost")
+            cost = ExecuteGoblinScript(self.costFormula, creature:LookupSymbol{ spelllevel = i, spell = GenerateSymbols(spell) }, 1, "Alternative spell cost")
             cost = max(cost, 1)
 
             resultTable[#resultTable+1] = {

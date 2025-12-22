@@ -830,7 +830,7 @@ function GameHud.CreateRollDialog(self)
                         panel:SetClass("collapsed", modifier == nil)
                         if modifier ~= nil then
                             local costType = modifier:try_get("resourceCostType")
-                            local amount = dmhub.EvalGoblinScriptDeterministic(modifier:try_get("resourceCostAmount", 1),
+                            local amount = ExecuteGoblinScript(modifier:try_get("resourceCostAmount", 1),
                                 creature:LookupSymbol {}, 0)
                             local available = tok.properties:GetHeroicOrMaliceResources()
                             if costType ~= "cost" or amount > available then

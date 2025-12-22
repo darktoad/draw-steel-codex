@@ -44,6 +44,23 @@ LaunchablePanel.Register{
 			flow = "vertical",
 			vscroll = true,
 			hideObjectsOutOfScroll = true,
+            debugEntries = function(element, entries)
+                local counts = {}
+                for i,entry in ipairs(entries) do
+                    counts[entry.input] = (counts[entry.input] or 0) + 1
+                end
+
+                local keys = table.keys(counts)
+                table.sort(keys, function(a,b)
+                    return counts[a] > counts[b]
+                end)
+                print("DebugEntries::", #entries)
+                for i=1,math.min(#keys,10) do
+                    local key = keys[i]
+                    print(string.format("  %d. %s -> %d", i, key, counts[key]))
+                end
+                AddDebugEntries(entries)
+            end,
 			clearDebugger = function(element)
 				element.children = {}
 				entries = {}
@@ -358,6 +375,7 @@ LaunchablePanel.Register{
 		end
 
 		dmhub.RegisterGoblinScriptDebugger(AddDebugEntries)
+        RegisterGoblinScriptDebugPanel(listPanel)
 
 		local dialogPanel = gui.Panel{
 			classes = {'document-dialog'},
@@ -407,7 +425,7 @@ LaunchablePanel.Register{
 							local tokens = dmhub.selectedTokens
 							for _,tok in ipairs(tokens) do
 								printf("LEVEL:: EVAL:: %s -> %s", element.value, json(tok.properties:LookupSymbol{}("level")))
-								dmhub.EvalGoblinScriptDeterministic(element.value, tok.properties:LookupSymbol{}, 0, "Evaluation")
+								ExecuteGoblinScript(element.value, tok.properties:LookupSymbol{}, 0, "Evaluation")
 							end
 
 							element.value = ""

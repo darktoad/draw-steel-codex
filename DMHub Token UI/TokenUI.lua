@@ -1176,6 +1176,31 @@ local g_lastDamageEntryTokenId = nil
 local g_damageEntryDelay = 0.5
 local g_damageEntryDelaySameToken = 0.25
 
+local g_lowestDamageEntrySeq = nil
+local g_lowestDamageEntryTime = nil
+
+local FindLowestActiveDamageSeq = function()
+    local t = dmhub.Time()
+    if g_lowestDamageEntrySeq ~= nil and g_lowestDamageEntryTime == t then
+        return g_lowestDamageEntrySeq
+    end
+
+    local lowestSeq = nil
+
+    local allTokens = dmhub.allTokens
+    for _,token in ipairs(allTokens) do
+        local seq = token.properties:GetLowestDamageEntrySeq()
+        if seq ~= nil then
+            lowestSeq = math.min(lowestSeq or seq, seq)
+        end
+    end
+
+    g_lowestDamageEntrySeq = lowestSeq
+    g_lowestDamageEntryTime = t
+
+    return lowestSeq
+end
+
 function CreateTokenHud(token)
 
 	local emotesProcessed = {}
@@ -1671,7 +1696,7 @@ function CreateTokenHud(token)
 				element:FireEvent("refresh")
 			end,
 
-			damageentry = function(element, entry)
+			damageentry = function(element, entry, forceDelay)
 
 				if token == nil or not token.valid then
 					return
@@ -1683,8 +1708,12 @@ function CreateTokenHud(token)
 
 				local t = dmhub.Time()
                 local timeDelta = t - g_lastDamageEntryTime
+                if forceDelay then
+                    timeDelta = 0
+                end
+                print("DAMAGE:: forceDelay =", json(forceDelay), " timeDelta =", timeDelta, " delay =", delay)
 				if timeDelta < delay then
-					element:ScheduleEvent("damageentry", (g_lastDamageEntryTime+delay) - t, entry)
+					element:ScheduleEvent("damageentry", delay - timeDelta, entry)
 					return
 				end
 				
@@ -1692,7 +1721,6 @@ function CreateTokenHud(token)
                 g_lastDamageEntryTokenId = token.charid
 
 				if entry.damage then
-                    print("DAMAGE ENTRY::", json(entry))
 					element:PulseClass('damage')
 
                     local effectName = "redflash"
@@ -1840,11 +1868,15 @@ function CreateTokenHud(token)
                 end
 
                 local damageEntries = token.properties:GetAndRemoveDamageEntries()
-                if damageEntries ~= nil then
-                    local sound = nil
-                    for i,entry in ipairs(damageEntries) do
-						element:FireEvent("damageentry", entry)
-
+                if damageEntries ~= nil and #damageEntries > 0 then
+                    local lowestSeq = FindLowestActiveDamageSeq()
+                    for i=#damageEntries,1,-1 do
+                        local entry = damageEntries[i]
+                        local forceDelay = false
+                        if lowestSeq ~= nil and entry.seq > lowestSeq then
+                            forceDelay = true
+                        end
+						element:FireEvent("damageentry", entry, forceDelay)
                     end
                 end
 

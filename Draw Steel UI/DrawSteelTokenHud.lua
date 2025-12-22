@@ -563,7 +563,7 @@ TokenHud.RegisterPanel{
                             local text = token:GetNameMaxLength(30)
 
                             if text ~= nil then
-                                local offsetScale = 0.85 ^ math.max(0, #text - 10)
+                                local offsetScale = 0.5 * (0.85 ^ math.max(0, #text - 10))
                                 bglabel.x = 1.5 * offsetScale
                                 bglabel.y = 4 - 1.5 * offsetScale
                             end
@@ -971,12 +971,15 @@ TokenHud.RegisterPanel{
                 element:SetClass("collapsed", false)
 
                 for i,tok in ipairs(flankingTokens) do
-                    m_indicators[i] = gui.Panel{
+                    m_indicators[i] = m_indicators[i] or gui.Panel{
                         width = 1,
                         height = 80,
                         halign = "center",
                         valign = "center",
                         interactable = false,
+                        data = {
+                            otherToken = tok,
+                        },
 
                         gui.Panel{
                             halign = "center",
@@ -987,10 +990,14 @@ TokenHud.RegisterPanel{
                             width = 71*0.45,
                             height = 36*0.45,
                             rotate = 180,
+                            think = function(element)
+                                element.selfStyle.bgcolor = cond(element.parent.data.otherToken.properties:try_get("_tmp_grantsFlanking", "") == token.charid, "#FFFFFF", "#CF1414")
+                            end,
                         },                        
 
                         thinkTime = 0.1,
                         think = function(element)
+                            local tok = element.data.otherToken
                             if tok.valid then
                                 local a = tok.pos
                                 local b = token.pos
@@ -1007,6 +1014,9 @@ TokenHud.RegisterPanel{
                             element:FireEvent("think")
                         end,
                     }
+
+                    m_indicators[i].data.token = tok
+                    m_indicators[i]:FireEventTree("think")
                 end
 
                 while #m_indicators > #flankingTokens do

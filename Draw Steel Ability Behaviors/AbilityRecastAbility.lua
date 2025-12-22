@@ -43,7 +43,7 @@ function ActivatedAbilityRecastBehavior:SynthesizeAbilities(ability, creature)
                                 ability = a,
                                 caster = abilityCaster.properties,
                             }
-                            passesFilter = GoblinScriptTrue(dmhub.EvalGoblinScriptDeterministic(filter, creature:LookupSymbol(symbols), 0, "Recast Ability Filter"))
+                            passesFilter = GoblinScriptTrue(ExecuteGoblinScript(filter, creature:LookupSymbol(symbols), 0, "Recast Ability Filter"))
                         end
 
                         if passesFilter then

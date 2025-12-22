@@ -121,7 +121,7 @@ function Aura:CreaturePassesFilter(c, auraInstance)
         caster = casterToken.properties
     end
 
-    local result = dmhub.EvalGoblinScriptDeterministic(self.creatureFilter, c:LookupSymbol { caster = caster, target = c, aura = auraInstance },
+    local result = ExecuteGoblinScript(self.creatureFilter, c:LookupSymbol { caster = caster, target = c, aura = auraInstance },
         "Aura Creature Filter")
     return GoblinScriptTrue(result)
 end
@@ -944,7 +944,7 @@ end
 --- @param targets table
 --- @param options table
 function ActivatedAbilityAuraBehavior:Cast(ability, casterToken, targets, options)
-    print("Aura:: target area:", options.targetArea)
+    print("Aura:: target area:", options.targetArea, "origin =", options.targetArea.origin.x, options.targetArea.origin.y)
     if options.targetArea ~= nil then
         self:CastOnArea(ability,casterToken, targets, options, options.targetArea)
     else
@@ -976,6 +976,7 @@ function ActivatedAbilityAuraBehavior:CastOnArea(ability, casterToken, targets, 
     end
     local targetLoc = targetArea.origin
     local targetFloor = game.currentMap:GetFloorFromLoc(targetLoc)
+    print("Aura:: FOUND FLOOR:", targetFloor)
     if targetFloor ~= nil then
         local guid = dmhub.GenerateGuid()
         local auraInstance = AuraInstance.new {
@@ -1002,10 +1003,14 @@ function ActivatedAbilityAuraBehavior:CastOnArea(ability, casterToken, targets, 
             auraInstance.duration = "endturn"
         end
 
+        print("AURA:: CREATED")
+
         local obj = nil
         if self.aura.objectid ~= nil then
+        print("AURA:: CREATE OBJECT")
             obj = targetFloor:SpawnObjectLocal(self.aura.objectid)
             if obj ~= nil then
+        print("AURA:: CREATED OBJECT")
                 auraInstance.object = {
                     floorid = obj.floorid,
                     objid = obj.objid,
@@ -1210,6 +1215,7 @@ end
 
 function CreateAuraTooltip(auraInstance)
     local aura = auraInstance.aura
+    print("AURA:: SHOW AURA:", json(aura))
 
     return gui.Panel {
         styles = SpellRenderStyles,
@@ -1239,7 +1245,7 @@ function CreateAuraTooltip(auraInstance)
         },
 
         gui.Label {
-            text = aura.description,
+            text = aura:GetDescription(),
             classes = "description",
         },
     }

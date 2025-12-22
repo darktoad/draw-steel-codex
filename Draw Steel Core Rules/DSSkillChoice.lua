@@ -65,12 +65,16 @@ function CharacterSkillChoice:CanRepeat()
 	return false
 end
 
+local g_hit = 0
+local g_miss = 0
+
 function CharacterSkillChoice:GetSkillFeatures()
     if self:try_get("_tmp_skillFeatures") ~= nil and (dmhub.DeepEqual(self:try_get("_tmp_skillFeaturesKey"), self.categories)) then
+        g_hit = g_hit + 1
         return self._tmp_skillFeatures
     end
 
-    self._tmp_skillFeaturesKey = dmhub.DeepCopy(self.categories)
+    self._tmp_skillFeaturesKey = table.shallow_copy(self.categories)
     for k,v in pairs(self.individualSkills) do
         self._tmp_skillFeaturesKey[k] = true
     end

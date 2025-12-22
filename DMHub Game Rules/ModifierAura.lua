@@ -11,7 +11,7 @@ CharacterModifier.TypeInfo.aura = {
 
 	generateAura = function(modifier, creature, auras)
         if modifier:try_get("conditionFormula", "") ~= "" then
-            local passes = GoblinScriptTrue(dmhub.EvalGoblinScriptDeterministic(modifier.conditionFormula, GenerateSymbols(creature), 0, "Aura condition"))
+            local passes = GoblinScriptTrue(ExecuteGoblinScript(modifier.conditionFormula, GenerateSymbols(creature), 0, "Aura condition"))
             if not passes then
                 return
             end
@@ -39,7 +39,7 @@ CharacterModifier.TypeInfo.aura = {
 				--let it calculate this from the token.
 				--targetPoint = core.Vector3(token.loc.x, token.loc.y, 0),
 				range = 100,
-				radius = dmhub.EvalGoblinScriptDeterministic(modifier.radius, GenerateSymbols(creature, modifier:try_get("_tmp_symbols")), 0, "Aura radius"),
+				radius = ExecuteGoblinScript(modifier.radius, GenerateSymbols(creature, modifier:try_get("_tmp_symbols")), 0, "Aura radius"),
 			},
 		}
 

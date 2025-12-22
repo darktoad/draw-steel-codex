@@ -130,7 +130,7 @@ CharacterModifier.TypeInfo.suppressabilities = {
 
         if abilityFilter ~= "" then
             local symbols = creature:LookupSymbol{ability = ability}
-            local passFilter = GoblinScriptTrue(dmhub.EvalGoblinScriptDeterministic(abilityFilter, symbols, 1, "Ability filter"))
+            local passFilter = GoblinScriptTrue(ExecuteGoblinScript(abilityFilter, symbols, 1, "Ability filter"))
             if not passFilter then
                 if modifier:has_key("explanation") and modifier.explanation ~= "" then
                     ability = ability:MakeTemporaryClone()

@@ -943,5 +943,5 @@ function loot:CarryingCapacity()
 end
 
 function creature:CarryingCapacity()
-	return dmhub.EvalGoblinScriptDeterministic("Carrying Capacity", self:LookupSymbol(), 0, "Determine carrying capacity")
+	return ExecuteGoblinScript("Carrying Capacity", self:LookupSymbol(), 0, "Determine carrying capacity")
 end

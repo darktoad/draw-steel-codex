@@ -16,7 +16,7 @@ ActivatedAbility.RegisterType
 }
 
 function ActivatedAbilityDelayBehavior:Cast(ability, casterToken, targets, options)
-    local delay = dmhub.EvalGoblinScriptDeterministic(self.delay, casterToken.properties:LookupSymbol(options.symbols), string.format("Delay for %s", ability.name))
+    local delay = ExecuteGoblinScript(self.delay, casterToken.properties:LookupSymbol(options.symbols), string.format("Delay for %s", ability.name))
     if delay > 60 then
         delay = 60
     end
@@ -27,7 +27,7 @@ function ActivatedAbilityDelayBehavior:Cast(ability, casterToken, targets, optio
     end
 
     if self:try_get("proceedCondition", "") ~= "" then
-        while not GoblinScriptTrue(dmhub.EvalGoblinScriptDeterministic(self.proceedCondition, casterToken.properties:LookupSymbol(options.symbols), "Proceed condition")) do
+        while not GoblinScriptTrue(ExecuteGoblinScript(self.proceedCondition, casterToken.properties:LookupSymbol(options.symbols), "Proceed condition")) do
             coroutine.yield(0.1)
         end
     end

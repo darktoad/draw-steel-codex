@@ -509,7 +509,7 @@ function CharSheet.FeaturePanel()
 					else
 						for i,choice in ipairs(choices) do
 							if choice.id == idChosen and choice.prerequisite ~= nil and (type(choice.prerequisite) ~= "string" or trim(choice.prerequisite) ~= "") then
-								local pass = dmhub.EvalGoblinScriptDeterministic(choice.prerequisite, g_creature:LookupSymbol(), 0, string.format("Feat %s prerequisite", choice.text))
+								local pass = ExecuteGoblinScript(choice.prerequisite, g_creature:LookupSymbol(), 0, string.format("Feat %s prerequisite", choice.text))
 								if pass == 0 then
 									if type(choice.prerequisite) == "string" then
 										failedPrerequisiteMessage = "You do not meet the " .. choice.prerequisite .. " requirement for this feat."
@@ -706,7 +706,7 @@ function CharSheet.BuilderSettingsPanel()
 		for k,complication in pairs(complicationsTable) do
 			local passFilter = true
 			if complication.prerequisite ~= nil and (trim(complication.prerequisite) ~= "") then
-				passFilter = GoblinScriptTrue(dmhub.EvalGoblinScriptDeterministic(complication.prerequisite, g_creature:LookupSymbol(), 0, string.format("Complication %s prerequisite", complication.name)))
+				passFilter = GoblinScriptTrue(ExecuteGoblinScript(complication.prerequisite, g_creature:LookupSymbol(), 0, string.format("Complication %s prerequisite", complication.name)))
 			end
 			if passFilter then
 				complicationOptions[#complicationOptions+1] = {

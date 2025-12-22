@@ -321,14 +321,19 @@ end
 --- The creature's movement type.
 --- return string
 function creature:CurrentMoveType()
-	local token = dmhub.LookupToken(self)
-    local groundMoveType = "walk"
-	if token ~= nil then
-		groundMoveType = token:GetGroundMoveType(self:GetSpeed("swim") >= self:GetSpeed("walk"))
-	end
+    local groundMoveType = rawget(self, "_tmp_groundMoveType")
+    if groundMoveType == nil then
+        local token = dmhub.LookupToken(self)
+        groundMoveType = "walk"
+        if token ~= nil then
+            --for now we just prefer ground over water. This check to get the speed of each is pretty expensive.
+            local preferWater = false -- self:GetSpeed("swim") >= self:GetSpeed("walk")
+            groundMoveType = token:GetGroundMoveType(preferWater)
+            self._tmp_groundMoveType = groundMoveType
+        end
+    end
 
 	if self.currentMoveType ~= "walk" and self.currentMoveType ~= "swim" and self:GetSpeed(self.currentMoveType) <= 0 and self:GetSpeed("walk") > 0 then
-
 		return groundMoveType
 	end
 
@@ -575,13 +580,13 @@ function creature.GetTokenDescription(token)
 	end
 end
 
---dmhub.DescribeToken = function(token)
---	if token.properties ~= nil and token.properties:GetMonsterType() ~= nil then
---		return token.properties:GetMonsterType()
---	end
+dmhub.DescribeToken = function(token)
+	if token.properties ~= nil and token.properties:GetMonsterType() ~= nil then
+		return token.properties:GetMonsterType()
+	end
 
---	return nil
---end
+	return nil
+end
 
 --- this function is called by dmhub when the creature is created from the bestiary.
 --- It is an opportunity to randomize things like hitpoints, name, etc.
@@ -911,7 +916,7 @@ end
 
 --'inflict' a condition directly on a creature -- doesn't use an ongoing effect.
 function creature:InflictCondition(conditionid, args)
-    local conditionsTable = dmhub.GetTable(CharacterCondition.tableName)
+    local conditionsTable = GetTableCached(CharacterCondition.tableName)
 	local conditionInfo = conditionsTable[conditionid]
 
 	local inflictedConditions = self:get_or_add("inflictedConditions", {})
@@ -940,7 +945,7 @@ function creature:FillCalculatedStatusIcons(result)
 	local conditions = self:try_get("_tmp_directConditions")
     local explanations = self:try_get("_tmp_conditionExplanations") or {}
 	if conditions ~= nil then
-		local conditionsTable = dmhub.GetTable(CharacterCondition.tableName)
+		local conditionsTable = GetTableCached(CharacterCondition.tableName)
 		for k,v in pairs(conditions) do
 			local quantityText = ""
 			if v > 1 then
@@ -962,7 +967,7 @@ function creature:FillCalculatedStatusIcons(result)
 	--inflicted conditions are attached directly to the creature, add them here.
 	if self:has_key("inflictedConditions") then
 		local conditions = self.inflictedConditions
-		local conditionsTable = dmhub.GetTable(CharacterCondition.tableName)
+		local conditionsTable = GetTableCached(CharacterCondition.tableName)
 		for k,v in pairs(conditions) do
             local casterid = nil
             local casterInfo = v.casterInfo
@@ -1057,14 +1062,21 @@ function creature:LanguagesKnown()
     if self:has_key("_tmp_languagesKnown") then
         return self._tmp_languagesKnown
     end
+
+    local result = self:try_get("_tmp_languagesKnownReuse")
+    if result == nil then
+        result = {}
+    end
+
 	local mods = self:GetActiveModifiers()
-	local result = DeepCopy(self:try_get("innateLanguages", {}))
+	table.shallow_copy_into_dest(self:try_get("innateLanguages", {}), result)
 
 	for i,mod in ipairs(mods) do
 		mod.mod:AccumulateLanguages(mod, self, result)
 	end
 
     self._tmp_languagesKnown = result
+    self._tmp_languagesKnownReuse = result --stash a copy to re-use
 
 	return result
 end
@@ -1090,7 +1102,7 @@ end
 
 function creature:ProficiencyLevelWithItem(item)
 	if type(item) == "string" then
-		item = dmhub.GetTable(equipment.tableName)[item]
+		item = GetTableCached(equipment.tableName)[item]
 	end
 
 	if item == nil then
@@ -1109,7 +1121,7 @@ function creature:ProficiencyLevelWithItem(item)
 		return creature.proficiencyKeyToValue[entry.proficiency]
 	end
 
-	local cats = dmhub.GetTable("equipmentCategories") or {}
+	local cats = GetTableCached("equipmentCategories") or {}
 
 	local count = 4
 	local catid = item:try_get("equipmentCategory")
@@ -1255,7 +1267,7 @@ function creature.GetAttackFromWeapon(self, weapon, options)
 
 	local damage = weapon.damage
 	if weapon:Versatile() and weapon:has_key('versatileDamage') and options.twohanded then
-		local gearTable = dmhub.GetTable('tbl_Gear')
+		local gearTable = GetTableCached('tbl_Gear')
 
 		damage = weapon.versatileDamage
 	end
@@ -1273,7 +1285,7 @@ function creature.GetAttackFromWeapon(self, weapon, options)
 		ammoType = weapon.ammunitionType
 		
 		local ammoRarity = nil
-		local gearTable = dmhub.GetTable('tbl_Gear')
+		local gearTable = GetTableCached('tbl_Gear')
 		
 		for k,entry in pairs(self:try_get("inventory", {})) do
 			local gearEntry = gearTable[k]
@@ -1341,7 +1353,7 @@ end
 
 function creature.GetEquipmentAttackActions(self, options)
 	result = {}
-	local gearTable = dmhub.GetTable('tbl_Gear')
+	local gearTable = GetTableCached('tbl_Gear')
 
 	for k,itemid in pairs(self:Equipment()) do
 		local item = gearTable[itemid]
@@ -1637,19 +1649,6 @@ end
 
 --called by dmhub when a nearby creature moves.
 function creature:OnEnemyMove(enemyToken, distances)
-	local abilities = self:GetActivatedAbilities{}
-	for i,ability in ipairs(abilities) do
-		if ability:GetReactionInfo().type == "move_out_of_reach" then
-			local range = ability:GetRange(self)
-			for i=1,#distances-1 do
-				if distances[i] <= range*2 and distances[i+1] > range*2 then
-					self:ActivateReaction(ability, { { tokenid = enemyToken.charid }})
-					break
-				end
-			end
-		end
-
-	end
 end
 
 local g_seenSpeech = {}
@@ -1707,10 +1706,34 @@ function creature:GetAndRemoveDamageEntries()
     return result
 end
 
+
+function creature:GetLowestDamageEntrySeq()
+    local firstTime = not self:has_key("_tmp_seenDamageEntries")
+    local handledEntries = self:get_or_add("_tmp_seenDamageEntries", {})
+    local result = nil
+
+    if not self:has_key("damageEntries") then
+        return nil
+    end
+
+    for key,entry in pairs(self.damageEntries) do
+        if (not firstTime) and (not handledEntries[key]) and (not g_seenDamageEntries[key]) and entry.seq then
+            result = math.min(result or entry.seq, entry.seq)
+        end
+    end
+
+    return result
+end
+
+--just make sure that damage entries from the same machine can be ordered.
+local g_damageEntrySeq = 1
+
 --- @param options {id: nil|string, damage: number, attackerid: string|nil, damage_type: string|nil, heal: number, sound: nil|string}
 function creature:RecordDamageEntry(options)
     options.id = options.id or dmhub.GenerateGuid()
     options.timestamp = ServerTimestamp()
+    options.seq = g_damageEntrySeq
+    g_damageEntrySeq = g_damageEntrySeq + 1
     print("MANDATORY:: RecordDamageEntry", options)
 
     local entries = self:get_or_add("damageEntries", {})
@@ -3003,7 +3026,13 @@ end
 --calculates the creature's resistances. A combination of innate resistance and from modifiers.
 --returns a list of ResistanceEntry objects.
 function creature:CalculateResistances()
-	local result = dmhub.DeepCopy(self:try_get('resistances', {}))
+    local result = rawget(self, "resistances")
+    if result ~= nil and #result > 0 then
+        result = table.shallow_copy(result)
+    else
+        result = {}
+    end
+        
 	local mods = self:GetActiveModifiers()
 	for i,mod in ipairs(mods) do
 		mod.mod:GetResistance(mod, self, result)
@@ -3034,7 +3063,7 @@ function creature.DeleteResistance(self, deleteEntry)
 end
 
 function creature:ConditionImmunityDescription()
-	local conditionsTable = dmhub.GetTable(CharacterCondition.tableName)
+	local conditionsTable = GetTableCached(CharacterCondition.tableName)
 
 	local items = {}
 	local immunities = self:GetConditionImmunities()
@@ -3367,7 +3396,7 @@ local g_spellTypes = {"cantripsPrepared", "spellsPrepared"}
 function creature:ListPreparedSpells()
 	local features = self:CalculateSpellcastingFeatures()
 
-	local spellsTable = dmhub.GetTable("Spells")
+	local spellsTable = GetTableCached("Spells")
 
 	local result = {}
 
@@ -3411,21 +3440,6 @@ function creature:ListPreparedSpells()
 
 	return result
 
-
---local preparedSpells = self:try_get("preparedSpells", {})
---local result = {}
---local spellsTable = dmhub.GetTable("Spells")
---for k,s in pairs(preparedSpells) do
---	local spell = spellsTable[k]
---	result[#result+1] = spell
---end
-
---table.sort(result, function(a,b)
---	return (tonumber(preparedSpells[a.id].timestamp) or 99999999999999) < (tonumber(preparedSpells[b.id].timestamp) or 99999999999999)
-
---end)
---
---return result
 end
 
 function creature:IsActivatedAbilityInnate(ability)
@@ -3540,7 +3554,7 @@ function creature:GetActivatedAbilities(options)
 	end
 
 
-	local spellsTable = dmhub.GetTable("Spells")
+	local spellsTable = GetTableCached("Spells")
 	local innateSpellcasting = self:GetInnateSpellcasting()
 	for _,entry in ipairs(innateSpellcasting) do
 		local spell = spellsTable[entry.spellid]
@@ -3595,7 +3609,7 @@ function creature:GetActivatedAbilities(options)
 		end
 	end
 
-	local gearTable = dmhub.GetTable('tbl_Gear')
+	local gearTable = GetTableCached('tbl_Gear')
 	for k,info in pairs(self:try_get('inventory', {})) do
 		local itemInfo = gearTable[k]
 		if itemInfo ~= nil and itemInfo:has_key("consumable") then
@@ -3786,7 +3800,7 @@ end
 function creature:GetLoadoutInfo(nslot)
 	local equip = self:Equipment()
 	local belt = {}
-	local gearTable = dmhub.GetTable('tbl_Gear')
+	local gearTable = GetTableCached('tbl_Gear')
 	for key,slot in pairs(creature.EquipmentSlots) do
 		if slot.accessory and equip[key] then
 			local gearEntry = gearTable[equip[key]]
@@ -3940,7 +3954,7 @@ function creature.GetArmorCategory(self)
 
 	local cat = armor:try_get("equipmentCategory")
 	if cat ~= nil then
-		local catTable = dmhub.GetTable('equipmentCategories') or {}
+		local catTable = GetTableCached('equipmentCategories') or {}
 		local catInfo = catTable[cat]
 		if catInfo ~= nil then
 			return catInfo.name
@@ -4049,7 +4063,7 @@ function creature.GetEquipmentItemInSlot(self, slotName)
 	if itemid == nil then
 		return nil
 	end
-	local gearTable = dmhub.GetTable('tbl_Gear')
+	local gearTable = GetTableCached('tbl_Gear')
 	return gearTable[itemid]
 end
 
@@ -4213,7 +4227,7 @@ function creature:GetCustomVisionSenses()
 		}
 	end
 
-	local t = dmhub.GetTable(VisionType.tableName) or {}
+	local t = GetTableCached(VisionType.tableName)
 	for k,v in pairs(t) do
 		if not v.hidden and v.type ~= "none" then
 			local radius = self:CalculateCustomVision(v)
@@ -4244,7 +4258,6 @@ function creature:Invalidate()
 	self._tmp_modifiersRefresh = nil
 	self._tmp_modifiersRefreshExcludingAuras = nil
 	self._tmp_attr = nil
-	self._tmp_creaturesize = nil
 	self._tmp_spellcastingFeaturesCache = nil
 	self._tmp_calculatingActiveModifiers = nil
     self._tmp_resources = nil
@@ -4254,6 +4267,7 @@ function creature:Invalidate()
     self._tmp_suspended = nil
     self._tmp_prone = nil
     self._tmp_conditionExplanations = nil
+    self._tmp_groundMoveType = nil
 end
 
 --all the languages that creatures controlled by the local player know.
@@ -4267,11 +4281,18 @@ local g_monsterColor = core.Color{ r = 1, g = 0, b = 0, a = 1, }
 
 local g_conditionHiddenId = "31daf7f6-f77c-4f73-8eab-43e2d0f123c0"
 
+local g_profileRefreshToken = dmhub.ProfileMarker("LuaRefreshToken")
+local g_profileIsOnToken = dmhub.ProfileMarker("LuaIsOnToken")
+
 --called by dmhub whenever tokens are refreshed with a new game state.
 function creature:RefreshToken(token)
+    local _ = g_profileRefreshToken.Begin
 	self:ValidateAndRepair()
 
-    self:Invalidate()
+	if self:try_get("_tmp_modifiersRefresh") ~= dmhub.ngameupdate then
+        --only invalidate if we haven't already refreshed this update.
+        self:Invalidate()
+	end
 
 	local builtinEffects = {}
 
@@ -4324,11 +4345,11 @@ function creature:RefreshToken(token)
 	if token.activeControllerId == nil then
         if self:has_key("inflictedConditions") then
             local removes
-            local conditionsTable = dmhub.GetTable(CharacterCondition.tableName)
+            local conditionsTable = GetTableCached(CharacterCondition.tableName)
             for k,v in pairs(self.inflictedConditions) do
                 local conditionInfo = conditionsTable[k]
                 if conditionInfo ~= nil and conditionInfo.sustainFormula ~= "" then
-                    local result = dmhub.EvalGoblinScriptDeterministic(conditionInfo.sustainFormula, GenerateSymbols(self), 1, "Test ongoing effect sustains")
+                    local result = ExecuteGoblinScript(conditionInfo.sustainFormula, GenerateSymbols(self), 1, "Test ongoing effect sustains")
                     if not GoblinScriptTrue(result) then
                         removes = removes or {}
                         removes[#removes+1] = k
@@ -4351,11 +4372,11 @@ function creature:RefreshToken(token)
 		local ongoingEffects = self:ActiveOngoingEffects(true)
 		if #ongoingEffects > 0 then
 			local removes = nil
-			local ongoingEffectsTable = dmhub.GetTable("characterOngoingEffects") or {}
+			local ongoingEffectsTable = GetTableCached("characterOngoingEffects") or {}
 			for i,entry in ipairs(ongoingEffects) do
 				local ongoingEffectInfo = ongoingEffectsTable[entry.ongoingEffectid]
 				if ongoingEffectInfo ~= nil and trim(ongoingEffectInfo.sustainFormula) ~= "" then
-					local result = dmhub.EvalGoblinScriptDeterministic(ongoingEffectInfo.sustainFormula, GenerateSymbols(self), 1, "Test ongoing effect sustains")
+					local result = ExecuteGoblinScript(ongoingEffectInfo.sustainFormula, GenerateSymbols(self), 1, "Test ongoing effect sustains")
 					if not GoblinScriptTrue(result) then
 						if removes == nil then
 							removes = {}
@@ -4408,7 +4429,7 @@ function creature:RefreshToken(token)
                         info = deserializedInfo
                     end
 
-					self:TriggerEvent(eventInfo.eventName, info)
+					self:TriggerEvent(eventInfo.eventName, info, true)
 				end
 			end
 
@@ -4447,6 +4468,7 @@ function creature:RefreshToken(token)
     end
 
 	self:PumpRemoteInvokes()
+    local _ = g_profileRefreshToken.End
 end
 
 function creature:PumpRemoteInvokes()
@@ -4508,7 +4530,6 @@ function creature:GetCalculatedCreatureSizeAsNumber()
 	return creature.sizeToNumber[result or "Medium"] or 1
 end
 
-local g_count = 0
 
 --gets a list of CharacterModifier objects which are currently active on this creature.
 function creature:GetActiveModifiers()
@@ -4612,7 +4633,7 @@ function creature:FillModifiersFromAuras(result)
 		if newCondition then
 			--add the condition's modifiers here.
 			--TODO: add stacks onto existing conditions.
-			local conditionsTable = dmhub.GetTable(CharacterCondition.tableName)
+			local conditionsTable = GetTableCached(CharacterCondition.tableName)
 			local conditionInfo = conditionsTable[k]
 			conditionInfo:EnsureDomains()
 			for _,mod in ipairs(conditionInfo.modifiers) do
@@ -4626,7 +4647,7 @@ function creature:FillModifiersFromAuras(result)
 end
 
 function creature:FillEquipmentModifiers(result)
-	local gearTable = dmhub.GetTable('tbl_Gear')
+	local gearTable = GetTableCached('tbl_Gear')
 	for slotid,itemid in pairs(self:EquipmentInUse()) do
 		local item = gearTable[itemid]
 		if item then
@@ -4675,24 +4696,24 @@ local g_profileCalculateActiveModifiersFilters = dmhub.ProfileMarker("CalculateA
 local g_profileCalculateActiveModifiersCondition = dmhub.ProfileMarker("CalculateActiveModifiers.Condition")
 
 function creature:CalculateActiveModifiers(calculatingModifiers)
-    g_profileCalculateActiveModifiers:Begin()
+    local _ = g_profileCalculateActiveModifiers.Begin
 	local result = calculatingModifiers or {}
-    g_profileCalculateActiveModifiersBase:Begin()
+    local _ = g_profileCalculateActiveModifiersBase.Begin
 	self:FillBaseActiveModifiers(result)
-    g_profileCalculateActiveModifiersBase:End()
-    g_profileCalculateActiveModifiersTemporal:Begin()
+    local _ = g_profileCalculateActiveModifiersBase.End
+    local _ = g_profileCalculateActiveModifiersTemporal.Begin
 	self:FillTemporalActiveModifiers(result)
-    g_profileCalculateActiveModifiersTemporal:End()
-    g_profileCalculateActiveModifiersModifiers:Begin()
+    local _ = g_profileCalculateActiveModifiersTemporal.End
+    local _ = g_profileCalculateActiveModifiersModifiers.Begin
 	self:FillModifiersFromModifiers(result)
-    g_profileCalculateActiveModifiersModifiers:End()
-    g_profileCalculateActiveModifiersFilters:Begin()
+    local _ = g_profileCalculateActiveModifiersModifiers.End
+    local _ = g_profileCalculateActiveModifiersFilters.Begin
 	result = self:FilterModifiers(result)
-    g_profileCalculateActiveModifiersFilters:End()
-    g_profileCalculateActiveModifiersCondition:Begin()
+    local _ = g_profileCalculateActiveModifiersFilters.End
+    local _ = g_profileCalculateActiveModifiersCondition.Begin
 	self:CalculateConditionModifiers(result)
-    g_profileCalculateActiveModifiersCondition:End()
-    g_profileCalculateActiveModifiers:End()
+    local _ = g_profileCalculateActiveModifiersCondition.End
+    local _ = g_profileCalculateActiveModifiers.End
 	return result
 end
 
@@ -4778,7 +4799,7 @@ function creature:GetActiveTemplates()
 	local result = {}
 	local creatureTemplates = self:try_get("creatureTemplates")
 	if creatureTemplates ~= nil and #creatureTemplates > 0 then
-		local templatesTable = dmhub.GetTable("creatureTemplates") or {}
+		local templatesTable = GetTableCached("creatureTemplates") or {}
 		for _,templateid in ipairs(creatureTemplates) do
 			local templateInfo = templatesTable[templateid]
 			if templateInfo ~= nil then
@@ -4798,7 +4819,7 @@ function creature.RegisterFeatureCalculation(args)
 end
 
 function creature:FillBaseActiveModifiers(result)
-	local modTable = dmhub.GetTable(GlobalRuleMod.TableName) or {}
+	local modTable = GetTableCached(GlobalRuleMod.TableName) or {}
 	local globalFeatures = {}
     local isretainer = self:try_get("_tmp_retainer") or false
 	local ismonster = (not isretainer) and self:IsMonster()
@@ -4844,7 +4865,7 @@ end
 --record a condition into a 'conditions' table passed in which is a {condid -> stacks} table.
 --this traces down into underlying conditions.
 function creature:RecordCondition(condid, stacks, conditions, maxdepth)
-	local dataTable = dmhub.GetTable(CharacterCondition.tableName) or {}
+	local dataTable = GetTableCached(CharacterCondition.tableName) or {}
 	local conditionInfo = dataTable[condid]
 
 	if conditionInfo == nil then
@@ -4878,7 +4899,7 @@ function creature:FillTemporalActiveModifiers(result)
 	local ongoingEffects = self:ActiveOngoingEffects()
 	if #ongoingEffects > 0 then
 		local stackable = {}
-		local ongoingEffectsTable = dmhub.GetTable("characterOngoingEffects") or {}
+		local ongoingEffectsTable = GetTableCached("characterOngoingEffects") or {}
 		for i,cond in ipairs(ongoingEffects) do
 			local ongoingEffectInfo = ongoingEffectsTable[cond.ongoingEffectid]
 
@@ -5050,7 +5071,7 @@ function creature:FillTemporalActiveModifiers(result)
 			conditions[k] = (conditions[k] or 0) + (v.stacks or 1)
 
             if v.riders ~= nil then
-                local ridersTable = dmhub.GetTable(CharacterCondition.ridersTableName)
+                local ridersTable = GetTableCached(CharacterCondition.ridersTableName)
                 for _,riderid in ipairs(v.riders) do
                     local riderInfo = ridersTable[riderid]
                     if riderInfo ~= nil then
@@ -5066,7 +5087,7 @@ function creature:FillTemporalActiveModifiers(result)
 	end
 
 	--we have a table of conditions based on ongoing effects, add any of their modifiers.
-	local conditionsTable = dmhub.GetTable(CharacterCondition.tableName)
+	local conditionsTable = GetTableCached(CharacterCondition.tableName)
 	for k,nstacks in pairs(conditions) do
 		local conditionInfo = conditionsTable[k]
         if conditionInfo ~= nil then
@@ -5520,7 +5541,7 @@ function creature:GetResources()
 		mod.mod:GetNamedResources(mod, self, result)
 	end
 
-    local resourcesTable = dmhub.GetTable(CharacterResource.tableName)
+    local resourcesTable = GetTableCached(CharacterResource.tableName)
 
 	for key,resource in pairs(self:try_get("resources", {})) do
 		if resource.unbounded ~= 0 then
@@ -5558,7 +5579,7 @@ function creature:GetUnboundedResourceQuantity(resourceid)
 	local resources = self:try_get("resources", {})
 	local entry = resources[resourceid]
 	if entry ~= nil and entry.unbounded > 0 then
-        local resourcesTable = dmhub.GetTable(CharacterResource.tableName) or {}
+        local resourcesTable = GetTableCached(CharacterResource.tableName) or {}
         local resourceEntry = resourcesTable[resourceid]
         if resourceEntry == nil then
             return 0
@@ -5965,7 +5986,7 @@ function creature:ApplyOngoingEffect(ongoingEffectid, duration, casterInfo, opti
 		duration = duration - 0.5
 	end
 
-	local characterOngoingEffects = dmhub.GetTable("characterOngoingEffects")
+	local characterOngoingEffects = GetTableCached("characterOngoingEffects")
 	local ongoingEffect = characterOngoingEffects[ongoingEffectid]
 	if ongoingEffect == nil then
 		return nil
@@ -5998,6 +6019,7 @@ function creature:ApplyOngoingEffect(ongoingEffectid, duration, casterInfo, opti
     --- type nil|string the guid of the 'bond' this makes with all other creatures with the same bondid.
     local bondid = nil
     if ongoingEffect.casterTracking == "bond" then
+        print("BOND::", options.guid)
         bondid = options.guid
     end
 
@@ -6013,6 +6035,10 @@ function creature:ApplyOngoingEffect(ongoingEffectid, duration, casterInfo, opti
 
                 if casterSet ~= nil and cond:has_key("casterInfo") and type(cond.casterInfo.tokenid) == "string" then
                     casterSet[cond.casterInfo.tokenid] = true
+                end
+
+                if bondid ~= nil then
+                    cond.bondid = bondid
                 end
 
 				cond.stolenAbility = stolenAbility
@@ -6087,7 +6113,7 @@ function creature:ApplyOngoingEffect(ongoingEffectid, duration, casterInfo, opti
 
 
 	if ongoingEffect.condition ~= "none" and casterInfo ~= nil then
-        local conditionInfo = dmhub.GetTable(CharacterCondition.tableName)[ongoingEffect.condition]
+        local conditionInfo = GetTableCached(CharacterCondition.tableName)[ongoingEffect.condition]
         if conditionInfo ~= nil then
             audio.DispatchSoundEvent(conditionInfo:SoundEvent())
         end
@@ -6096,7 +6122,7 @@ function creature:ApplyOngoingEffect(ongoingEffectid, duration, casterInfo, opti
             if limitFormula ~= "" then
                 local casterToken = dmhub.GetTokenById(casterInfo.tokenid)
                 if casterToken ~= nil then
-                    local maxInstances = dmhub.EvalGoblinScriptDeterministic(conditionInfo.maxInstancesFormula, casterToken.properties:LookupSymbol{}, 1, "Max instances of condition")
+                    local maxInstances = ExecuteGoblinScript(conditionInfo.maxInstancesFormula, casterToken.properties:LookupSymbol{}, 1, "Max instances of condition")
 
                     casterToken.properties:CheckConditionInstances(ongoingEffect.condition, maxInstances, dmhub.LookupTokenId(self))
                 end
@@ -6374,42 +6400,37 @@ function creature:MatchesString(viewingToken, token, str)
     local modifiers = self:GetActiveModifiers()
     if string.find(str, "*") then
         local pattern = string.gsub(str, "%*", ".*")
-        for _,feature in ipairs(features) do
-            if regex.Match(string.lower(feature.name), pattern) then
+        for i=1,#features do
+            if regex.Match(string.lower(features[i].name), pattern) then
                 return true
             end
         end
-        for _,mod in ipairs(modifiers) do
-            if regex.Match(string.lower(mod.mod.name), pattern) then
+        for i=1,#modifiers do
+            if regex.Match(string.lower(modifiers[i].mod.name), pattern) then
                 return true
             end
         end
     end
 
-    for _,feature in ipairs(features) do
-        if string.lower(feature.name) == str then
-            print("MATCH:: FEATURE", feature.name, str)
+    for i=1,#features do
+        if string.lower(features[i].name) == str then
             return true
         end
     end
 
     if str ~= "hidden" then --hack?
-        for _,mod in ipairs(modifiers) do
-            if string.lower(mod.mod.name) == str then
-                print("MATCH:: MODIFIER", mod.mod.name, str)
+        for i=1,#modifiers do
+            if string.lower(modifiers[i].mod.name) == str then
                 return true
             end
         end
     end
 
 
-    local condition = CharacterCondition.conditionsByName[string.lower(str)]
-    if condition ~= nil then
-        if self:HasCondition(condition.id) then
-            return true
-        end
+    local condition = CharacterCondition.conditionsByName[str]
+    if condition ~= nil and self:HasCondition(condition.id) then
+        return true
     end
-
 
     return false
 end
@@ -6709,14 +6730,6 @@ creature.helpSymbols = {
 		desc = "A function which is given a set of string criteria such as 'goblins' or 'crafty' and tells us how many riders we have that match that filter.",
         seealso = "Count Nearby Creatures",
 		examples = {"OBJ.Count Riders('goblin', 'crafty')"},
-	},
-
-	nexttoanotherenemy = {
-		name = "Next to Another Enemy",
-		type = "number",
-		desc = "Counts the number of creatures next to this creature that are hostile to it. Does not count the currently active creature.",
-		seealso = {},
-		examples = {"1d6 when OBJ.Next To Another Enemy"}
 	},
 
 	level = {
@@ -7306,32 +7319,6 @@ creature.lookupSymbols = {
 
     countriders = countriders,
 
-	--if next to an enemy other than the active token.
-	nexttoanotherenemy = function(c)
-		local token = dmhub.LookupToken(c)
-		local count = 0
-		
-		if token ~= nil then
-			local nearbyTokens = token:GetNearbyTokens()
-			for i,nearby in ipairs(nearbyTokens) do
-				if (not nearby:IsFriend(token)) and (not GameRules.TokenIncapacitated(nearby)) then
-					local isUs = false
-					for j,obj in ipairs(CurrentGoblinScriptObject) do
-						if obj == nearby.properties then
-							isUs = true
-						end
-					end
-
-					if isUs == false then
-						count = count+1
-					end
-				end
-			end
-		end
-
-		return count
-	end,
-
 	summoned = function(c)
 		local token = dmhub.LookupToken(c)
 		if token == nil then
@@ -7368,9 +7355,9 @@ creature.lookupSymbols = {
 			local seqFound = -1
 			local result = nil
 
-			local ongoingEffectsTable = dmhub.GetTable("characterOngoingEffects") or {}
+			local ongoingEffectsTable = GetTableCached("characterOngoingEffects")
 			local ongoingEffects = c:ActiveOngoingEffects()
-			local conditionsTable = dmhub.GetTable(CharacterCondition.tableName)
+			local conditionsTable = GetTableCached(CharacterCondition.tableName)
 			for i,effectInfo in ipairs(ongoingEffects) do
 				if effectInfo.seq > seqFound and effectInfo:try_get("casterInfo") ~= nil then
 					local ongoingEffectInfo = ongoingEffectsTable[effectInfo.ongoingEffectid]
@@ -7409,7 +7396,7 @@ creature.lookupSymbols = {
 		local conditions = {}
 		local ongoingEffects = c:ActiveOngoingEffects()
 		if #ongoingEffects > 0 then
-			local ongoingEffectsTable = dmhub.GetTable("characterOngoingEffects") or {}
+			local ongoingEffectsTable = GetTableCached("characterOngoingEffects")
 			for i,cond in ipairs(ongoingEffects) do
 				local ongoingEffectInfo = ongoingEffectsTable[cond.ongoingEffectid]
 				--if this ongoing effect has an underlying condition then record us having that condition since conditions can also have modifiers.
@@ -7419,15 +7406,30 @@ creature.lookupSymbols = {
 			end
 		end
 
-        --get bestowed conditions.
-        for i,modifier in ipairs(c:GetActiveModifiers()) do
-            if modifier.mod:CanBestowConditions() and modifier.mod:PassesFilter(c, modifier) then
-                modifier.mod:BestowConditions(modifier, c, conditions)
+		local conditionsTable = GetTableCached(CharacterCondition.tableName)
+
+        --get bestowed conditions and calculated conditions.
+        local conditions = rawget(c, "_tmp_directConditions")
+        if conditions ~= nil then
+            for condid,_ in pairs(conditions) do
+                local conditionInfo = conditionsTable[condid]
+                if conditionInfo ~= nil then
+                    result[#result+1] = conditionInfo.name
+                end
+            end
+        end
+
+        conditions = rawget(c, "_tmp_calculatedConditions")
+        if conditions ~= nil then
+            for condid,_ in pairs(conditions) do
+                local conditionInfo = conditionsTable[condid]
+                if conditionInfo ~= nil then
+                    result[#result+1] = conditionInfo.name
+                end
             end
         end
 
 		--we have a table of conditions based on ongoing effects, add any of their modifiers.
-		local conditionsTable = dmhub.GetTable(CharacterCondition.tableName)
 		for k,_ in pairs(conditions) do
 			local conditionInfo = conditionsTable[k]
 			result[#result+1] = conditionInfo.name
@@ -7446,7 +7448,7 @@ creature.lookupSymbols = {
 
 	ongoingeffects = function(c)
 
-		local ongoingEffectsTable = dmhub.GetTable("characterOngoingEffects") or {}
+		local ongoingEffectsTable = GetTableCached("characterOngoingEffects")
 
 		local strings = {}
 		for i,effect in ipairs(c:ActiveOngoingEffects()) do
@@ -7464,7 +7466,7 @@ creature.lookupSymbols = {
 	stacks = function(c)
 		return function(name)
 			name = string.lower(name)
-			local ongoingEffectsTable = dmhub.GetTable("characterOngoingEffects") or {}
+			local ongoingEffectsTable = GetTableCached("characterOngoingEffects")
 
 			local strings = {}
 			for i,effect in ipairs(c:ActiveOngoingEffects()) do
@@ -7490,7 +7492,7 @@ creature.lookupSymbols = {
 
             local effectid = nil
 
-            local effectsTable = dmhub.GetTable("characterOngoingEffects") or {}
+            local effectsTable = GetTableCached("characterOngoingEffects") or {}
             for key,effect in unhidden_pairs(effectsTable) do
                 if string.lower(effect.name) == string.lower(effectName) then
                     effectid = key
@@ -7522,7 +7524,7 @@ creature.lookupSymbols = {
 			--look to see if it's an item we may be proficient in.
 			local itemid = LookupObjectIdInTableByName("tbl_Gear", skillid)
 			if itemid ~= nil then
-				local gearTable = dmhub.GetTable('tbl_Gear')
+				local gearTable = GetTableCached('tbl_Gear')
 				local itemInfo = gearTable[itemid]
 				if itemInfo ~= nil then
 					return c:ProficientWithItem(itemInfo)
@@ -7533,7 +7535,7 @@ creature.lookupSymbols = {
 			itemid = LookupObjectIdInTableByName(EquipmentCategory.tableName, skillid)
 			if itemid ~= nil then
 				local profs = c:EquipmentProficienciesKnown()
-				local dataTable = dmhub.GetTable(EquipmentCategory.tableName) or {}
+				local dataTable = GetTableCached(EquipmentCategory.tableName) or {}
 				local count = 0
 				while dataTable[itemid] ~= nil and count < 4 do
 					
@@ -7548,7 +7550,7 @@ creature.lookupSymbols = {
 
 			itemid = LookupObjectIdInTableByName(Skill.tableName, skillid)
 			if itemid ~= nil then
-				local skillsTable = dmhub.GetTable(Skill.tableName)
+				local skillsTable = GetTableCached(Skill.tableName)
 				if skillsTable[itemid] ~= nil then
 					return c:ProficientInSkill(skillsTable[itemid])
 				end
@@ -7563,7 +7565,7 @@ creature.lookupSymbols = {
 	languages = function(c)
 		local langs = c:LanguagesKnown()
 		local result = {}
-		local languagesTable = dmhub.GetTable("languages") or {}
+		local languagesTable = GetTableCached("languages")
 		for k,_ in pairs(langs) do
 			local lang = languagesTable[k]
 			if lang ~= nil then
@@ -7620,7 +7622,7 @@ creature.lookupSymbols = {
 
 	ongoingdc = function(c)
 		return function(ongoingName)
-			local ongoingEffectsTable = dmhub.GetTable("characterOngoingEffects") or {}
+			local ongoingEffectsTable = GetTableCached("characterOngoingEffects")
 	
 			local DCout = 0
 	
@@ -7678,7 +7680,7 @@ creature.lookupSymbols = {
 
 	conditionimmunities = function(c)
 
-		local conditionsTable = dmhub.GetTable(CharacterCondition.tableName)
+		local conditionsTable = GetTableCached(CharacterCondition.tableName)
 		local items = {}
 		local immunities = c:GetConditionImmunities()
 		for k,_ in pairs(immunities) do
@@ -7705,51 +7707,14 @@ creature.lookupSymbols = {
 	__is__ = function(c)
 		return function(s)
             if type(s) == "string" then
+                local _ = g_profileIsOnToken.Begin
                 s = string.lower(s)
 
                 if c:MatchesString(nil, nil, s) then
+                local _ = g_profileIsOnToken.End
                     return true
                 end
-
-                local conditions = {}
-                local ongoingEffects = c:ActiveOngoingEffects()
-                if #ongoingEffects > 0 then
-                    local ongoingEffectsTable = dmhub.GetTable("characterOngoingEffects") or {}
-                    for i,cond in ipairs(ongoingEffects) do
-                        local ongoingEffectInfo = ongoingEffectsTable[cond.ongoingEffectid]
-                        --if this ongoing effect has an underlying condition then record us having that condition since conditions can also have modifiers.
-                        if ongoingEffectInfo.condition ~= 'none' then
-                            conditions[ongoingEffectInfo.condition] = true
-                        end
-
-                        if string.lower(ongoingEffectInfo.name) == s then
-                            return true
-                        end
-                    end
-                end
-
-                --get bestowed conditions.
-                for i,modifier in ipairs(c:GetActiveModifiers()) do
-                    if modifier.mod:CanBestowConditions() and modifier.mod:PassesFilter(c, modifier) then
-                        modifier.mod:BestowConditions(modifier, c, conditions)
-                    end
-                end
-
-                --we have a table of conditions based on ongoing effects, add any of their modifiers.
-                local conditionsTable = dmhub.GetTable(CharacterCondition.tableName)
-                for k,_ in pairs(conditions) do
-                    local conditionInfo = conditionsTable[k]
-                    if string.lower(conditionInfo.name) == s then
-                        return true
-                    end
-                end
-
-                local inflictedConditions = c:get_or_add("inflictedConditions", {})
-                for condid,_ in pairs(inflictedConditions) do
-                    if string.lower(conditionsTable[condid].name) == s then
-                        return true
-                    end
-                end
+                local _ = g_profileIsOnToken.End
             end
             return false
 		end
@@ -8062,7 +8027,7 @@ function creature:RemoveOngoingEffectsOnTrigger(eventName, info)
     end
 
 	if self:has_key("ongoingEffects") then
-		local ongoingEffectsTable = dmhub.GetTable(CharacterOngoingEffect.tableName) or {}
+		local ongoingEffectsTable = GetTableCached(CharacterOngoingEffect.tableName)
 		local removeIndexes = nil
 		for i,effectInstance in ipairs(self.ongoingEffects) do
 			local ongoingEffect = ongoingEffectsTable[effectInstance.ongoingEffectid]
@@ -8114,7 +8079,7 @@ function creature:TriggerEventOnOthers(eventName, info)
     local tokens = dmhub.GetTokens()
     for i,token in ipairs(tokens) do
         if token.properties ~= self then
-            token.properties:TriggerEvent(eventName, info)
+            token.properties:TriggerEvent(eventName, info, true)
         end
     end
     info.subject = nil
@@ -8161,7 +8126,6 @@ function creature:DispatchEvent(eventName, info, onCompleteCallback)
 
     --print("DISPATCH:: EVENT =", eventName, "SUBJECT", info ~= nil and info.subject ~= nil)
 
-
     local triggeredOnOthers = false
     if info == nil or info.subject == nil then
         self:DispatchEventOnOthers(eventName, info)
@@ -8191,13 +8155,14 @@ function creature:DispatchEvent(eventName, info, onCompleteCallback)
 	local token = dmhub.LookupToken(self)
 	local activecontroller = token.activeControllerId
 
-    --print("DISPATCH:: active controller =", activecontroller, "from event", eventName, "vs", dmhub.userid)
+    --print("DISPATCH:: token =", creature.GetTokenDescription(token), "active controller =", activecontroller, "from event", eventName, "vs", dmhub.userid)
 
 	--we are the best choice to handle this event.
 	if activecontroller == nil then
 		self:TriggerEvent(eventName, info, triggeredOnOthers)
 		return
 	end
+
 
     if info ~= nil then
         local serializedInfo = {}
@@ -8330,7 +8295,7 @@ function ActiveTrigger:EnhancementOptions(token)
 	    local result = {}
 		local additionalModifiers = token.properties:GetAdditionalCostModifiersForPowerTableTrigger(self.powerRollModifier)
 		for _,modifier in ipairs(additionalModifiers) do
-			local amount = dmhub.EvalGoblinScriptDeterministic(modifier:try_get("resourceCostAmount", 1), token.properties:LookupSymbol{}, 1)
+			local amount = ExecuteGoblinScript(modifier:try_get("resourceCostAmount", 1), token.properties:LookupSymbol{}, 1)
 			local text = string.format("%d %s", amount, token.properties:GetHeroicResourceName())
 			local rules = modifier:try_get("rulesText", "")
 			local available = token.properties:GetHeroicOrMaliceResourcesAvailableToSpend()
@@ -8826,7 +8791,12 @@ function creature:SetInspiration(val)
 end
 
 function creature:GetConditionImmunities()
-	local result = dmhub.DeepCopy(self:try_get("innateConditionImmunities", {}))
+    local result = rawget(self, "innateConditionImmunities")
+    if result ~= nil then
+        result = table.shallow_copy(result)
+    else
+        result = {}
+    end
 	local modifiers = self:GetActiveModifiers()
 	for i,mod in ipairs(modifiers) do
 		mod.mod:FillConditionImmunities(mod, self, result)
@@ -8847,7 +8817,7 @@ function creature:DexModifierForArmorClass()
 	end
 
 	if self:Equipment().armor then
-		local gearTable = dmhub.GetTable('tbl_Gear')
+		local gearTable = GetTableCached('tbl_Gear')
 		local armor = gearTable[self:Equipment().armor]
 		if armor:has_key('dexterityLimit') and armor.dexterityLimit < dexModifier then
 			dexModifier = armor.dexterityLimit
@@ -8862,7 +8832,7 @@ end
 
 function creature:ArmorClassDetails()
 	local baseArmorClass = self:try_get("armorClass", GameSystem.BaseArmorClass)
-	local gearTable = dmhub.GetTable('tbl_Gear')
+	local gearTable = GetTableCached('tbl_Gear')
 	local dexModifier = 0
 	
 	if GameSystem.ArmorClassModifierAttrId then
@@ -8922,7 +8892,7 @@ end
 function creature:DefaultBaseArmorClass()
 
 	local baseArmorClass = self:try_get("armorClass", GameSystem.BaseArmorClass)
-	local gearTable = dmhub.GetTable('tbl_Gear')
+	local gearTable = GetTableCached('tbl_Gear')
 	local dexModifier = 0
 
 	--if we have armorClass set then dex modifier is already baked in.
@@ -9478,7 +9448,7 @@ function creature:Render(args, options)
 			create = function(element)
 				local text = ""
 
-				local skillsTable = dmhub.GetTable(Skill.tableName)
+				local skillsTable = GetTableCached(Skill.tableName)
 				local items = {}
 				for k,skillInfo in pairs(skillsTable) do
 
@@ -9531,7 +9501,7 @@ function creature:Render(args, options)
 			classes = "description",
 			create = function(element)
 				local textItems = {}
-				local languagesTable = dmhub.GetTable(Language.tableName) or {}
+				local languagesTable = GetTableCached(Language.tableName)
 				for langid,b in pairs(self:LanguagesKnown()) do
 					local lang = languagesTable[langid]
 					if lang ~= nil then
@@ -9687,7 +9657,7 @@ function creature:IsValid()
 		end
 	end
 
-	local ongoingEffectsTable = dmhub.GetTable("characterOngoingEffects") or {}
+	local ongoingEffectsTable = GetTableCached("characterOngoingEffects")
 	for i,ongoingEffectInstance in ipairs(self:try_get("ongoingEffects", {})) do
 		if getmetatable(ongoingEffectInstance) == nil or ongoingEffectsTable[ongoingEffectInstance.ongoingEffectid] == nil then
 			return false
@@ -9803,7 +9773,7 @@ function creature:Repair(localOnly)
 	end
 
 	deleteList = {}
-	local ongoingEffectsTable = dmhub.GetTable("characterOngoingEffects") or {}
+	local ongoingEffectsTable = GetTableCached("characterOngoingEffects")
 	for i,ongoingEffectInstance in ipairs(self:try_get("ongoingEffects", {})) do
 		if getmetatable(ongoingEffectInstance) == nil or ongoingEffectsTable[ongoingEffectInstance.ongoingEffectid] == nil then
 			deleteList[#deleteList+1] = i
@@ -9930,7 +9900,7 @@ end
 
 function creature:HasNamedCondition(conditionName)
     conditionName = string.lower(conditionName)
-    local conditionsTable = dmhub.GetTable(CharacterCondition.tableName) or {}
+    local conditionsTable = GetTableCached(CharacterCondition.tableName) or {}
     for condid,condition in unhidden_pairs(conditionsTable) do
         if string.lower(condition.name) == conditionName and self:HasCondition(condid) then
             return true
@@ -9958,13 +9928,25 @@ function creature:HasCondition(conditionid)
         end
     end
 
+    local conditions = rawget(self, "_tmp_directConditions")
+    if conditions ~= nil and conditions[conditionid] then
+        return true
+    end
+
+    conditions = rawget(self, "_tmp_calculatedConditions")
+    if conditions ~= nil and conditions[conditionid] then
+        return true
+    end
+
+
 	local seqFound = -1
 	local result = false
 
-	local ongoingEffectsTable = dmhub.GetTable("characterOngoingEffects") or {}
+	local ongoingEffectsTable = GetTableCached("characterOngoingEffects")
 	local ongoingEffects = self:ActiveOngoingEffects()
-	local conditionsTable = dmhub.GetTable(CharacterCondition.tableName)
-	for i,effectInfo in ipairs(ongoingEffects) do
+	local conditionsTable = GetTableCached(CharacterCondition.tableName)
+	for i=1,#ongoingEffects do
+        local effectInfo = ongoingEffects[i]
 		if effectInfo.seq > seqFound then
 			local ongoingEffectInfo = ongoingEffectsTable[effectInfo.ongoingEffectid]
             if ongoingEffectInfo.condition == conditionid then

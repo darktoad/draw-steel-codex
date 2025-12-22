@@ -34,7 +34,7 @@ MonsterGroup.traits = {}
 MonsterGroup.maliceAbilities = {}
 
 function MonsterGroup.Get(id)
-    local t = dmhub.GetTable(MonsterGroup.tableName)
+    local t = GetTableCached(MonsterGroup.tableName)
     return t[id]
 end
 

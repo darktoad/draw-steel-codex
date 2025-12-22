@@ -59,7 +59,7 @@ function ActivatedAbilityApplyRidersBehavior:FillRidersOnCondition(conditionid, 
 
     local filterTarget = self:try_get("filterTarget", "")
     if filterTarget ~= "" then
-        local filtered = dmhub.EvalGoblinScriptDeterministic(filterTarget, targetToken.properties:LookupSymbol(options.symbols), 1, "Filter target")
+        local filtered = ExecuteGoblinScript(filterTarget, targetToken.properties:LookupSymbol(options.symbols), 1, "Filter target")
         if not GoblinScriptTrue(filtered) then
             print("Riders: filtered out", filterTarget)
             return

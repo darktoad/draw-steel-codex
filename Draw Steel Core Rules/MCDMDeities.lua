@@ -56,7 +56,7 @@ RegisterGoblinScriptSymbol(creature, {
         if not c:IsHero() then
             return StringSet.new{}
         end
-        local deitiesTable = dmhub.GetTable(Deity.tableName) or {}
+        local deitiesTable = GetTableCached(Deity.tableName) or {}
 
         local features = c:GetClassFeaturesAndChoicesWithDetails()
 
@@ -85,8 +85,6 @@ RegisterGoblinScriptSymbol(creature, {
         if not c:IsHero() then
             return StringSet.new{}
         end
-
-        local deitiesTable = dmhub.GetTable(Deity.tableName) or {}
 
         local features = c:GetClassFeaturesAndChoicesWithDetails()
         local subclasses = c:GetClassesAndSubClasses()
@@ -133,7 +131,7 @@ RegisterGoblinScriptSymbol(creature, {
             return nil
         end
         
-        local deitiesTable = dmhub.GetTable(Deity.tableName) or {}
+        local deitiesTable = GetTableCached(Deity.tableName) or {}
         local features = c:GetClassFeaturesAndChoicesWithDetails()
 
         -- Find the first deity choice
@@ -488,8 +486,8 @@ function CharacterDomainChoice:GetDomainFeatures()
 
     self._tmp_domainFeatures = {}
 
-    local deitiesTable = dmhub.GetTable(Deity.tableName) or {}
-    local domainsTable = dmhub.GetTable(DeityDomain.tableName) or {}
+    local deitiesTable = GetTableCached(Deity.tableName)
+    local domainsTable = GetTableCached(DeityDomain.tableName)
     local deity = deitiesTable[self.deityId]
     
     if deity then

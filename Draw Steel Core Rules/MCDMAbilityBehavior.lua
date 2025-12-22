@@ -155,10 +155,6 @@ local function ExecuteDamage(behavior, ability, casterToken, targetToken, option
                 options.symbols.cast:CountDamage(targetToken, result.damageDealt, damage)
             end,
         }
-
-
-		options.symbols.cast.damagedealt = options.symbols.cast.damagedealt + result.damageDealt
-		options.symbols.cast.damageraw = options.symbols.cast.damageraw + damage
     end
 end
 
@@ -599,6 +595,15 @@ local g_rulePatterns = {
         end,
     },
     {
+        pattern = "^the director gains (?<amount>[0-9]+) malice",
+        execute = function(behavior, ability, casterToken, targetToken, options, match)
+            local quantity = tonumber(match.amount)
+            local malice = CharacterResource.GetMalice()
+            malice = math.max(0, malice + quantity)
+            CharacterResource.SetMalice(malice, ability.name)
+        end,
+    },
+    {
         pass = "caster",
         pattern = "^(the [a-zA-Z]+ )?(you )?(can shift |shifts? (up to )?)(?<distance>[0-9]+)( squares?)?",
         execute = function(behavior, ability, casterToken, targetToken, options, match)
@@ -948,7 +953,7 @@ local function SubstituteGoblinScript(ability, casterToken, targetToken, options
 
         local goblinScript = string.sub(match.goblinscript.value, 2, #match.goblinscript.value - 1)
 
-        local str = tostring(dmhub.EvalGoblinScriptDeterministic(goblinScript, targetToken.properties:LookupSymbol(options.symbols), 0, "SubstituteGoblinScript"))
+        local str = tostring(ExecuteGoblinScript(goblinScript, targetToken.properties:LookupSymbol(options.symbols), 0, "SubstituteGoblinScript"))
 
         rule = before .. str .. after
 

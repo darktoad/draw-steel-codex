@@ -2481,7 +2481,7 @@ CreateAbilityController = function()
             for i, mode in ipairs(g_currentAbility.modeList) do
                 local available = true
                 if mode.condition ~= nil and mode.condition ~= "" then
-                    available = dmhub.EvalGoblinScriptDeterministic(mode.condition, g_token.properties:LookupSymbol(), 1,
+                    available = ExecuteGoblinScript(mode.condition, g_token.properties:LookupSymbol(), 1,
                         "Mode condition")
                     available = type(available) == "number" and available > 0
                 end
@@ -2661,14 +2661,14 @@ CreateAbilityController = function()
     --- @type Label
     local channeledResourceTitle = gui.Label {
         text = "Channeled Resource",
-        fontSize = 14,
+        fontSize = 16,
         markdown = true,
         color = Styles.textColor,
         halign = "center",
         valign = "top",
         width = "auto",
         maxWidth = 800,
-        height = 24,
+        height = 28,
     }
 
     --- @type Panel
@@ -2706,11 +2706,11 @@ CreateAbilityController = function()
         styles = {
             {
                 selectors = { "levelPanel" },
-                width = 16,
-                height = 16,
+                width = 22,
+                height = 22,
                 hmargin = 2,
                 valign = "center",
-                fontSize = 14,
+                fontSize = 18,
                 color = Styles.textColor,
                 textAlignment = "center",
                 borderWidth = 1,
@@ -2755,8 +2755,8 @@ CreateAbilityController = function()
             local baseCost = 0
             if g_currentAbility.resourceCost == g_currentAbility.channeledResource then
                 --what we are channeling is also the base cost of the spell, so factor that in.
-                resourcesAvailable = resourcesAvailable - dmhub.EvalGoblinScriptDeterministic(g_currentAbility.resourceNumber, g_token.properties:LookupSymbol(g_currentSymbols), 0, "Determine resource number for " .. g_currentAbility.name)
-                baseCost = dmhub.EvalGoblinScriptDeterministic(g_currentAbility.resourceNumber, g_token.properties:LookupSymbol(g_currentSymbols), 0, "Determine resource number for " .. g_currentAbility.name)
+                resourcesAvailable = resourcesAvailable - ExecuteGoblinScript(g_currentAbility.resourceNumber, g_token.properties:LookupSymbol(g_currentSymbols), 0, "Determine resource number for " .. g_currentAbility.name)
+                baseCost = ExecuteGoblinScript(g_currentAbility.resourceNumber, g_token.properties:LookupSymbol(g_currentSymbols), 0, "Determine resource number for " .. g_currentAbility.name)
             end
 
             if resourcesAvailable <= 0 then
@@ -3376,7 +3376,6 @@ CreateAbilityController = function()
             end
             local destroyLabelsBeforeReturning = g_pointTargeting.labelsAtPathEnd ~= nil
             local pathfinding = false
-                print("MARK:: CALCULATING...", g_currentAbility.targetType)
             if point ~= nil and g_currentAbility.targetType ~= "areatemplate" then
                 local radius = g_currentAbility:GetRadius(g_token.properties, g_currentSymbols)
                 local shape = g_currentAbility.targetType
@@ -3408,7 +3407,7 @@ CreateAbilityController = function()
                         emptyMayIncludeSelf = true,
                     }
                     
-                elseif (shape == 'emptyspace' or shape == 'anyspace') and (targetingType == "pathfind" or targetingType == "vacated") then
+                elseif (shape == "emptyspace" or shape == "anyspace") and (targetingType == "pathfind" or targetingType == "vacated") then
                     pathfinding = true
 
                     local waypoints = {}
@@ -3430,7 +3429,6 @@ CreateAbilityController = function()
                     g_pointTargeting.showingMovementArrow = true
                     clearMovementArrow = false
                 elseif shape == "emptyspace" and targetingType == "direct" then
-                    print("ARROW:: SHOW")
                     g_token:MarkMovementArrow(loc, { teleport = true })
                     g_pointTargeting.showingMovementArrow = true
                     clearMovementArrow = false
@@ -3619,6 +3617,10 @@ CreateAbilityController = function()
                     else
                         shape = "radius"
                     end
+
+                    if #m_positionTargetsChosen > 0 then
+                        shape = "locations"
+                    end
                 end
 
                 local range = g_currentAbility:GetRange(g_token.properties, g_currentSymbols)
@@ -3647,6 +3649,17 @@ CreateAbilityController = function()
                 elseif shape == "line" then
                     locOverride = m_positionTargetsChosen[1]
                 end
+
+                local locations = nil
+                if shape == "locations" then
+                    locations = {}
+                    for _, pos in ipairs(m_positionTargetsChosen) do
+                        locations[#locations + 1] = pos.loc
+                    end
+                    --add the current location in too, provisionally.
+                    locations[#locations+1] = loc
+                end
+
                 g_pointTargeting.shape = dmhub.CalculateShape {
                     shape = shape,
                     targetPoint = point,
@@ -3656,6 +3669,7 @@ CreateAbilityController = function()
                     locOverride = locOverride or g_currentAbility:try_get("casterLocOverride"),
                     requireEmpty = requireEmpty,
                     emptyMayIncludeSelf = requireEmpty and (targetingType == "pathfind" or targetingType == "vacated" or targetingType == "straightline" or targetingType == "straightpath" or targetingType == "straightpathignorecreatures"),
+                    locations = locations,
                 }
             elseif g_currentAbility.targetType == "map" then
                 g_pointTargeting.shapeRequiresConfirm = false
@@ -3731,7 +3745,6 @@ CreateAbilityController = function()
                 end
 
                 g_pointTargeting.radius = g_pointTargeting.shape:Mark { color = targetColor, video = video }
-                            print("MARK:: MARK SHAPE")
 
                 if g_currentAbility ~= nil and loc ~= nil and g_pointTargeting.shape ~= nil then
                     local numTargets = g_currentAbility:GetNumTargets(g_token, g_currentSymbols)
@@ -3851,7 +3864,6 @@ CreateAbilityController = function()
                 return
             end
 
-
             if loc ~= nil and (g_pointTargeting.shapeRequiresConfirm) and g_pointTargeting.shape ~= nil then
                 g_pointTargeting.shapeRequiresConfirm = false
                 g_pointTargeting.shapeConfirmedLoc = loc
@@ -3863,7 +3875,6 @@ CreateAbilityController = function()
                 m_altitudeController:FireEventTree("loc", info)
                 loc = info.loc
             end
-
 
             local locOverride = g_currentAbility:try_get("casterLocOverride")
             local targetingType = g_currentAbility:try_get("targeting", "direct")
@@ -3907,6 +3918,49 @@ CreateAbilityController = function()
                     --allow selection of more targets.
                     AddCustomAreaMarker({ loc }, 'white')
 
+                    if g_currentAbility.targeting == "contiguous" or g_currentAbility.targeting == "contiguous_wall" then
+                        --targeting must be contiguous of current targets.
+                        ClearRadiusMarkers()
+
+                        if g_currentAbility.targeting == "contiguous" then
+                            local duplicates = false
+                            for i=#targets,2,-1 do
+                                for j=1,i-1 do
+                                    local a = targets[i].loc
+                                    local b = targets[j].loc
+                                    if a.str == b.str then
+                                        --no duplicates.
+                                        table.remove(targets, i)
+                                        table.remove(targets, j)
+                                        duplicates = true
+                                        break
+                                    end
+                                end
+                                if duplicates then
+                                    break
+                                end
+                            end
+                        end
+
+                        local locs = {}
+
+                        for _,target in ipairs(targets) do
+                            if target.loc ~= nil then
+                                locs[#locs + 1] = target.loc
+                                locs[#locs+1] = target.loc.north
+                                locs[#locs+1] = target.loc.south
+                                locs[#locs+1] = target.loc.east
+                                locs[#locs+1] = target.loc.west
+                            end
+                        end
+
+
+                        g_radiusMarkers[#g_radiusMarkers + 1] = dmhub.MarkLocs{
+                            locs = locs,
+                            color = "#444444",
+                        }
+                    end
+
                     local promptText = g_currentAbility:PromptText(g_token, targets, g_currentSymbols)
                     g_castMessage:SetClass('collapsed', false)
                     g_castMessage.data.promptText = promptText
@@ -3939,7 +3993,6 @@ CreateAbilityController = function()
                         end
 
                         local filterTargetPredicate = g_currentAbility:TargetLocPassesFilterPredicate(g_token, g_currentSymbols)
-                print("MovementRadius:: MARK", g_range)
                         local radiusMarker = g_token:MarkMovementRadius(g_range,
                             { moveFlags = moveFlags, waypoints = waypoints, mask = mask, filter = filterTargetPredicate})
 
@@ -3977,7 +4030,6 @@ CreateAbilityController = function()
                     m_markLineOfSightSourceToken = nil
                 end
 
-                print("CAST::", #targets)
                 local clearAbility = g_currentAbility
                 g_currentAbility:Cast(g_token, targets, {
                     targetArea = g_pointTargeting.shape,
@@ -4203,7 +4255,6 @@ CalculateSpellTargeting = function(forceCast, initialSetup)
                 end
             end
 
-                print("CAST::", #targets)
             local clearAbility = g_currentAbility
             g_currentAbility:Cast(g_token, targets, {
                 attachedTriggers = attachedTriggers,
@@ -4296,7 +4347,7 @@ CalculateSpellTargeting = function(forceCast, initialSetup)
                     local firstTargetToken = dmhub.GetTokenById(g_firstTarget)
                     if firstTargetToken ~= nil then
                         loc = firstTargetToken.locsOccupying
-                        range = dmhub.EvalGoblinScriptDeterministic(g_currentAbility.proximityRange,
+                        range = ExecuteGoblinScript(g_currentAbility.proximityRange,
                             g_token.properties:LookupSymbol(), dmhub.unitsPerSquare,
                             "Calculate proximity")
                     end

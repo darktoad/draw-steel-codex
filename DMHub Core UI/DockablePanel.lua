@@ -1809,9 +1809,9 @@ DockablePanel = {
     FloatingDockMargin = 100,
 
 	Register = function(args)
-		if args.dmonly and not dmhub.isDM then
-			return
-		end
+		--if args.dmonly and not dmhub.isDM then
+		--	return
+		--end
 		
 		local guid = dmhub.GenerateGuid()
 
@@ -1849,6 +1849,9 @@ DockablePanel = {
 		for k,p in pairs(dockablePanels) do
 
 			local available = (not p.devonly) or devmode()
+            if p.dmonly and not dmhub.isDM then
+                available = false
+            end
 
 			if available then
 

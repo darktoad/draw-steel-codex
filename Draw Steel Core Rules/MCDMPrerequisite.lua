@@ -147,7 +147,7 @@ CharacterPrerequisite.Register{
 	id = "goblinscript",
 	text = "Goblinscript",
 	met = function(self, creature)
-		return dmhub.EvalGoblinScriptDeterministic(self:try_get("filter", ""), creature:LookupSymbol(), 0, "Filter target") == 1
+		return ExecuteGoblinScript(self:try_get("filter", ""), creature:LookupSymbol(), 0, "Filter target") == 1
 	end,
 }
 
@@ -161,9 +161,10 @@ function CharacterFeatureList:FillChoice(choices, result)
 
 	if parentPrereqs and #parentPrereqs > 0 then
 		for i, feature in ipairs(self.features) do
-			local featureCopy = dmhub.DeepCopy(feature)
-			featureCopy.prerequisites = parentPrereqs
-			featureCopy:FillChoice(choices, result)
+            local prerequisiteBackup = feature:try_get("prerequisites")
+			feature.prerequisites = parentPrereqs
+			feature:FillChoice(choices, result)
+            feature.prerequisites = prerequisiteBackup
 		end
 	else
 		for i, feature in ipairs(self.features) do
@@ -179,9 +180,10 @@ function CharacterFeatureList:FillFeaturesRecursive(choices, result)
     
     if parentPrereqs and #parentPrereqs > 0 then
         for i, feature in ipairs(self.features) do
-            local featureCopy = dmhub.DeepCopy(feature)
-            featureCopy.prerequisites = parentPrereqs
-            featureCopy:FillFeaturesRecursive(choices, result)
+            local prerequisiteBackup = feature:try_get("prerequisites")
+            feature.prerequisites = parentPrereqs
+            feature:FillFeaturesRecursive(choices, result)
+            feature.prerequisites = prerequisiteBackup
         end
     else
         for i, feature in ipairs(self.features) do

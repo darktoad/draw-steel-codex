@@ -298,7 +298,7 @@ function ActivatedAbilityPurgeEffectsBehavior:CastOnTarget(casterToken, targetTo
 
     local numStacks = nil
     if self.useStacks then
-        numStacks = dmhub.EvalGoblinScriptDeterministic(self.stacksFormula, GenerateSymbols(casterToken.properties), 0, "Number of stacks of effect to remove")
+        numStacks = ExecuteGoblinScript(self.stacksFormula, GenerateSymbols(casterToken.properties), 0, "Number of stacks of effect to remove")
     end
 
     if self.purgeType == "all" then

@@ -628,7 +628,7 @@ end
 
 function ActivatedAbility:SaveDC(casterToken, behavior, symbols)
 	if behavior ~= nil and behavior:has_key("dcvalue") and behavior.dcvalue ~= '' then
-		return dmhub.EvalGoblinScriptDeterministic(behavior.dcvalue, casterToken.properties:LookupSymbol(symbols), 0, string.format("Calculate DC: %s", self.name))
+		return ExecuteGoblinScript(behavior.dcvalue, casterToken.properties:LookupSymbol(symbols), 0, string.format("Calculate DC: %s", self.name))
 	end
 
 	local result = casterToken.properties:SpellSaveDC(self)
@@ -733,7 +733,7 @@ function ActivatedAbility:GetRadius(casterCreature, castingSymbols)
 
         return 0
     end
-	return dmhub.EvalGoblinScriptDeterministic(radius, caster:LookupSymbol(symbols))
+	return ExecuteGoblinScript(radius, caster:LookupSymbol(symbols))
 end
 
 --- @param casterCreature Creature
@@ -785,7 +785,7 @@ function ActivatedAbility:GetRange(casterCreature, castingSymbols, selfRange)
 				charges = castingSymbols.charges or 1,
 				upcast = castingSymbols.upcast or 0,
 			}
-			result = dmhub.EvalGoblinScriptDeterministic(selfRange, caster:LookupSymbol(symbols))
+			result = ExecuteGoblinScript(selfRange, caster:LookupSymbol(symbols))
 		end
 	end
 
@@ -824,7 +824,7 @@ function ActivatedAbility:GetNumTargets(casterToken, symbols)
 
         return 1
     end
-	local targets = dmhub.EvalGoblinScriptDeterministic(self.numTargets, casterToken.properties:LookupSymbol(symbols))
+	local targets = ExecuteGoblinScript(self.numTargets, casterToken.properties:LookupSymbol(symbols))
 	return targets
 end
 
@@ -1002,7 +1002,7 @@ function ActivatedAbility:TargetLocPassesFilterPredicate(casterToken, symbols)
 		local symbolizedLoc = Loc.Create(loc)
 		symbolsCopy.target = symbolizedLoc
 
-		local result = GoblinScriptTrue(dmhub.EvalGoblinScriptDeterministic(self.targetFilter, casterToken.properties:LookupSymbol(symbolsCopy), 0, string.format("Target location filter for %s", self.name)))
+		local result = GoblinScriptTrue(ExecuteGoblinScript(self.targetFilter, casterToken.properties:LookupSymbol(symbolsCopy), 0, string.format("Target location filter for %s", self.name)))
 		return result
 	end
 end
@@ -1012,7 +1012,7 @@ function ActivatedAbility:AbilityFilterFailureMessage(casterCreature)
     local filters = self:try_get("abilityFilters", {})
 
     for _,filter in ipairs(filters) do
-        local result = dmhub.EvalGoblinScriptDeterministic(filter.formula, casterCreature:LookupSymbol{}, 1, "Test ability filter")
+        local result = ExecuteGoblinScript(filter.formula, casterCreature:LookupSymbol{}, 1, "Test ability filter")
         if not GoblinScriptTrue(result) then
             return StringInterpolateGoblinScript(filter.reason, casterCreature)
         end
@@ -1110,13 +1110,13 @@ function ActivatedAbility:TargetPassesFilter(casterToken, targetToken, symbols, 
     symbols.enemy = not casterToken:IsFriend(targetToken)
 	symbols.target = GenerateSymbols(targetToken.properties)
 
-	local result = filter == "" or GoblinScriptTrue(dmhub.EvalGoblinScriptDeterministic(filter, targetToken.properties:LookupSymbol(symbols), 0, string.format("Target filter for %s", self.name)))
+	local result = filter == "" or GoblinScriptTrue(ExecuteGoblinScript(filter, targetToken.properties:LookupSymbol(symbols), 0, string.format("Target filter for %s", self.name)))
     if not result then
         return false
     end
 
     for _,reasonedFilter in ipairs(reasonedFilters) do
-        local result = GoblinScriptTrue(dmhub.EvalGoblinScriptDeterministic(reasonedFilter.formula, targetToken.properties:LookupSymbol(symbols), 0, string.format("Target reasoned filter for %s", self.name)))
+        local result = GoblinScriptTrue(ExecuteGoblinScript(reasonedFilter.formula, targetToken.properties:LookupSymbol(symbols), 0, string.format("Target reasoned filter for %s", self.name)))
         if not result then
             return false, StringInterpolateGoblinScript(reasonedFilter.reason, symbols)
         end
@@ -1314,7 +1314,7 @@ function ActivatedAbility:GetNumberOfActionsCost(caster, symbols)
 	end
 
 	if caster ~= nil then
-		local result = dmhub.EvalGoblinScriptDeterministic(self.actionNumber, caster:LookupSymbol(symbols or {mode = 1}), 1)
+		local result = ExecuteGoblinScript(self.actionNumber, caster:LookupSymbol(symbols or {mode = 1}), 1)
 		return result
 	else
 		if tonumber(self.actionNumber) ~= nil then
@@ -1339,7 +1339,7 @@ function ActivatedAbility:MaxChannel(caster, symbols)
 		return 999
 	end
 
-	return dmhub.EvalGoblinScriptDeterministic(maxChannel, caster:LookupSymbol(symbols or {mode = 1}), 999)
+	return ExecuteGoblinScript(maxChannel, caster:LookupSymbol(symbols or {mode = 1}), 999)
 end
 
 function ActivatedAbility:CommitToPaying(casterToken, options)
@@ -1466,7 +1466,7 @@ function ActivatedAbility:GetCost(casterToken, options)
 
 	if self.usageLimitOptions.resourceRefreshType ~= 'none' then
 		local usage = creature:GetResourceUsage(self.usageLimitOptions.resourceid, self.usageLimitOptions.resourceRefreshType)
-		local maxCharges = dmhub.EvalGoblinScriptDeterministic(self.usageLimitOptions.charges, creature:LookupSymbol(), 0)
+		local maxCharges = ExecuteGoblinScript(self.usageLimitOptions.charges, creature:LookupSymbol(), 0)
 		local hasResources = usage < maxCharges
 		local availableCharges = math.max(0, maxCharges - usage)
 		result.details[#result.details+1] = {
@@ -1492,7 +1492,7 @@ function ActivatedAbility:GetCost(casterToken, options)
 			local available = max - usage
             if self.resourceCost == self.channeledResource then
 				local mode = options.mode or 1
-                local resourceNum = dmhub.EvalGoblinScriptDeterministic(self.resourceNumber, casterToken.properties:LookupSymbol{mode = mode}, 0, "Determine resource number for " .. self.name)
+                local resourceNum = ExecuteGoblinScript(self.resourceNumber, casterToken.properties:LookupSymbol{mode = mode}, 0, "Determine resource number for " .. self.name)
                 available = available - resourceNum
             end
             local resourceCost = self.channelIncrement*options.charges
@@ -1521,7 +1521,7 @@ function ActivatedAbility:GetCost(casterToken, options)
 				local available = (max - usage) + resourceInfo:AllowResourceBelowZero(casterToken.properties)
 
 				local mode = options.mode or 1
-                local resourceNum = dmhub.EvalGoblinScriptDeterministic(self.resourceNumber, casterToken.properties:LookupSymbol{mode = mode}, 0, "Determine resource number for " .. self.name)
+                local resourceNum = ExecuteGoblinScript(self.resourceNumber, casterToken.properties:LookupSymbol{mode = mode}, 0, "Determine resource number for " .. self.name)
 
 				if resourceNum == 0 then
 					resourceDetails = nil
@@ -2809,7 +2809,7 @@ function ActivatedAbilityBehavior:ApplyToTargets(ability, casterToken, targets, 
 			end
 		end
 
-	elseif self.applyto == 'caster' then
+	elseif self.applyto == "caster" then
         if options.symbols.targetPairs ~= nil then
             --minion signature abilities have a list of target pairs, so we
             --use that to find the list of casters in the squad.
@@ -2991,7 +2991,7 @@ function ActivatedAbilityBehavior:ApplyToTargets(ability, casterToken, targets, 
 			end
 			
 			if passFilter == nil then
-				passFilter = GoblinScriptTrue(dmhub.EvalGoblinScriptDeterministic(self.filterTarget, item.token.properties:LookupSymbol(symbols), 1, string.format("Filter targets: %s", ability.name)))
+				passFilter = GoblinScriptTrue(ExecuteGoblinScript(self.filterTarget, item.token.properties:LookupSymbol(symbols), 1, string.format("Filter targets: %s", ability.name)))
 			end
 
 			if passFilter then
@@ -3446,7 +3446,7 @@ function ActivatedAbilityAttackBehavior:Cast(ability, casterToken, targets, opti
 				end
 				symbols.target = target.token.properties
 				local passFilter = true
-				passFilter = GoblinScriptTrue(dmhub.EvalGoblinScriptDeterministic(behavior.filterTarget, casterToken.properties:LookupSymbol(symbols), 1, string.format("Filter targets: %s", ability.name)))
+				passFilter = GoblinScriptTrue(ExecuteGoblinScript(behavior.filterTarget, casterToken.properties:LookupSymbol(symbols), 1, string.format("Filter targets: %s", ability.name)))
 				local info
 				info = {
 					check = true,
@@ -3523,8 +3523,6 @@ function ActivatedAbilityAttackBehavior:Cast(ability, casterToken, targets, opti
 				completed = true
 				attackHit = hit
 				if attackHit then
-					options.symbols.cast.damagedealt = options.symbols.cast.damagedealt + completeAttackOptions.damageDealt
-					options.symbols.cast.damageraw = options.symbols.cast.damageraw + completeAttackOptions.damageRaw
 					self:RecordHitTarget(target.token, options)
 				end
 			end,
@@ -3629,7 +3627,7 @@ function ActivatedAbilityApplyOngoingEffectBehavior:Cast(ability, casterToken, t
             local casteridFormula = self:try_get("casteridFormula", "")
 
             if casteridFormula ~= "" then
-                local casteridInt = dmhub.EvalGoblinScriptDeterministic(casteridFormula, casterToken.properties:LookupSymbol(options.symbols), string.format("Caster ID for %s", ability.name))
+                local casteridInt = ExecuteGoblinScript(casteridFormula, casterToken.properties:LookupSymbol(options.symbols), string.format("Caster ID for %s", ability.name))
                 print("CasterId: search for " .. casteridFormula .. " = " .. tostring(casteridInt))
                 if casteridInt ~= nil then
                     local tokens = dmhub.allTokens
@@ -4064,7 +4062,7 @@ function ActivatedAbilityForcedMovementBehavior:Cast(ability, casterToken, targe
 	local symbols = DeepCopy(options.symbols)
 	for i,target in ipairs(targetsSorted) do
 		symbols.target = GenerateSymbols(target.properties)
-		local distance = dmhub.EvalGoblinScriptDeterministic(self.distance, casterToken.properties:LookupSymbol(symbols), 0, string.format("Calculate %s distance: %s", self.moveType, ability.name))
+		local distance = ExecuteGoblinScript(self.distance, casterToken.properties:LookupSymbol(symbols), 0, string.format("Calculate %s distance: %s", self.moveType, ability.name))
 		target:ForcedPush(casterToken, distance*sign)
 	end
 end

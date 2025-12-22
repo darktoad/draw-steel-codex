@@ -238,7 +238,7 @@ function ActivatedAbilityRemoveCreatureBehavior:Cast(ability, casterToken, targe
                 symbols.targetnumber = i
                 symbols.numberoftargets = #targets
 
-                targetPasses = GoblinScriptTrue(dmhub.EvalGoblinScriptDeterministic(filterTarget, target.token.properties:LookupSymbol(symbols), 1, "Filter remove creature"))
+                targetPasses = GoblinScriptTrue(ExecuteGoblinScript(filterTarget, target.token.properties:LookupSymbol(symbols), 1, "Filter remove creature"))
             end
         end
 

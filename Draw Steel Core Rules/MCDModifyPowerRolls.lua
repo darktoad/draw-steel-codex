@@ -190,8 +190,10 @@ CharacterModifier.TypeInfo.power = {
             CharacterModifier.TypeInfo.power.triggerOnUse(modifier.baseModifier, creature, modContext)
         end
 		if modifier:try_get("hasCustomTrigger", false) and modifier:has_key("customTrigger") then
+            local token = dmhub.LookupToken(creature)
+
             
-            print("TRIGGER:: TRIGGER")
+            print("TRIGGER:: TRIGGER", token.charid)
 			modifier.customTrigger:Trigger(modifier, creature, modifier:AppendSymbols{}, nil, modContext)
 		end
 
@@ -272,7 +274,7 @@ CharacterModifier.TypeInfo.power = {
         print("POWER ROLL:: OPTIONS:", options)
 
         return {
-            result = GoblinScriptTrue(dmhub.EvalGoblinScriptDeterministic(self.activationCondition, lookupFunction, 0, "Power Roll Activation Condition")),
+            result = GoblinScriptTrue(ExecuteGoblinScript(self.activationCondition, lookupFunction, 0, "Power Roll Activation Condition")),
             justification = {},
         }
     end,
@@ -346,7 +348,7 @@ CharacterModifier.TypeInfo.power = {
                 title = options.title or "",
             })
 
-            if not GoblinScriptTrue(dmhub.EvalGoblinScriptDeterministic(self.displayCondition, lookupFunction, 0, "Power Roll Activation Condition")) then
+            if not GoblinScriptTrue(ExecuteGoblinScript(self.displayCondition, lookupFunction, 0, "Power Roll Activation Condition")) then
                 return false
             end
         end
@@ -618,7 +620,7 @@ CharacterModifier.TypeInfo.power = {
             local damageModifierType = self:try_get("damageModifierType", "none")
             local damage = dmhub.EvalGoblinScript(damageModifier, lookupFunction, "Power Roll Damage Modifier")
 
-            --local damage = dmhub.EvalGoblinScriptDeterministic(damageModifier, lookupFunction, 0, "Power Roll Damage Modifier")
+            --local damage = ExecuteGoblinScript(damageModifier, lookupFunction, 0, "Power Roll Damage Modifier")
             if damage ~= "" and safe_toint(damage) ~= 0 then
 
                 for i,tier in ipairs(rollProperties.tiers) do
@@ -683,7 +685,7 @@ CharacterModifier.TypeInfo.power = {
             for j,tier in ipairs(rollProperties.tiers) do
                 local match = regex.MatchGroups(tier, pattern)
                 if match ~= nil then
-                    local adj = dmhub.EvalGoblinScriptDeterministic(adjustment.value, lookupFunction, 1, "Determine adjustment")
+                    local adj = ExecuteGoblinScript(adjustment.value, lookupFunction, 1, "Determine adjustment")
                     local value = safe_toint(match.value)
                     local newValue = math.max(0, value + (adj or 0))
                     rollProperties.tiers[j] = string.format("%s%s %d%s", match.prefix, match.type, newValue, match.postfix)
@@ -693,7 +695,7 @@ CharacterModifier.TypeInfo.power = {
 
         local surges = self:try_get("surges", "")
         if surges ~= "" then
-            local addSurges = dmhub.EvalGoblinScriptDeterministic(surges, lookupFunction, 0, "Power Roll Surges")
+            local addSurges = ExecuteGoblinScript(surges, lookupFunction, 0, "Power Roll Surges")
             rollProperties.surges = rollProperties:try_get("surges", 0) + addSurges
 
             if self:try_get("surgesCanBeKept", false) then
@@ -703,7 +705,7 @@ CharacterModifier.TypeInfo.power = {
 
         local potencymod = tonumber(self:try_get("potencymod", "none"))
         if self:try_get("potencymod") == "custom" then
-            local customPotency = dmhub.EvalGoblinScriptDeterministic(self:try_get("customPotency", "0"), lookupFunction, 0, "Custom Potency Modifier")
+            local customPotency = ExecuteGoblinScript(self:try_get("customPotency", "0"), lookupFunction, 0, "Custom Potency Modifier")
             if customPotency ~= nil then
                 potencymod = tonumber(customPotency)
             end
@@ -767,7 +769,7 @@ CharacterModifier.TypeInfo.power = {
     modifyPowerRollCasting = function(self, creature, ability, options)
         if self:try_get("overrideCost", false) then
             local tempCopy = DeepCopy(ability)
-            tempCopy.resourceNumber = dmhub.EvalGoblinScriptDeterministic(self:try_get("resourceCostAmount", "1"), creature:LookupSymbol(options.symbols), 0, "Override Resource Cost")
+            tempCopy.resourceNumber = ExecuteGoblinScript(self:try_get("resourceCostAmount", "1"), creature:LookupSymbol(options.symbols), 0, "Override Resource Cost")
             local tok = dmhub.LookupToken(creature)
             local costInfo = tempCopy:GetCost(tok)
             

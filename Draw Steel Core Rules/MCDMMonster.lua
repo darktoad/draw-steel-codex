@@ -39,7 +39,7 @@ function monster:MonsterGroup()
         if string.lower(cat) == "monster" and self.groupid ~= nil then
             return MonsterGroup.Get(self.groupid)
         end
-        for id, group in unhidden_pairs(dmhub.GetTable(MonsterGroup.tableName) or {}) do
+        for id, group in unhidden_pairs(GetTableCached(MonsterGroup.tableName)) do
             if string.lower(group.name) == string.lower(cat) then
                 return MonsterGroup.Get(id)
             end

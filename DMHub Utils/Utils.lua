@@ -65,6 +65,28 @@ function table.set_to_ordered_csv(set, emptyText)
     return table.concat(list, ", ")
 end
 
+function table.shallow_copy_into_dest(src, dest)
+    for k,v in pairs(src) do
+        dest[k] = v
+    end
+
+    for k,v in pairs(dest) do
+        if src[k] == nil then
+            dest[k] = nil
+        end
+    end
+end
+
+function table.shallow_copy_with_meta(t)
+    local result = {}
+    for k,v in pairs(t) do
+        result[k] = v
+    end
+    setmetatable(result, getmetatable(t))
+
+    return result
+end
+
 function table.shallow_copy(t)
     local result = {}
     for k,v in pairs(t) do

@@ -1001,6 +1001,9 @@ CreateHeroesPanel = function()
     local m_currentRichStatus = nil
     local m_richStatusId = nil
 
+    local dividerPanel = CreateDividerPanel()
+    local addButtonPanel = CreateAddButtonPanel()
+
     --king panel
     local heroesPanel = gui.Panel {
 
@@ -1168,8 +1171,6 @@ CreateHeroesPanel = function()
                     end
                 end
 
-                directorPanels = newPanels
-
                 table.sort(children, function(a, b)
                     return a.data.order < b.data.order
                 end)
@@ -1184,14 +1185,18 @@ CreateHeroesPanel = function()
                     bgFlag = not bgFlag
                 end
 
-                children[#children + 1] = CreateDividerPanel()
+                children[#children + 1] = dividerPanel
+                children[#children + 1] = addButtonPanel
 
-                children[#children + 1] = CreateAddButtonPanel()
+                
 
                 element.children = children
+
+                directorPanels = newPanels
             end,
 
-
+            dividerPanel,
+            addButtonPanel,
         },
 
 

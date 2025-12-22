@@ -222,7 +222,7 @@ end
 function Class:GetSubclasses(choices, levelNum, extraLevelInfo)
 	local result = {}
 
-	local subclassesTable = dmhub.GetTable("subclasses") or {}
+	local subclassesTable = GetTableCached("subclasses")
 	
 	local levels = {}
 	self:FillLevelsUpTo(levelNum, extraLevelInfo, false, levels)
@@ -456,7 +456,7 @@ function CharacterFeatureChoice:GetOptions(choices)
         local raceid = rawget(choices, "raceid")
         if raceid ~= nil then
             local inheritedOptions = {}
-            local raceTable = dmhub.GetTable(Race.tableName) or {}
+            local raceTable = GetTableCached(Race.tableName)
             local ancestry = raceTable[raceid]
             if ancestry ~= nil then
                 local formerLifeFeature = ancestry:IsInherited()
@@ -585,7 +585,7 @@ function CharacterFeatureChoice:Choices(numOption, existingChoices, creature)
 end
 
 function CharacterFeatureChoice:NumChoices(creature)
-	local result = dmhub.EvalGoblinScriptDeterministic(self.numChoices, GenerateSymbols(creature), 1, "Number of choices")
+	local result = ExecuteGoblinScript(self.numChoices, GenerateSymbols(creature), 1, "Number of choices")
 	return result
 end
 
@@ -648,7 +648,7 @@ end
 
 function CharacterSkillsChoice:NumChoices(creature)
 
-	local result = dmhub.EvalGoblinScriptDeterministic(self.quantity, creature, 1, "Number of choices")
+	local result = ExecuteGoblinScript(self.quantity, creature, 1, "Number of choices")
 	return result
 end
 
@@ -723,7 +723,7 @@ function CharacterToolsChoice.Create(quantity, skillDuplicates)
 end
 
 function CharacterToolsChoice:NumChoices(creature)
-	local result = dmhub.EvalGoblinScriptDeterministic(self.quantity, creature, 1, "Number of choices")
+	local result = ExecuteGoblinScript(self.quantity, creature, 1, "Number of choices")
 	return result
 end
 
@@ -765,8 +765,8 @@ function CharacterToolsChoice:Choices(numOption, existingChoices, creature)
 
 	local result = {}
 
-	local equipment = dmhub.GetTable("tbl_Gear") or {}
-	local cats = dmhub.GetTable("equipmentCategories") or {}
+	local equipment = GetTableCached("tbl_Gear")
+	local cats = GetTableCached("equipmentCategories")
 	for k,equip in pairs(equipment) do
 		if (not equip:try_get("hidden")) and equip:try_get("equipmentCategory") and cats[equip.equipmentCategory] and cats[equip.equipmentCategory].allowIndividualProficiency and cats[equip.equipmentCategory].isTool and self.existingSkills[k] == nil then
 			local canChoose = true
@@ -808,10 +808,10 @@ end
 function CharacterSubclassChoice:Choices(numOption, existingChoices, creature)
 	local result = {}
 
-	local subclassesTable = dmhub.GetTable("subclasses") or {}
+	local subclassesTable = GetTableCached("subclasses")
 	for k,subclass in unhidden_pairs(subclassesTable) do
 		if subclass.primaryClassId == self.classid then
-			if GoblinScriptTrue(dmhub.EvalGoblinScriptDeterministic(subclass:try_get("prerequisite", ""), GenerateSymbols(creature), 1, "Subclass Prerequisite")) then
+			if GoblinScriptTrue(ExecuteGoblinScript(subclass:try_get("prerequisite", ""), GenerateSymbols(creature), 1, "Subclass Prerequisite")) then
 				result[#result+1] = {
 					id = k,
 					text = subclass.name,

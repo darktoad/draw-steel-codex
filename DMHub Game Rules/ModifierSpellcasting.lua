@@ -107,8 +107,8 @@ CharacterModifier.TypeInfo.spellcasting = {
 
             spellLists = source.spellLists,
             grantedSpells = {},
-            numKnownCantrips = dmhub.EvalGoblinScriptDeterministic(source.numKnownCantrips, creature:LookupSymbol(), 0, "Spellcasting known cantrips"),
-            numKnownSpells = dmhub.EvalGoblinScriptDeterministic(source.numKnownSpells, creature:LookupSymbol(), 0, "Spellcasting known spells"),
+            numKnownCantrips = ExecuteGoblinScript(source.numKnownCantrips, creature:LookupSymbol(), 0, "Spellcasting known cantrips"),
+            numKnownSpells = ExecuteGoblinScript(source.numKnownSpells, creature:LookupSymbol(), 0, "Spellcasting known spells"),
 
             upcastingType = source.upcastingType,
 
@@ -117,7 +117,7 @@ CharacterModifier.TypeInfo.spellcasting = {
         }
 
         if modifier.leveling == "custom" then
-            spellcastingFeature.level = dmhub.EvalGoblinScriptDeterministic(modifier:try_get("customLevelingFormula", ""), creature:LookupSymbol(), 0, "Custom spellcasting level")
+            spellcastingFeature.level = ExecuteGoblinScript(modifier:try_get("customLevelingFormula", ""), creature:LookupSymbol(), 0, "Custom spellcasting level")
             spellcastingFeature.maxSpellLevel = spellcastingFeature.level
         else
             spellcastingFeature.level = creature:SpellLevel()
@@ -131,7 +131,7 @@ CharacterModifier.TypeInfo.spellcasting = {
 
 
         if source.spellbook then
-            spellcastingFeature.spellbookSize = dmhub.EvalGoblinScriptDeterministic(source.spellbookSize, creature:LookupSymbol(), 0, "Spellcasting spellbook size")
+            spellcastingFeature.spellbookSize = ExecuteGoblinScript(source.spellbookSize, creature:LookupSymbol(), 0, "Spellcasting spellbook size")
         end
 
         spellcastingEntries[#spellcastingEntries+1] = spellcastingFeature

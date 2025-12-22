@@ -992,13 +992,6 @@ function CharacterPanel.ShowHitpoints()
     })
 end
 
-local g_profileCreateSingleCharacterDisplay = dmhub.ProfileMarker("charCreateSingleCharacterDisplay")
-local g_profileConditions = dmhub.ProfileMarker("charConditionsRefresh")
-local g_profileSingleCondition = dmhub.ProfileMarker("charSingleConditionRefresh")
-local g_profileUpdateToken = dmhub.ProfileMarker("charUpdateToken")
-local g_profileRefreshCharacterDetails = dmhub.ProfileMarker("charRefreshCharacterDetails")
-local g_profileRefreshCharacterName = dmhub.ProfileMarker("charRefreshCharacterName")
-
 CharacterPanel.CreateConditionsPanel = function(token)
     local activeOngoingEffects
     local addConditionButton = nil
@@ -1046,7 +1039,6 @@ CharacterPanel.CreateConditionsPanel = function(token)
                     return
                 end
 
-                g_profileConditions:Begin()
                 activeOngoingEffects = creature:ActiveOngoingEffects()
 
                 element.selfStyle.maxWidth = (#activeOngoingEffects + 1) * 40
@@ -1270,7 +1262,6 @@ CharacterPanel.CreateConditionsPanel = function(token)
                 end
 
 
-                g_profileConditions:End()
             end,
         },
     }
@@ -1285,7 +1276,6 @@ function CharacterPanel.DecoratePortraitPanel(token)
 end
 
 function CharacterPanel.SingleCharacterDisplaySidePanel(token)
-    g_profileCreateSingleCharacterDisplay:Begin()
 
     local characterDisplaySidebar
 
@@ -1462,9 +1452,7 @@ function CharacterPanel.SingleCharacterDisplaySidePanel(token)
 
         events = {
             refresh = function(element)
-                g_profileRefreshCharacterDetails:Begin()
                 if token == nil or not token.valid then
-                    g_profileRefreshCharacterDetails:End()
                     return
                 end
 
@@ -1473,7 +1461,6 @@ function CharacterPanel.SingleCharacterDisplaySidePanel(token)
 
                 characterDisplaySidebar:FireEventTree('refreshCharacter', token)
 
-                g_profileRefreshCharacterDetails:End()
             end,
 
             setToken = function(element, tok)
@@ -1491,14 +1478,9 @@ function CharacterPanel.SingleCharacterDisplaySidePanel(token)
         summaryPanel,
     }
 
-    g_profileCreateSingleCharacterDisplay:End()
 
     return characterDisplaySidebar
 end
-
-local g_profileRefreshCharSidePanel = dmhub.ProfileMarker("charRefreshSidePanel")
-local g_profileCharacterRefresh = dmhub.ProfileMarker("charRefresh")
-
 
 local CreateMonsterEntry = function(nodeid)
     local node = assets:GetMonsterNode(nodeid)
@@ -2293,8 +2275,6 @@ CreateBestiaryNode = function(node)
     end
 end
 
-local g_profileMonsterDescriptionRefresh = dmhub.ProfileMarker("refreshMonsterDescription")
-
 --similar to a bestiary entry but is an entry for a live character.
 CharacterPanel.CreateCharacterEntry = function(charid)
     local token = dmhub.GetCharacterById(charid)
@@ -2609,7 +2589,6 @@ CharacterPanel.CreateCharacterEntry = function(charid)
                 halign = "left",
                 text = creature.GetTokenDescription(token),
                 refresh = function(element)
-                    g_profileMonsterDescriptionRefresh:Begin()
                     local desc = creature.GetTokenDescription(token)
                     local playerName = token.playerNameOrNil
                     if playerName ~= nil then
@@ -2618,7 +2597,6 @@ CharacterPanel.CreateCharacterEntry = function(charid)
                     end
                     element.text = desc
                     element:SetClass("invisible", token.invisibleToPlayers)
-                    g_profileMonsterDescriptionRefresh:End()
                 end,
             })
         }
@@ -2627,11 +2605,7 @@ CharacterPanel.CreateCharacterEntry = function(charid)
     return resultPanel
 end
 
-local g_profileRefreshPartyEntry = dmhub.ProfileMarker("refreshPartyEntry")
-local g_profileRefreshParty = dmhub.ProfileMarker("refreshParty")
-
 CharacterPanel.PopulatePartyMembers = function(element, party, partyMembers, memberPanes)
-    g_profileRefreshPartyEntry:Begin()
 
     local children = {}
     local newMemberPanes = {}
@@ -2667,7 +2641,6 @@ CharacterPanel.PopulatePartyMembers = function(element, party, partyMembers, mem
 
     element.children = children
 
-    g_profileRefreshPartyEntry:End()
     return newMemberPanes
 end
 
@@ -2683,7 +2656,6 @@ CharacterPanel.CreatePartyCharacters = function(partyid)
     local partyName = ""
 
     local RefreshParty = function()
-        g_profileRefreshParty:Begin()
         if partyid == nil then
             party = nil
             local tokens = dmhub.GetTokens {
@@ -2709,7 +2681,6 @@ CharacterPanel.CreatePartyCharacters = function(partyid)
             partyMembers = dmhub.GetCharacterIdsInParty(partyid)
             partyName = party.name
         end
-        g_profileRefreshParty:End()
     end
 
     RefreshParty()
@@ -3233,10 +3204,6 @@ CharacterPanel.CreateMultiEdit = function()
     return resultPanel
 end
 
-local g_profileCharacterPanelRefresh = dmhub.ProfileMarker("charPanelRefresh")
-local g_profileCharacterCreatePanel = dmhub.ProfileMarker("charCreatePanel")
-local g_profileCharacterRefreshRolls = dmhub.ProfileMarker("charRefreshRolls")
-
 CreateCharacterPanel = function()
     local multiEditPanel = nil
     local tokenPanels = {}
@@ -3286,7 +3253,6 @@ CreateCharacterPanel = function()
             end
         end,
         refresh = function(element)
-            g_profileCharacterPanelRefresh:Begin()
             local hasVisible = false
             local newChildren = {}
             local createdNew = false
@@ -3336,9 +3302,7 @@ CreateCharacterPanel = function()
 
                 singleTokenDetailsPanel:SetClass("collapsed", false)
                 if tokens[1] ~= nil and tokens[1].properties ~= nil then
-                    g_profileCharacterRefreshRolls:Begin()
                     singleTokenDetailsPanel:FireEvent("dirtyToken", tokens[1])
-                    g_profileCharacterRefreshRolls:End()
                 end
 
                 panelTitle = creature.GetTokenDescription(tokens[1])
@@ -3361,7 +3325,6 @@ CreateCharacterPanel = function()
             element.children = newChildren
             --end
 
-            g_profileCharacterPanelRefresh:End()
         end,
 
         bestiaryPanel,

@@ -26,7 +26,7 @@ function AttributeGenerator:GetPointBuyDefaultValue()
         if firstValue == nil then
             firstValue = entry.threshold
         end
-        if dmhub.EvalGoblinScriptDeterministic(entry.script, {}, "") == 0 then
+        if ExecuteGoblinScript(entry.script, {}, "") == 0 then
             return entry.threshold
         end
     end

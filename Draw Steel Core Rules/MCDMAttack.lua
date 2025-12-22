@@ -383,7 +383,7 @@ function ActivatedAbilityAttackBehavior:Cast(ability, casterToken, targets, opti
 				end
 				symbols.target = target.token.properties
 				local passFilter = true
-				passFilter = GoblinScriptTrue(dmhub.EvalGoblinScriptDeterministic(behavior.filterTarget, casterToken.properties:LookupSymbol(symbols), 1, string.format("Filter targets: %s", ability.name)))
+				passFilter = GoblinScriptTrue(ExecuteGoblinScript(behavior.filterTarget, casterToken.properties:LookupSymbol(symbols), 1, string.format("Filter targets: %s", ability.name)))
 				local info
 				info = {
 					check = true,

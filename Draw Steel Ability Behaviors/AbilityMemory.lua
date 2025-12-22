@@ -29,7 +29,7 @@ function ActivatedAbilityRememberBehavior:Cast(ability, casterToken, targets, op
     local val = 0
     for _, target in ipairs(targets) do
         symbols.target = target.token.properties
-        local value = dmhub.EvalGoblinScriptDeterministic(self.calculation, target.token.properties:LookupSymbol(symbols), 0, "Remember Value Calculation")
+        local value = ExecuteGoblinScript(self.calculation, target.token.properties:LookupSymbol(symbols), 0, "Remember Value Calculation")
         val = val + value
     end
 

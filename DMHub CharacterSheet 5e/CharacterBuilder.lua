@@ -357,7 +357,7 @@ function CharSheet.FeaturePanel()
 					else
 						for i,choice in ipairs(choices) do
 							if choice.id == idChosen and choice.prerequisite ~= nil and (type(choice.prerequisite) ~= "string" or trim(choice.prerequisite) ~= "") then
-								local pass = dmhub.EvalGoblinScriptDeterministic(choice.prerequisite, g_creature:LookupSymbol(), 0, string.format("Feat %s prerequisite", choice.text))
+								local pass = ExecuteGoblinScript(choice.prerequisite, g_creature:LookupSymbol(), 0, string.format("Feat %s prerequisite", choice.text))
 								if pass == 0 then
 									if type(choice.prerequisite) == "string" then
 										failedPrerequisiteMessage = "You do not meet the " .. choice.prerequisite .. " requirement for this feat."

@@ -672,7 +672,7 @@ function ActivatedAbility:Render(options, params)
             if tonumber(self.resourceNumber) ~= nil then
                 resourceNumber = tonumber(self.resourceNumber)
             elseif creatureProperties ~= nil then
-                resourceNumber = dmhub.EvalGoblinScriptDeterministic(self.resourceNumber, creatureProperties:LookupSymbol(symbols), 0, "Determine resource number for " .. self.name)
+                resourceNumber = ExecuteGoblinScript(self.resourceNumber, creatureProperties:LookupSymbol(symbols), 0, "Determine resource number for " .. self.name)
 			end
             if resourceNumber == 0 then
 				costText = ""
@@ -2207,7 +2207,7 @@ function ActivatedAbility:GetRange(casterCreature, castingSymbols, selfRange)
 				upcast = castingSymbols.upcast or 0,
                 invoker = castingSymbols.invoker,
 			}
-			result = dmhub.EvalGoblinScriptDeterministic(selfRange, caster:LookupSymbol(symbols))
+			result = ExecuteGoblinScript(selfRange, caster:LookupSymbol(symbols))
 		end
 	end
 
@@ -2250,7 +2250,7 @@ function ActivatedAbility:GetLineDistance(castingCreature, castingSymbols)
         return tonumber(range) or 1
     end
 
-    return dmhub.EvalGoblinScriptDeterministic(self.lineDistance, castingCreature:LookupSymbol(symbols))
+    return ExecuteGoblinScript(self.lineDistance, castingCreature:LookupSymbol(symbols))
 end
 
 ActivatedAbility.registeredProperties = {}

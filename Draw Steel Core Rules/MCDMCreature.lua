@@ -2225,7 +2225,7 @@ function character:BaseHitpoints()
         return 1
     end
 
-    return dmhub.EvalGoblinScriptDeterministic(c.hitpointsCalculation, self:LookupSymbol {}, 1, "Base hitpoints")
+    return ExecuteGoblinScript(c.hitpointsCalculation, self:LookupSymbol {}, 1, "Base hitpoints")
 end
 
 function creature:RollOngoingEffectSave(id, abilityOptions)
@@ -2438,7 +2438,7 @@ function creature:InflictCondition(conditionid, args)
                 local casterToken = dmhub.GetTokenById(entry.casterInfo.tokenid)
                 if casterToken ~= nil then
                     local caster = casterToken.properties
-                    local maxInstances = dmhub.EvalGoblinScriptDeterministic(conditionInfo.maxInstancesFormula,
+                    local maxInstances = ExecuteGoblinScript(conditionInfo.maxInstancesFormula,
                         caster:LookupSymbol {}, 1, "Max instances of condition")
                     if maxInstances > 0 then
                         caster:CheckConditionInstances(conditionid, maxInstances, dmhub.LookupTokenId(self))

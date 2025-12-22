@@ -24,7 +24,7 @@ function ActivatedAbilityCustomTriggerBehavior:Cast(ability, casterToken, target
     for _,target in ipairs(targets) do
         if target.token ~= nil then
             options.symbols.target = target.token.properties
-            local value = dmhub.EvalGoblinScriptDeterministic(self.value, target.token.properties:LookupSymbol(options.symbols), 0, "Determine custom trigger value")
+            local value = ExecuteGoblinScript(self.value, target.token.properties:LookupSymbol(options.symbols), 0, "Determine custom trigger value")
             print("GoblinScript:: symbols", options.symbols, "self.value =", self.value, "result =", value)
 
             target.token.properties:DispatchEvent("custom", {

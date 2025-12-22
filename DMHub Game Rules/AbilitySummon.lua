@@ -274,7 +274,7 @@ function ActivatedAbilitySummonBehavior:Cast(ability, casterToken, targets, args
             for k,monster in pairs(assets.monsters) do
                 if not assets:GetMonsterNode(k).hidden then
                     args.symbols.beast = GenerateSymbols(monster.properties)
-                    if monster.properties:has_key("monster_type") and dmhub.EvalGoblinScriptDeterministic(self.bestiaryFilter, GenerateSymbols(casterToken.properties, args.symbols), 0, string.format("Bestiary filter for %s summons filter %s", ability.name, monster.properties.monster_type)) ~= 0 then
+                    if monster.properties:has_key("monster_type") and ExecuteGoblinScript(self.bestiaryFilter, GenerateSymbols(casterToken.properties, args.symbols), 0, string.format("Bestiary filter for %s summons filter %s", ability.name, monster.properties.monster_type)) ~= 0 then
                         choices[#choices+1] = monster
                     end
                 end

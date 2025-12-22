@@ -371,7 +371,7 @@ mod.shared.CreateTriggerPanel = function()
                                         local targets = {}
                                         for _,potential in ipairs(dmhub.allTokens) do
                                             symbols.target = potential.properties:LookupSymbol{}
-                                            if trim(filterFormula) == "" or GoblinScriptTrue(dmhub.EvalGoblinScriptDeterministic(filterFormula, potential.properties:LookupSymbol(symbols), 1)) then
+                                            if trim(filterFormula) == "" or GoblinScriptTrue(ExecuteGoblinScript(filterFormula, potential.properties:LookupSymbol(symbols), 1)) then
                                                 targets[#targets+1] = potential
                                             end
                                         end
@@ -456,7 +456,7 @@ mod.shared.CreateTriggerPanel = function()
                                                             target = target.properties:LookupSymbol{},
                                                         }
 
-                                                        local passed = GoblinScriptTrue(dmhub.EvalGoblinScriptDeterministic(condition, triggerToken.properties:LookupSymbol(symbols), 1))
+                                                        local passed = GoblinScriptTrue(ExecuteGoblinScript(condition, triggerToken.properties:LookupSymbol(symbols), 1))
                                                         if (not passed) and trigger.triggered then
                                                             --after the trigger, we didn't meet the criteria for it to apply so it is canceled.
                                                             triggerToken:ModifyProperties{
@@ -528,7 +528,7 @@ mod.shared.CreateTriggerPanel = function()
                                             local targets = {}
                                             for _,potential in ipairs(dmhub.allTokens) do
                                                 symbols.target = potential.properties:LookupSymbol{}
-                                                if trim(filterFormula) == "" or GoblinScriptTrue(dmhub.EvalGoblinScriptDeterministic(filterFormula, potential.properties:LookupSymbol(symbols), 1)) then
+                                                if trim(filterFormula) == "" or GoblinScriptTrue(ExecuteGoblinScript(filterFormula, potential.properties:LookupSymbol(symbols), 1)) then
                                                     targets[#targets+1] = potential
                                                 end
                                             end
@@ -694,7 +694,7 @@ mod.shared.CreateTriggerPanel = function()
                                         local targets = {}
                                         for _,potential in ipairs(dmhub.allTokens) do
                                             symbols.target = potential.properties:LookupSymbol{}
-                                            if trim(filterFormula) == "" or GoblinScriptTrue(dmhub.EvalGoblinScriptDeterministic(filterFormula, potential.properties:LookupSymbol(symbols), 1)) then
+                                            if trim(filterFormula) == "" or GoblinScriptTrue(ExecuteGoblinScript(filterFormula, potential.properties:LookupSymbol(symbols), 1)) then
                                                 targets[#targets+1] = potential
                                             end
                                         end
@@ -780,7 +780,7 @@ mod.shared.CreateTriggerPanel = function()
                                                             target = target.properties:LookupSymbol{},
                                                         }
 
-                                                        local passed = GoblinScriptTrue(dmhub.EvalGoblinScriptDeterministic(condition, triggerToken.properties:LookupSymbol(symbols), 1))
+                                                        local passed = GoblinScriptTrue(ExecuteGoblinScript(condition, triggerToken.properties:LookupSymbol(symbols), 1))
                                                         if (not passed) and trigger.triggered then
                                                             --after the trigger, we didn't meet the criteria for it to apply so it is canceled.
                                                             triggerToken:ModifyProperties{
@@ -1075,7 +1075,7 @@ mod.shared.CreateTriggerPanel = function()
                                             local targets = {}
                                             for _,potential in ipairs(dmhub.allTokens) do
                                                 symbols.target = potential.properties:LookupSymbol{}
-                                                if trim(filterFormula) == "" or GoblinScriptTrue(dmhub.EvalGoblinScriptDeterministic(filterFormula, potential.properties:LookupSymbol(symbols), 1)) then
+                                                if trim(filterFormula) == "" or GoblinScriptTrue(ExecuteGoblinScript(filterFormula, potential.properties:LookupSymbol(symbols), 1)) then
                                                     targets[#targets+1] = potential
                                                 end
                                             end

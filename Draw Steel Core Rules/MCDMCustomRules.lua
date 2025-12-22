@@ -10,7 +10,7 @@ function character:KitID()
 end
 
 function character:Kit()
-	local table = dmhub.GetTable(Kit.tableName)
+	local table = GetTableCached(Kit.tableName)
 	local kit = table[self:KitID()]
 	if kit ~= nil then
 

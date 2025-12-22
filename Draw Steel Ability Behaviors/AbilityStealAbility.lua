@@ -210,7 +210,7 @@ function ActivatedAbilityStealAbilityBehavior:Cast(ability, casterToken, targets
                     ability = a,
                     caster = casterToken.properties,
                 }
-                passesFilter = GoblinScriptTrue(dmhub.EvalGoblinScriptDeterministic(filter, targetCreature:LookupSymbol(symbols), 0, "Steal Ability Filter"))
+                passesFilter = GoblinScriptTrue(ExecuteGoblinScript(filter, targetCreature:LookupSymbol(symbols), 0, "Steal Ability Filter"))
             end
 
             if passesFilter then

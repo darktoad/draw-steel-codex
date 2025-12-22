@@ -2023,7 +2023,15 @@ function ActivatedAbility:TargetTypeEditor()
                     {
                         id = "vacated",
                         text = "Vacated Space",
-                    }
+                    },
+                    {
+                        id = "contiguous",
+                        text = "Connected Spaces",
+                    },
+                    {
+                        id = "contiguous_wall",
+                        text = "Wall",
+                    },
 				},
 				idChosen = self:try_get("targeting", "direct"),
 				change = function(element)

@@ -321,7 +321,7 @@ function ActivatedAbilityInvokeAbilityBehavior.ExecuteInvoke(invokerToken, abili
 
                 for _,token in ipairs(allTokens) do
                     symbols.target = token.properties
-                    if GoblinScriptTrue(dmhub.EvalGoblinScriptDeterministic(options.targetingFormula, invokerToken.properties:LookupSymbol(symbols), 0)) then
+                    if GoblinScriptTrue(ExecuteGoblinScript(options.targetingFormula, invokerToken.properties:LookupSymbol(symbols), 0)) then
                         targets[#targets+1] = { token = token }
                     end
                 end

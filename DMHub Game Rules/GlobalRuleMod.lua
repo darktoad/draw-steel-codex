@@ -30,6 +30,10 @@ GlobalRuleMod.ApplyOptions = {
 		id = "companions",
 		text = "Companions",
 	},
+    {
+        id = "characters_retainers",
+        text = "Heroes and Retainers",
+    },
 	{
 		id = "all",
 		text = "All Creatures",
@@ -46,6 +50,8 @@ end
 function GlobalRuleMod:GetApplyID()
     if self.applyCharacters and self.applyMonsters and self.applyRetainers then
         return "all"
+    elseif self.applyCharacters and self.applyRetainers then
+        return "characters_retainers"
     elseif self.applyCharacters then
         return "characters"
     elseif self.applyMonsters then

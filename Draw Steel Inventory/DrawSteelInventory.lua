@@ -2614,6 +2614,11 @@ function GameHud.CreateInventoryDialog(self, options)
 			escape = function(element)
 				resultPanel.data.close()
 			end,
+            refresh = function(element)
+                if not _opened then
+                    element:HaltEventPropagation()
+                end
+            end,
 			refreshInventory = function(element)
 				if not _opened then
 					return

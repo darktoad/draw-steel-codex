@@ -102,7 +102,7 @@ function creature:TargetPassesFilter(filterid, targetCreature)
             local symbols = {
                 target = targetCreature,
             }
-            local passFilter = GoblinScriptTrue(dmhub.EvalGoblinScriptDeterministic(mod.mod.filter, self:LookupSymbol(symbols), 1, "Filter targets"))
+            local passFilter = GoblinScriptTrue(ExecuteGoblinScript(mod.mod.filter, self:LookupSymbol(symbols), 1, "Filter targets"))
             if not passFilter then
                 return false
             end

@@ -36,7 +36,7 @@ end
 
 function ActivatedAbilityModifyCastBehavior:Cast(ability, casterToken, targets, options)
     for _,target in ipairs(targets) do
-        local value = dmhub.EvalGoblinScriptDeterministic(self.value, casterToken.properties:LookupSymbol(options.symbols), 0, "Calculate Param")
+        local value = ExecuteGoblinScript(self.value, casterToken.properties:LookupSymbol(options.symbols), 0, "Calculate Param")
         options.symbols.cast:AddParam({
             id = self.paramid,
             value = value,

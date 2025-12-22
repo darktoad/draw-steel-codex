@@ -130,7 +130,7 @@ RegisterGoblinScriptSymbol(CreatureSet, {
             for _,creatureid in ipairs(c.creatures) do
                 local cr = dmhub.GetTokenById(creatureid)
                 if cr ~= nil then
-                    local val = dmhub.EvalGoblinScriptDeterministic(s, GenerateSymbols(cr.properties), 0, "CreatureSet:Highest")
+                    local val = ExecuteGoblinScript(s, GenerateSymbols(cr.properties), 0, "CreatureSet:Highest")
                     if result == nil or val > result then
                         result = val
                     end
@@ -285,7 +285,7 @@ function CustomAttribute:CalculateBaseValue(creature)
 	end
 
 
-	local result = dmhub.EvalGoblinScriptDeterministic(self.baseValue, GenerateSymbols(creature), typeInfo:DefaultValue(), string.format("Calculate custom attribute %s", self.name))
+	local result = ExecuteGoblinScript(self.baseValue, GenerateSymbols(creature), typeInfo:DefaultValue(), string.format("Calculate custom attribute %s", self.name))
     return result
 end
 

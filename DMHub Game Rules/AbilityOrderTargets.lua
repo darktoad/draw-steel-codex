@@ -21,7 +21,7 @@ function ActivatedAbilityOrderTargetsBehavior:Cast(ability, casterToken, targets
     for _,target in ipairs(targets) do
         if target.token ~= nil then
             symbols.target = target.token.properties
-            local ordValue = dmhub.EvalGoblinScriptDeterministic(self.orderFormula, casterToken.properties:LookupSymbol(symbols), string.format("Order value for %s", ability.name))
+            local ordValue = ExecuteGoblinScript(self.orderFormula, casterToken.properties:LookupSymbol(symbols), string.format("Order value for %s", ability.name))
             ordValues[target] = ordValue
         else
             ordValues[target] = 0

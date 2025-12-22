@@ -95,7 +95,7 @@ end
 function character:CharacterType()
 	local chartypeid = self:try_get("chartypeid")
 	if chartypeid ~= nil then
-		local characterTypeTable = dmhub.GetTable(CharacterType.tableName)
+		local characterTypeTable = GetTableCached(CharacterType.tableName)
 		if characterTypeTable then
 			return characterTypeTable[chartypeid]
 		end
@@ -172,12 +172,12 @@ function character:SubraceID()
 end
 
 function character:Race()
-	local table = dmhub.GetTable('races')
+	local table = GetTableCached('races')
 	return table[self:RaceID()] or table[Race.DefaultRace()]
 end
 
 function character:Subrace()
-	local table = dmhub.GetTable('subraces') or {}
+	local table = GetTableCached('subraces')
 	return table[self:try_get('subraceid', 'none')]
 end
 
@@ -186,7 +186,7 @@ function character:BackgroundID()
 end
 
 function character:Background()
-	local table = dmhub.GetTable(Background.tableName)
+	local table = GetTableCached(Background.tableName)
 	return table[self:BackgroundID()]
 end
 
@@ -221,7 +221,7 @@ function character:FillHitDice(targetTable)
 		return
 	end
 
-	local classesTable = dmhub.GetTable('classes')
+	local classesTable = GetTableCached('classes')
 	local classes = self:get_or_add("classes", {})
 	for i,entry in ipairs(classes) do
 		local classInfo = classesTable[entry.classid]
@@ -461,7 +461,7 @@ function character:BaseHitpoints()
 
 	local conMod = GameSystem.BonusHitpointsForLevel(self)
 	local result = 0
-	local classesTable = dmhub.GetTable('classes')
+	local classesTable = GetTableCached('classes')
 	local classes = self:get_or_add("classes", {})
 	for i,classInfo in ipairs(classes) do
 		local c = classesTable[classInfo.classid]
@@ -533,7 +533,7 @@ function character:GetClassesAndSubClasses()
 	local classes = self:get_or_add("classes", {})
 	local result = {}
 
-	local classesTable = dmhub.GetTable('classes')
+	local classesTable = GetTableCached('classes')
 	for i,entry in ipairs(classes) do
 		local classInfo = classesTable[entry.classid]
 		if classInfo ~= nil then
@@ -624,7 +624,7 @@ function character:GetClassFeatures(options)
 	end
 	
 	for i,featid in ipairs(self:try_get("creatureFeats", {})) do
-		local featTable = dmhub.GetTable(CharacterFeat.tableName) or {}
+		local featTable = GetTableCached(CharacterFeat.tableName)
 		local featInfo = featTable[featid]
 		if featInfo ~= nil then
 			featInfo:FillClassFeatures(levelChoices, result)
@@ -664,7 +664,7 @@ function character:GetClassFeaturesAndChoicesWithDetails()
 	end
 
 	for i,featid in ipairs(self:try_get("creatureFeats", {})) do
-		local featTable = dmhub.GetTable(CharacterFeat.tableName) or {}
+		local featTable = GetTableCached(CharacterFeat.tableName)
 		local featInfo = featTable[featid]
 		if featInfo ~= nil then
 			featInfo:FillFeatureDetails(self:GetLevelChoices(), result)
@@ -690,11 +690,8 @@ function character:GetFeatures()
     return features
 end
 
-local g_profileCalculateActiveModifiers = dmhub.ProfileMarker("CalculateActiveModifiersCharacter")
-
 --gets a list of CharacterModifier objects which are currently active on this creature.
 function character:CalculateActiveModifiers(calculatingModifiers)
-    g_profileCalculateActiveModifiers:Begin()
 	local result = calculatingModifiers or {}
 
 	self:FillBaseActiveModifiers(result)
@@ -709,7 +706,6 @@ function character:CalculateActiveModifiers(calculatingModifiers)
 
 	result = self:FilterModifiers(result)
 	self:CalculateConditionModifiers(result)
-    g_profileCalculateActiveModifiers:End()
 	return result
 end
 
@@ -741,7 +737,7 @@ end
 
 function character:GetCharacterSummaryText()
 	local classEntries = {}
-	local classesTable = dmhub.GetTable('classes')
+	local classesTable = GetTableCached('classes')
 	for i,entry in ipairs(self:GetClassesAndSubClasses()) do
 		if not entry.hasSubclass then
 			local name = entry.class.name
@@ -783,7 +779,7 @@ end
 
 --called by dmhub to summarize a creature's info in the lobby.
 function creature:GetLobbySummaryText()
-	local classesTable = dmhub.GetTable('classes')
+	local classesTable = GetTableCached('classes')
 	local classes = self:get_or_add("classes", {})
 	local className = ''
 	for i,entry in ipairs(classes) do
@@ -911,8 +907,8 @@ function character:RaceOrMonsterType()
 
 	local mods = self:GetActiveModifiers()
 	local symbols = GenerateSymbols(self)
-	for i,mod in ipairs(mods) do
-		result = mod.mod:ModifyCreatureTypes(mod, symbols, result)
+	for i=1,#mods do
+		result = mods[i].mod:ModifyCreatureTypes(mod, symbols, result)
 	end
 
 	return result[1] or ""
@@ -924,6 +920,6 @@ function character:GetNameGeneratorTable()
 		return nil
 	end
 
-	local nameDataTable = dmhub.GetTable("nameGenerators") or {}
+	local nameDataTable = GetTableCached("nameGenerators")
 	return nameDataTable[key]
 end
