@@ -262,12 +262,17 @@ function CharacterBuilder.CreatePanel()
 
         selectAncestry = function(element, ancestryId, noFire)
             local state = element.data.state
+
             local cachedAncestryId = state:Get("ancestry.selectedId")
+            local cachedInheritedAncestryId = state:Get("ancestry.inheritedId")
             local cachedLevelChoices = state:Get("levelChoices")
+
             local hero = _getHero(state)
             local levelChoices = hero and hero:GetLevelChoices() or {}
+            local inheritedAncestry = hero:InheritedAncestry()
+            local inheritedAncestryId = inheritedAncestry and inheritedAncestry.id or nil
 
-            local ancestryChanged = ancestryId ~= cachedAncestryId
+            local ancestryChanged = ancestryId ~= cachedAncestryId or inheritedAncestryId ~= cachedInheritedAncestryId
             local levelChoicesChanged = not dmhub.DeepEqual(cachedLevelChoices, levelChoices)
 
             if not (ancestryChanged or levelChoicesChanged) then
@@ -282,6 +287,7 @@ function CharacterBuilder.CreatePanel()
                 local featureDetails = {}
                 ancestryItem:FillFeatureDetails(nil, levelChoices, featureDetails)
                 newState[#newState+1] = { key = "ancestry.selectedItem", value = ancestryItem }
+                newState[#newState+1] = { key = "ancestry.inheritedId", value = inheritedAncestryId }
                 newState[#newState+1] = { key = "ancestry.featureDetails", value = featureDetails }
             end
             state:Set(newState)
