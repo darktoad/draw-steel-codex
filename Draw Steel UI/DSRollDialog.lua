@@ -2784,6 +2784,9 @@ function GameHud.CreateRollDialog(self)
                 RemoveTargetHints()
 
                 local showingDialog = showDialogDuringRoll
+                if creature ~= nil and creature._tmp_aicontrol > 0 then
+                    showingDialog = false
+                end
 
                 local completeFunction
 
@@ -2792,10 +2795,21 @@ function GameHud.CreateRollDialog(self)
                     resultPanel:SetClassTree("finishedRolling", false)
                     g_holdingRollOpen = true
 
+
                     proceedAfterRollButton.events.press = function()
                         resultPanel:SetClass('hidden', true)
                         RelinquishPanel()
                         showingDialog = false
+                    end
+
+                    print("AI:: SETTING UP EVENT", creature ~= nil and creature._tmp_aicontrol or 0)
+                    if creature ~= nil and creature._tmp_aicontrol > 0 then
+                        --AI controlled creature, we auto-press the proceed button after a short delay.
+                        dmhub.Schedule(3.0, function()
+                            if resultPanel.valid and showingDialog then
+                                proceedAfterRollButton:FireEventTree("press")
+                            end
+                        end)
                     end
                 else
                     resultPanel:SetClass('hidden', true)
@@ -3078,15 +3092,23 @@ function GameHud.CreateRollDialog(self)
                         print("ROLL:: COMPLETE")
                         m_rollInfo = rollInfo
 
+                            print("AI:: IS COMPLETE, SHOWING DIALOG:", showingDialog)
                         if showingDialog then
                             resultPanel:SetClassTree("rolling", false)
                             resultPanel:SetClassTree("finishedRolling", true)
 
                             proceedAfterRollButton.events.press = function()
+                                print("AI:: PRESSED PROCEED AFTER ROLL")
                                 resultPanel:SetClass('hidden', true)
                                 RelinquishPanel()
 
                                 completeFunction(rollInfo)
+                            end
+
+                            print("AI:: ROLL COMPLETE...")
+                            if creature ~= nil and creature._tmp_aicontrol > 0 then
+                            print("AI:: ROLL PRESS PROCEED...")
+                                proceedAfterRollButton:FireEvent("press")
                             end
 
                             return

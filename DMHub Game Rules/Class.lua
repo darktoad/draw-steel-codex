@@ -195,7 +195,7 @@ function Class:FillLevelsUpTo(levelNum, extraLevelInfo, secondaryClass, result)
 
     local encounter = extraLevelInfo and extraLevelInfo.encounter or nil
     if levelNum > 1 then
-        encounter = nil
+        encounter = 4
     end
 
     for i=1,(encounter or 4) do
