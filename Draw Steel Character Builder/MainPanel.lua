@@ -328,6 +328,14 @@ function CharacterBuilder.CreatePanel()
                             feature = feature,
                             background = careerItem,
                         }
+                        local levelChoice = {}
+                        local notes = hero:GetNotesForTable(feature.guid)
+                        if notes and #notes > 0 then
+                            for _,note in ipairs(notes) do
+                                levelChoice[#levelChoice+1] = note.rowid
+                            end
+                        end
+                        levelChoices[feature.guid] = levelChoice
                     end
                 end
 

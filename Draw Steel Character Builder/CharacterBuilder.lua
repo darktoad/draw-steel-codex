@@ -294,6 +294,19 @@ function CharacterBuilder._trimToLength(str, maxLength)
     return str:sub(1, maxLength) .. "..."
 end
 
+--- Return the closest number of faces to an actual die (equal to or above the value passed)
+--- @param rollFaces integer
+--- @return integer rollFaces
+function CharacterBuilder._validateRollFaces(rollFaces)
+    local validFaces = {2, 3, 6, 8, 10, 12, 20, 100}
+    for _, faces in ipairs(validFaces) do
+        if faces >= rollFaces then
+            return faces
+        end
+    end
+    return 100
+end
+
 --[[
     Consistent UI
 ]]

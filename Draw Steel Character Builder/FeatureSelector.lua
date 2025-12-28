@@ -214,17 +214,17 @@ function CBFeatureSelector.IncidentPanel(feature)
     local function applyCurrentItem(element)
         -- Runs in the context of the main feature container
         local hero = _getHero(element)
-        if hero then
-            local data = element.data
-            hero:RemoveNotesForTable(data.feature.guid)
-            local noteItem = hero:GetOrAddNoteForTableRow(data.feature.guid, data.selectedId)
-            if noteItem then
-                noteItem.title = data.feature.name
-                for _,o in ipairs(data.feature.options) do
-                    if o.guid == data.selectedId then
-                        noteItem.text = o.row.value:ToString()
-                        break
-                    end
+        if not hero then return end
+
+        local data = element.data
+        hero:RemoveNotesForTable(data.feature.guid)
+        local noteItem = hero:GetOrAddNoteForTableRow(data.feature.guid, data.selectedId)
+        if noteItem then
+            noteItem.title = data.feature.name
+            for _,o in ipairs(data.feature.options) do
+                if o.guid == data.selectedId then
+                    noteItem.text = o.row.value:ToString()
+                    break
                 end
             end
         end
@@ -314,12 +314,53 @@ function CBFeatureSelector.IncidentPanel(feature)
         end,
     }
 
-    return CBFeatureSelector._mainPanel{
+    local mainPanel = CBFeatureSelector._mainPanel{
         feature = feature,
         targetsContainer = targetsContainer,
         optionsContainer = optionsContainer,
         applyCurrentItem = applyCurrentItem,
     }
+
+    local rollTable = feature.characteristic:GetRollTable()
+    local rollInfo = rollTable:CalculateRollInfo()
+    local faces = CharacterBuilder._validateRollFaces(rollInfo.rollFaces)
+    local dice = gui.UserDice{
+        floating = true,
+        halign = "left",
+        valign = "bottom",
+        hmargin = CBStyles.SIZES.SELECT_BUTTON_HEIGHT,
+        vmargin = -8,
+        width = CBStyles.SIZES.SELECT_BUTTON_HEIGHT,
+        height = CBStyles.SIZES.SELECT_BUTTON_HEIGHT,
+        faces = faces,
+        click = function(element)
+            local hero = _getHero(element)
+            if hero == nil then return end
+            element:SetClass("collapsed-anim", true)
+            dmhub.Roll{
+                roll = rollInfo.roll,
+                description = string.format(feature.name),
+                tokenid = dmhub.LookupTokenId(hero),
+                begin = function(rollInfo)
+
+                end,
+                complete = function(rollInfo)
+                    local rowIndex = rollTable:RowIndexFromDiceResult(rollInfo.total)
+                    if rowIndex == nil then return end
+
+                    local row = rollTable.rows[rowIndex]
+                    element.parent:FireEvent("selectItem", row.id)
+                    element.parent:FireEvent("applyCurrentItem")
+
+                    element:SetClass("collapsed-anim", false)
+                end,
+            }
+        end,
+    }
+
+    mainPanel:AddChild(dice)
+
+    return mainPanel
 end
 
 --- Render a language choice panel
