@@ -404,8 +404,9 @@ local TEST_DETAIL = [[
 
 # Known Issues
 
-- Descriptions are displayed inconsistently on choices.
-- Extra info like ability cards aren't displayed yet.
+- Second tier selection buttons, like after you've selected a class, are displayed in a long (albeit sorted) list instead of categorized.
+- Extra info like ability cards aren't displayed on the selected items.
+- Extra info display is sometimes redundant. This seems to be a configuration issue.
 
 # Reporing Issues
 

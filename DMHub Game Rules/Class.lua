@@ -572,6 +572,7 @@ function CharacterFeatureChoice:Choices(numOption, existingChoices, creature)
 			result[#result+1] = {
 				id = feature.guid,
 				text = text,
+				description = feature.description,
 				classes = classes,
                 hasCustomPanel = feature:HasCustomDropdownPanel(),
                 panel = function()

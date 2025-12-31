@@ -97,6 +97,7 @@ function CBFeatureSelector.SelectionPanel(selector, feature)
                 end
                 element:FireEventTree("updateName", name)
                 element:FireEventTree("updateDesc", option and option:GetDescription() or "")
+                element:FireEventTree("customPanel", option and option:Panel())
                 element:SetClass("filled", option ~= nil)
             end,
             gui.Label{
@@ -111,6 +112,29 @@ function CBFeatureSelector.SelectionPanel(selector, feature)
                 updateDesc = function(element, text)
                     if element.text ~= text then element.text = text end
                     element:SetClass("collapsed", #element.text == 0)
+                end,
+            },
+            gui.Panel{
+                classes = {"builder-base", "panel-base", "feature-target", "collapsed-anim"},
+                width = "90%",
+                height = "auto",
+                halign = "center",
+                valign = "top",
+                data = {
+                    panelFn = nil,
+                },
+                customPanel = function(element, panelFn)
+                    if panelFn ~= element.data.panelFn then
+                        for i = #element.children, 1, -1 do
+                            element.children[i]:DestroySelf()
+                        end
+                        element.data.panelFn = panelFn
+                    end
+                    if element.data.panelFn then element:AddChild(element.data.panelFn()) end
+                end,
+                refreshBuilderState = function(element, state)
+                    local visible = element.data.panelFn ~= nil and element.parent:HasClass("filled")
+                    element:SetClass("collapsed-anim", not visible)
                 end,
             }
         }
@@ -167,6 +191,7 @@ function CBFeatureSelector.SelectionPanel(selector, feature)
                 end
                 element:FireEventTree("updateName", name)
                 element:FireEventTree("updateDesc", option:GetDescription())
+                element:FireEventTree("customPanel", option:Panel())
             end,
             gui.Label{
                 classes = {"builder-base", "label", "feature-choice"},
@@ -184,6 +209,29 @@ function CBFeatureSelector.SelectionPanel(selector, feature)
                     element:SetClass("collapsed", #element.text == 0)
                 end,
             },
+            gui.Panel{
+                classes = {"builder-base", "panel-base", "collapsed-anim"},
+                width = "90%",
+                height = "auto",
+                halign = "center",
+                valign = "top",
+                data = {
+                    panelFn = nil,
+                },
+                customPanel = function(element, panelFn)
+                    if panelFn ~= element.data.panelFn then
+                        for i = #element.children, 1, -1 do
+                            element.children[i]:DestroySelf()
+                        end
+                        element.data.panelFn = panelFn
+                    end
+                    if element.data.panelFn then element:AddChild(element.data.panelFn()) end
+                end,
+                refreshBuilderState = function(element, state)
+                    local visible = element.data.panelFn ~= nil and element.parent:HasClass("selected")
+                    element:SetClass("collapsed-anim", not visible)
+                end,
+            }
         }
     end
 

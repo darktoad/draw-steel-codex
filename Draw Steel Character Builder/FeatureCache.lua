@@ -521,6 +521,17 @@ function CBOptionWrapper:GetUnique()
     return _safeGet(self.option, "unique", true)
 end
 
+--- @return boolean
+function CBOptionWrapper:HasCustomPanel()
+    return _safeGet(self.option, "hasCustomPanel", false)
+        and _safeGet(self.option, "panel", nil) ~= nil
+end
+
+--- @return function|nil
+function CBOptionWrapper:Panel()
+    return _safeGet(self.option, "panel", nil)
+end
+
 --- Set whether this option is selected on the hero.
 function CBOptionWrapper:SetSelected(selected)
     self.isSelected = selected
