@@ -406,6 +406,7 @@ local TEST_DETAIL = [[
 
 - Second tier selection buttons, like after you've selected a class, are displayed in a long (albeit sorted) list instead of categorized.
 - Extra info display is sometimes redundant or an empty panel.
+- Slow start rules aren't honored in class building. Currently gives all 1st level features.
 
 # Reporing Issues
 

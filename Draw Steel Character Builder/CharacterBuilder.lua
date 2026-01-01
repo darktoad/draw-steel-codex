@@ -4,6 +4,7 @@
 
  TODO::
  - Old builder attributes are in MCDMClassCarousel.lua start line 1481
+ - Slow start rules aren't honored - still pulling full level 1 class features
 
  - Overall Design
  - Responding to Events
@@ -390,7 +391,7 @@ function CharacterBuilder._parseStartingCharacteristics(baseChars)
             end
             str = string.format("%s, and %s", str, items[numItems].text)
         end
-        str = string.format("%s, and you can choose one of the following arrays for your other characteristic scores:", str)  -- Fixed: added str
+        str = string.format("%s, and you can choose one of the following arrays for your other characteristic scores.\nSelect an array, then drag and drop scores to rearrange them.", str)  -- Fixed: added str
     end
 
     return str

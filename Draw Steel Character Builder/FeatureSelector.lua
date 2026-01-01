@@ -40,20 +40,20 @@ function CBFeatureSelector.BuildSelectorPanel(overrides)
         flow = "vertical",
         data = {},
     }, overrides.targetsContainer)
-    local targetsContainer = gui.Panel(targetsContainerDef)
+    local targetsContainer = overrides.targetsContainer and gui.Panel(targetsContainerDef)
 
     -- Build optionsContainer
     local optionsContainerDef = _mergeKeyedTables({
         classes = {"builder-base", "panel-base", "container"},
         data = {},
     }, overrides.optionsContainer)
-    local optionsContainer = gui.Panel(optionsContainerDef)
+    local optionsContainer = overrides.optionsContainer and gui.Panel(optionsContainerDef)
 
     -- Build selectButton
     local selectButtonDef = _mergeKeyedTables({
         data = {},
     }, overrides.selectButton)
-    local selectButton = CharacterBuilder._makeSelectButton(selectButtonDef)
+    local selectButton = overrides.selectButton and CharacterBuilder._makeSelectButton(selectButtonDef)
 
     local scrollPanel = gui.Panel{
         classes = {"builder-base", "panel-base"},

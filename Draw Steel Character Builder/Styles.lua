@@ -226,62 +226,6 @@ local function _panelStyles()
             borderColor = CBStyles.COLORS.GOLD03,
         },
 
-        -- Characteristic selection
-        {
-            selectors = {"chararray"},
-            width = "99%",
-            height = "auto",
-            valign = "top",
-            flow = "vertical",
-        },
-        {
-            selectors = {"chararray", "container"},
-            halign = "center",
-            valign = "top",
-            bgimage = true,
-            borderColor = CBStyles.COLORS.CREAM,
-            border = { x1 = 1, x2 = 1, y1 = 0, y2 = 1 },
-        },
-        {
-            selectors = {"chararray", "header"},
-            width = "99%",
-            height = "auto",
-            flow = "horizontal",
-            tmargin = 0,
-            vpad = 8,
-            bgcolor = "#ffffff",
-            bgimage = true,
-            gradient = starburstGradient,
-            cornerRadius = 5,
-            borderWidth = 1,
-            borderColor = CBStyles.COLORS.CREAM,
-        },
-        {
-            selectors = {"chararray", "header", "selected"},
-            brightness = 2.0,
-        },
-        {
-            selectors = {"chararray", "detail"},
-            width = "90%",
-            halign = "center",
-            flow = "horizontal",
-            bgimage = true,
-            cornerRadius = 5,
-            border = 1,
-            borderColor = CBStyles.COLORS.GRAY02,
-            gradient = starburstGradient,
-        },
-        {
-            selectors = {"chararray", "detail", "selected"},
-            borderColor = CBStyles.COLORS.CREAM03,
-            brightness = 1.5,
-        },
-        {
-            selectors = {"chararray", "item"},
-            width = "18%",
-            flow = "vertical",
-        },
-
         -- Right-side character panel
         {
             selectors = {"charpanel", "builder-content"},
@@ -441,30 +385,6 @@ local function _labelStyles()
             fontSize = 14,
             bold = false,
             italics = true,
-        },
-
-        -- Characteristic selection
-        {
-            selectors = {"chararray", "header"},
-            halign = "center",
-            valign = "center",
-            width = "auto",
-            fontSize = 22,
-            bold = false,
-        },
-        {
-            selectors = {"chararray", "item-name"},
-            width = "98%",
-            halign = "center",
-            textAlignment = "center",
-            fontSize = 14,
-        },
-        {
-            selectors = {"chararray", "item-value"},
-            width = "98%",
-            halign = "center",
-            textAlignment = "center",
-            fontSize = 22,
         },
 
         -- For the right-side character panel / builder tab

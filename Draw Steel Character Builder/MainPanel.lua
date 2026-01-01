@@ -189,50 +189,6 @@ function CharacterBuilder.CreatePanel()
             end
         end,
 
-        removeAncestry = function(element)
-            local hero = _getHero(element.data.state)
-            if hero and (hero:try_get("raceid") or hero:try_get("subraceid")) then
-                hero.raceid = nil
-                hero.subraceid = nil
-                element:FireEvent("tokenDataChanged")
-            end
-        end,
-
-        removeCareer = function(element)
-            local hero = _getHero(element.data.state)
-            if hero then
-                hero.backgroundid = nil
-                element:FireEvent("tokenDataChanged")
-            end
-        end,
-
-        removeClass = function(element)
-            local hero = _getHero(element.data.state)
-            if hero then
-                hero.classes = {}
-                element:FireEvent("tokenDataChanged")
-            end
-        end,
-
-        removeLevelChoice = function(element, info)
-            local hero = _getHero(element.data.state)
-            if hero then
-                local levelChoices = hero:GetLevelChoices()
-                if levelChoices then
-                    local levelChoice = levelChoices[info.levelChoiceGuid]
-                    if levelChoice then
-                        for i = #levelChoice, 1, -1 do
-                            if levelChoice[i] == info.selectedId then
-                                table.remove(levelChoice, i)
-                                element:FireEvent("tokenDataChanged")
-                                break
-                            end
-                        end
-                    end
-                end
-            end
-        end,
-
         refreshBuilderState = function(element, state)
             -- We shouldn't do anything here; we fire this event
             -- print("THC:: MAIN:: RBS::")
@@ -279,6 +235,51 @@ function CharacterBuilder.CreatePanel()
             -- This event should never be processed by children.
             -- Use refreshBuilderState instead.
             element:HaltEventPropagation()
+        end,
+
+        removeAncestry = function(element)
+            local hero = _getHero(element.data.state)
+            if hero and (hero:try_get("raceid") or hero:try_get("subraceid")) then
+                hero.raceid = nil
+                hero.subraceid = nil
+                element:FireEvent("tokenDataChanged")
+            end
+        end,
+
+        removeCareer = function(element)
+            local hero = _getHero(element.data.state)
+            if hero then
+                hero.backgroundid = nil
+                element:FireEvent("tokenDataChanged")
+            end
+        end,
+
+        removeClass = function(element)
+            local hero = _getHero(element.data.state)
+            if hero then
+                hero.classes = {}
+                hero.attributeBuild = {}
+                element:FireEvent("tokenDataChanged")
+            end
+        end,
+
+        removeLevelChoice = function(element, info)
+            local hero = _getHero(element.data.state)
+            if hero then
+                local levelChoices = hero:GetLevelChoices()
+                if levelChoices then
+                    local levelChoice = levelChoices[info.levelChoiceGuid]
+                    if levelChoice then
+                        for i = #levelChoice, 1, -1 do
+                            if levelChoice[i] == info.selectedId then
+                                table.remove(levelChoice, i)
+                                element:FireEvent("tokenDataChanged")
+                                break
+                            end
+                        end
+                    end
+                end
+            end
         end,
 
         selectAncestry = function(element, ancestryId, noFire)
