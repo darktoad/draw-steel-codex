@@ -2808,6 +2808,10 @@ function ActivatedAbilityBehavior:ApplyToEditor(parentPanel, list)
             id = "subject",
             text = "Trigger Subject",
         },
+		{
+			id = "winner_opposed",
+			text = "Winner of Opposed Roll",
+		},
         {
             id = "none",
             text = "None",

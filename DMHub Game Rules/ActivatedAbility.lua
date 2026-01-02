@@ -2174,6 +2174,8 @@ function ActivatedAbility:Cast(casterToken, targets, options)
 		options.symbols.upcast = self.castingLevel - self:try_get("level", 1)
 	end
 
+	print("Options::", json(options))
+
 	local continueCasting = nil
 	casterToken:ModifyProperties{
 		description = "Cast Spell",
@@ -2908,6 +2910,17 @@ function ActivatedAbilityBehavior:ApplyToTargets(ability, casterToken, targets, 
 				end
 			end
 		end 
+	elseif self.applyto == "winner_opposed" then
+		local hit_targets = options.hit_targets or {}
+		if #hit_targets > 0 then
+			result = {
+                {
+                    token = casterToken,
+                },
+            }
+		else
+			result = options.targets
+		end
     elseif self.applyto == 'all_creatures' then
         --this is a special applyto that returns all creatures in combat.
         result = {}
