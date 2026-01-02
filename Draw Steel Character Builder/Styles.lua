@@ -225,6 +225,10 @@ local function _panelStyles()
             selectors = {"feature-choice", "selected"},
             borderColor = CBStyles.COLORS.GOLD03,
         },
+        {
+            selectors = {"feature-choice", "filtered"},
+            collapsed = true,
+        },
 
         -- Attribute editor
         {

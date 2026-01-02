@@ -85,6 +85,10 @@ CharacterBuilder = RegisterGameType("CharacterBuilder")
 CharacterBuilder.CONTROLLER_CLASS = "builderPanel"
 CharacterBuilder.ROOT_CHAR_SHEET_CLASS = "characterSheetHarness"
 
+-- The filter on feature lists is visible only when the count
+-- of available options is >= this number
+CharacterBuilder.FILTER_VISIBLE_COUNT = 20
+
 CharacterBuilder.SELECTOR = {
     BACK        = "back",
     CHARACTER   = "character",
@@ -327,6 +331,43 @@ end
 --- @return boolean
 function CharacterBuilder._inCharSheet(element)
     return CharacterBuilder._getCharacterSheet(element) ~= nil
+end
+
+--- Filters a string against filter text with special operators
+--- @param needle string The filter pattern (supports >, <, !, -)
+--- @param haystack string The text to filter
+--- @return boolean matches Whether the text matches the filter
+function CharacterBuilder._matchesFilter(needle, haystack)
+    if needle == nil or #needle == 0 then return true end
+
+    local pattern = needle
+    local isNegative = false
+
+    -- Check for negation
+    if pattern:sub(1, 1) == "!" or pattern:sub(1, 1) == "-" then
+        isNegative = true
+        pattern = pattern:sub(2)
+    end
+
+    -- Convert > to ^ (start of string)
+    if pattern:sub(1, 1) == ">" then
+        pattern = "^" .. pattern:sub(2)
+    end
+
+    -- Convert < to $ (end of string)
+    if pattern:sub(-1) == "<" then
+        pattern = pattern:sub(1, -2) .. "$"
+    end
+
+    -- Escape other special regex characters
+    pattern = pattern:gsub("([%.%[%]%(%)%*%+%?])", "%%%1")
+
+    -- Apply case-insensitive flag
+    pattern = "(?i)" .. pattern
+
+    local matches = regex.MatchGroups(haystack, pattern) ~= nil
+
+    return isNegative and not matches or matches
 end
 
 --- Merge two tables, with custom values overwriting defaults

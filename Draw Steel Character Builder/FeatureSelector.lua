@@ -107,7 +107,7 @@ function CBFeatureSelector.BuildSelectorPanel(overrides)
     local scrollPanel = gui.Panel{
         classes = {"builder-base", "panel-base"},
         width = "100%",
-        height = "100% available",
+        height = "100%",
         halign = "left",
         valign = "top",
         flow = "vertical",
@@ -117,10 +117,18 @@ function CBFeatureSelector.BuildSelectorPanel(overrides)
             width = "98%",
             halign = "left",
             flow = "vertical",
-            _functionOrValue(injections.beforeOptions),
             optionsContainer,
-            _functionOrValue(injections.afterOptions),
         },
+    }
+
+    local optionsPanel = gui.Panel{
+        classes = {"builder-base", "panel-base"},
+        width = "100%",
+        height = "100% available",
+        flow = "vertical",
+        _functionOrValue(injections.beforeOptions),
+        scrollPanel,
+        _functionOrValue(injections.afterOptions),
     }
 
     local bottomDivider = gui.MCDMDivider{
@@ -138,7 +146,7 @@ function CBFeatureSelector.BuildSelectorPanel(overrides)
     local selectButton = overrides.selectButton and CharacterBuilder._makeSelectButton(selectButtonDef)
 
     -- Build children array
-    local children = { headerPanel, targetsPanel, scrollPanel, bottomDivider, selectButton }
+    local children = { headerPanel, targetsPanel, optionsPanel, bottomDivider, selectButton }
     table.move(extraChildren, 1, #extraChildren, #children + 1, children)
 
     -- Build mainPanel - merge but protect children
@@ -311,6 +319,14 @@ function CBFeatureSelector.SelectionPanel(selector, feature)
                 featureId = featureId,
                 option = nil,
             },
+            applyFilter = function(element, filterText)
+                if element.data.option == nil then return end
+                local option = element.data.option
+                local cachedFeature = getCachedFeature(_getState(element), element.data.featureId)
+                local optionSelected = cachedFeature and cachedFeature:GetSelectedOptionId() == option:GetGuid()
+                local filterMatch = optionSelected or CharacterBuilder._matchesFilter(filterText, option:GetName())
+                element:SetClass("filtered", not filterMatch)
+            end,
             assignItem = function(element, option)
                 element.data.option = option
             end,
@@ -500,6 +516,32 @@ function CBFeatureSelector.SelectionPanel(selector, feature)
         }
     end
 
+    local injections = feature:UIInjections() or {}
+    if feature:UIChoicesFilter() then
+        local injectedBeforeOptions = injections.beforeOptions
+        injections.beforeOptions = function()
+            if injectedBeforeOptions ~= nil then _functionOrValue(injectedBeforeOptions) end
+            return gui.Input{
+                classes = {"builder-base", "input", "primary"},
+                width = "94%",
+                halign = "center",
+                placeholderText = "Start typing to filter...",
+                editlag = 0.5,
+                data = {
+                    featureId = feature:GetGuid()
+                },
+                edit = function(element)
+                    element.parent:FireEventTreeVisible("applyFilter", element.text or "")
+                end,
+                refreshBuilderState = function(element, state)
+                    local cachedFeature = getCachedFeature(state, element.data.featureId)
+                    local numOptions = cachedFeature and feature:GetOptionsCount()
+                    element:SetClass("collapsed", numOptions < CharacterBuilder.FILTER_VISIBLE_COUNT)
+                end,
+            }
+        end
+    end
+
     return CBFeatureSelector.BuildSelectorPanel{
         controllerClass = controllerClass,
         header = header,
@@ -508,6 +550,6 @@ function CBFeatureSelector.SelectionPanel(selector, feature)
         selectButton = selectButton,
         mainPanel = mainPanel,
         extraChildren = roller and { roller } or {},
-        injections = feature:UIInjections(),
+        injections = injections,
     }
 end
