@@ -22,6 +22,8 @@
 ]]
 CBFeatureSelector = RegisterGameType("CBFeatureSelector")
 
+local SELECT_MODES = {SELECT = "SELECT", REMOVE = "REMOVE"}
+
 local _fireControllerEvent = CharacterBuilder._fireControllerEvent
 local _functionOrValue = CharacterBuilder._functionOrValue
 local _getHero = CharacterBuilder._getHero
@@ -198,19 +200,10 @@ function CBFeatureSelector.SelectionPanel(selector, feature)
                 option = nil,
             },
             click = function(element)
-                if not element.data.option then return end
-
-                -- Remove the item
-                local state = _getState(element)
-                if state then
-                    local hero = _getHero(state)
-                    local cachedFeature = getCachedFeature(state, element.data.featureId)
-                    if cachedFeature and hero then
-                        if cachedFeature:RemoveSelection(hero, element.data.option) then
-                            _fireControllerEvent(element, "tokenDataChanged")
-                            return
-                        end
-                    end
+                if element.data.option == nil then return end
+                local controller = getFeatureSelController(element)
+                if controller then
+                    controller:FireEvent("selectTarget", element.data.option:GetGuid())
                 end
             end,
             dehover = function(element)
@@ -218,11 +211,6 @@ function CBFeatureSelector.SelectionPanel(selector, feature)
             end,
             hover = function(element)
                 element:FireEventTree("onHover")
-            end,
-            linger = function(element)
-                if element.data.option then
-                    gui.Tooltip("Press to delete")(element)
-                end
             end,
             refreshBuilderState = function(element, state)
                 local cachedFeature = getCachedFeature(state, element.data.featureId)
@@ -248,11 +236,14 @@ function CBFeatureSelector.SelectionPanel(selector, feature)
                 element:FireEventTree("updateDesc", option and option:GetDescription() or "")
 
                 -- Workaround: Options never have panels but choices do.
+                local isSelected = false
                 if option and cachedFeature then
+                    isSelected = cachedFeature:GetSelectedOptionId() == option:GetGuid()
                     local choice = cachedFeature:GetChoice(option:GetGuid())
                     element:FireEventTree("customPanel", choice and choice:Panel())
                 end
                 element:SetClass("filled", option ~= nil)
+                element:SetClass("selected", isSelected)
             end,
             gui.Label{
                 classes = {"builder-base", "label", "feature-target"},
@@ -286,11 +277,8 @@ function CBFeatureSelector.SelectionPanel(selector, feature)
                     end
                     if element.data.panelFn then element:AddChild(element.data.panelFn()) end
                 end,
-                onDeHover = function(element)
-                    element:SetClass("collapsed-anim", true)
-                end,
-                onHover = function(element)
-                    local visible = element.data.panelFn ~= nil and element.parent:HasClass("filled")
+                refreshBuilderState = function(element, state)
+                    local visible = element.data.panelFn ~= nil and element.parent:HasClass("selected")
                     element:SetClass("collapsed-anim", not visible)
                 end,
             }
@@ -334,7 +322,7 @@ function CBFeatureSelector.SelectionPanel(selector, feature)
                 if element.data.option == nil then return end
                 local controller = getFeatureSelController(element)
                 if controller then
-                    controller:FireEvent("selectItem", element.data.option:GetGuid())
+                    controller:FireEvent("selectChoice", element.data.option:GetGuid())
                 end
             end,
             refreshBuilderState = function(element, state)
@@ -420,24 +408,30 @@ function CBFeatureSelector.SelectionPanel(selector, feature)
     local selectButton = {
         data = {
             featureId = feature:GetGuid(),
+            selectMode = SELECT_MODES.SELECT,
         },
         click = function(element)
             local controller = getFeatureSelController(element)
             if controller then
-                controller:FireEvent("applyCurrentItem")
+                controller:FireEvent("applyCurrentItem", element.data.selectMode)
             end
         end,
         refreshBuilderState = function(element, state)
+            local mode = element.data.selectMode
             local visible = false
             local enabled = false
             local cachedFeature = getCachedFeature(state, element.data.featureId)
             if cachedFeature then
                 visible = true
-                enabled = cachedFeature:AllowCurrentSelection()
+                enabled = SELECT_MODES[mode] ~= nil and cachedFeature:AllowCurrentSelection()
             end
+            element.text = string.upper(SELECT_MODES[mode] or "unknown mode")
             element:SetClass("collapsed", not visible)
             element:SetClass("disabled", not enabled)
             element.interactable = visible and enabled
+        end,
+        setSelectMode = function(element, mode)
+            element.data.selectMode = mode
         end,
     }
 
@@ -445,18 +439,23 @@ function CBFeatureSelector.SelectionPanel(selector, feature)
         data = {
             featureId = feature:GetGuid(),
         },
-        applyCurrentItem = function(element)
+        applyCurrentItem = function(element, mode)
+            if SELECT_MODES[mode] == nil then return end
             local state = _getState(element)
             if state then
                 local cachedFeature = getCachedFeature(state, element.data.featureId)
                 if cachedFeature then
                     local selectedOption = cachedFeature:GetSelectedOption()
                     if selectedOption then
-
-                        -- Save it via the feature wrapper
                         local hero = _getHero(state)
                         if hero then
-                            if cachedFeature:SaveSelection(hero, selectedOption) then
+                            local actionComplete = false
+                            if mode == SELECT_MODES.REMOVE then
+                                actionComplete = cachedFeature:RemoveSelection(hero, selectedOption)
+                            else
+                                actionComplete = cachedFeature:SaveSelection(hero, selectedOption)
+                            end
+                            if actionComplete then
                                 _fireControllerEvent(element, "tokenDataChanged")
                                 return
                             end
@@ -465,12 +464,25 @@ function CBFeatureSelector.SelectionPanel(selector, feature)
                 end
             end
         end,
-        selectItem = function(element, itemId)
+        selectChoice = function(element, itemId)
             local state = _getState(element)
             if state then
                 local cachedFeature = getCachedFeature(state, element.data.featureId)
                 if cachedFeature then
                     if cachedFeature:SetSelectedOption(itemId) then
+                        element:FireEventTree("setSelectMode", SELECT_MODES.SELECT)
+                        element:FireEventTree("refreshBuilderState", state)
+                    end
+                end
+            end
+        end,
+        selectTarget = function(element, itemId)
+            local state = _getState(element)
+            if state then
+                local cachedFeature = getCachedFeature(state, element.data.featureId)
+                if cachedFeature then
+                    if cachedFeature:SetSelectedOption(itemId) then
+                        element:FireEventTree("setSelectMode", SELECT_MODES.REMOVE)
                         element:FireEventTree("refreshBuilderState", state)
                     end
                 end
@@ -506,7 +518,7 @@ function CBFeatureSelector.SelectionPanel(selector, feature)
                         if rowIndex == nil then return end
 
                         local row = rollTable.rows[rowIndex]
-                        element.parent:FireEvent("selectItem", row.id)
+                        element.parent:FireEvent("selectChoice", row.id)
                         element.parent:FireEvent("applyCurrentItem")
 
                         element:SetClass("collapsed-anim", false)

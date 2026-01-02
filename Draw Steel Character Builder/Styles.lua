@@ -203,9 +203,8 @@ local function _panelStyles()
             borderColor = CBStyles.COLORS.FILLED_ITEM_BORDER,
         },
         {
-            selectors = {"feature-target", "filled", "hover"},
-            bgcolor = CBStyles.COLORS.DELETE_WARN_BG,
-            borderColor = CBStyles.COLORS.DELETE_WARN_BORDER,
+            selectors = {"feature-target", "filled", "selected"},
+            brightness = 1.8,
         },
         {
             selectors = {"feature-choice"},
