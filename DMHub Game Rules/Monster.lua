@@ -318,7 +318,7 @@ function monster.SetSkillProficiency(self, skillInfo, val)
 end
 
 function monster.SkillProficiencyLevel(self, skillInfo)
-	if self.skillRatings[skillInfo.id] ~= nil then
+	if skillInfo ~= nil and self.skillRatings[skillInfo.id] ~= nil then
 		return GameSystem.Proficient()
 	else
 		return GameSystem.NotProficient()
