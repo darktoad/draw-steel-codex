@@ -32,7 +32,7 @@ function CBSelectors._makeItemsPanel(config)
                 element:FireEvent("refreshBuilderState", _getState(element))
             end,
 
-            click = function(element)
+            press = function(element)
                 _fireControllerEvent(element, "selectItem", {
                     selector = config.selectorName,
                     id = element.data.id,
@@ -46,7 +46,7 @@ function CBSelectors._makeItemsPanel(config)
                     element:SetClass("collapsed", tokenSelected and tokenSelected ~= element.data.id)
                     element:FireEvent("setAvailable", not tokenSelected or tokenSelected == element.data.id)
                     if tokenSelected and tokenSelected == element.data.id and tokenSelected ~= state:Get(config.selectorName .. ".selectedId") then
-                        element:FireEvent("click")
+                        element:FireEvent("press")
                     end
                 end
                 element:FireEvent("setSelected", state:Get(config.selectorName .. ".selectedId") == element.data.id)
@@ -173,8 +173,8 @@ function CBSelectors._makeButton(options)
     options.valign = "top"
     options.tmargin = CBStyles.SIZES.BUTTON_SPACING
     options.available = true
-    if options.click == nil then
-        options.click = function(element)
+    if options.press == nil then
+        options.press = function(element)
             local selectorsPanel = element:FindParentWithClass("selectorsPanel")
             if selectorsPanel then
                 selectorsPanel:FireEvent("selectorClick", element.data.selector)
@@ -243,7 +243,7 @@ function CBSelectors._back()
         create = function(element)
             element:SetClass("collapsed", CharacterBuilder._inCharSheet(element))
         end,
-        click = function(element)
+        press = function(element)
             print("THC:: TODO:: Not in CharSheet. Close the window, probably?")
         end,
     }
@@ -356,7 +356,8 @@ CharacterBuilder.RegisterSelector{
 CharacterBuilder.RegisterSelector{
     id = SEL.KIT,
     ord = 7,
-    selector = CBSelectors._kit
+    selector = CBSelectors._kit,
+    detail = CBKitDetail.CreatePanel,
 }
 
 CharacterBuilder.RegisterSelector{

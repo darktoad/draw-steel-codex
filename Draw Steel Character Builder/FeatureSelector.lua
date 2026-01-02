@@ -199,18 +199,12 @@ function CBFeatureSelector.SelectionPanel(selector, feature)
                 itemIndex = itemIndex,
                 option = nil,
             },
-            click = function(element)
+            press = function(element)
                 if element.data.option == nil then return end
                 local controller = getFeatureSelController(element)
                 if controller then
                     controller:FireEvent("selectTarget", element.data.option:GetGuid())
                 end
-            end,
-            dehover = function(element)
-                element:FireEventTree("onDeHover")
-            end,
-            hover = function(element)
-                element:FireEventTree("onHover")
             end,
             refreshBuilderState = function(element, state)
                 local cachedFeature = getCachedFeature(state, element.data.featureId)
@@ -318,7 +312,7 @@ function CBFeatureSelector.SelectionPanel(selector, feature)
             assignItem = function(element, option)
                 element.data.option = option
             end,
-            click = function(element)
+            press = function(element)
                 if element.data.option == nil then return end
                 local controller = getFeatureSelController(element)
                 if controller then
@@ -410,7 +404,7 @@ function CBFeatureSelector.SelectionPanel(selector, feature)
             featureId = feature:GetGuid(),
             selectMode = SELECT_MODES.SELECT,
         },
-        click = function(element)
+        press = function(element)
             local controller = getFeatureSelController(element)
             if controller then
                 controller:FireEvent("applyCurrentItem", element.data.selectMode)
@@ -505,7 +499,7 @@ function CBFeatureSelector.SelectionPanel(selector, feature)
             width = CBStyles.SIZES.SELECT_BUTTON_HEIGHT,
             height = CBStyles.SIZES.SELECT_BUTTON_HEIGHT,
             faces = faces,
-            click = function(element)
+            press = function(element)
                 local hero = _getHero(element)
                 if hero == nil then return end
                 element:SetClass("collapsed-anim", true)

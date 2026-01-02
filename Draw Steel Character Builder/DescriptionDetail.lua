@@ -97,7 +97,7 @@ function CBDescriptionDetail._editPane()
             valign = "top",
             bgimage = mod.images.grayD10,
             bgcolor = "white",
-            click = function(element)
+            press = function(element)
                 -- TODO: Remove in production
                 if devmode() then
                     local hero = _getHero(element)
