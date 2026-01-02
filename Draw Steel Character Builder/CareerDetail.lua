@@ -151,7 +151,7 @@ function CBCareerDetail._navPanel()
         classes = {"changeCareer"},
         text = string.format("Change %s", GameSystem.BackgroundName),
         data = { category = "change" },
-        click = function(element)
+        press = function(element)
             _fireControllerEvent(element, "removeCareer")
         end,
         refreshBuilderState = function(element, state)
@@ -199,7 +199,7 @@ end
 function CBCareerDetail._selectButton()
     return CharacterBuilder._makeSelectButton{
         classes = {"selectButton"},
-        click = function(element)
+        press = function(element)
             _fireControllerEvent(element, "applyCurrentCareer")
         end,
         refreshBuilderState = function(element, state)

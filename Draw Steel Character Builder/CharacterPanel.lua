@@ -62,7 +62,7 @@ function CBCharPanel._statusItem(selector, getSelected)
 
     local headerPanel = gui.Panel{
         classes = {"builder-base", "panel-base", "charpanel", "builder-header"},
-        click = function(element)
+        press = function(element)
             local controller = element:FindParentWithClass("panelStatusController")
             if controller then controller:FireEvent("toggleExpanded") end
         end,

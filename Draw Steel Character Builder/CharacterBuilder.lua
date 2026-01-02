@@ -123,6 +123,13 @@ Choose your hero's class. This choice has the biggest impact on how your hero in
 CharacterBuilder.STRINGS.CLASS.OVERVIEW = [[
 While all your character creation decisions bear narrative weight, none influences the way you play the game like your choice of class. Your class determines how your hero battles the threats of the timescape and overcomes other obstacles. Do you bend elemental forces to your will through the practiced casting of magic spells? Do you channel the ferocity of the Primordial Chaos as you tear across the battlefield, felling foes left and right? Or do you belt out heroic ballads that give your allies a second wind and inspire them to ever-greater achievements?]]
 
+CharacterBuilder.STRINGS.KIT = {}
+CharacterBuilder.STRINGS.KIT.INTRO = [[
+The knight in shining armor. The warrior priest. The sniper. Censors, furies, shadows, tacticians, and troubadours can tap into these and many more archetypal concepts using kits. A kit is a combination of weapons, armor, and fighting techniques that lets you personalize your martial hero for battle.]]
+CharacterBuilder.STRINGS.KIT.OVERVIEW = [[
+# Customizing Equipment Appearances
+You should absolutely feel free to describe your equipment in a way that makes sense for the story of your game and hero. For instance, if your hero uses a weapon in the whip category as part of their kit, they could use a leather whip, a spiked chain, or a dagger tied to a knotted rope. A hero who wears heavy armor might wear a suit of chain mail, plate armor, or heavy wooden planks tied together. Your choices for equipment aren't limited just to the examples in this book.]]
+
 --[[
     Ability to register selectors - controls down the left side of the window
 ]]
@@ -532,8 +539,8 @@ end
 --- @param options table 
 --- @return SelectorButton|Panel
 function CharacterBuilder._makeDetailNavButton(selector, options)
-    if options.click == nil then
-        options.click = function(element)
+    if options.press == nil then
+        options.press = function(element)
             CharacterBuilder._fireControllerEvent(element, "updateState", {
                 key = selector .. ".category.selectedId",
                 value = element.data.category
@@ -594,7 +601,7 @@ function CharacterBuilder._makeFeatureRegistry(options)
                     selectedId = selectedId,
                     order = feature:GetOrder(),
                 },
-                click = function(element)
+                press = function(element)
                     CharacterBuilder._fireControllerEvent(element, "updateState", {
                         key = selector .. ".category.selectedId",
                         value = element.data.featureId

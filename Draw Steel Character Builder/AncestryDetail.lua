@@ -29,7 +29,7 @@ function CBAncestryDetail._navPanel()
         classes = {"changeAncestry"},
         text = "Change Ancestry",
         data = { category = "change" },
-        click = function(element)
+        press = function(element)
             _fireControllerEvent(element, "removeAncestry")
         end,
         refreshBuilderState = function(element, state)
@@ -260,7 +260,7 @@ end
 function CBAncestryDetail._selectButton()
     return CharacterBuilder._makeSelectButton{
         classes = {"selectButton"},
-        click = function(element)
+        press = function(element)
             _fireControllerEvent(element, "applyCurrentAncestry")
         end,
         refreshBuilderState = function(element, state)

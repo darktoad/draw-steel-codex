@@ -34,7 +34,7 @@ function CBClassDetail._navPanel()
         classes = {"changeClass"},
         text = "Change Class",
         data = { category = "change" },
-        click = function(element)
+        press = function(element)
             _fireControllerEvent(element, "removeClass")
         end,
         refreshBuilderState = function(element, state)
@@ -211,7 +211,7 @@ end
 function CBClassDetail._selectButton()
     return CharacterBuilder._makeSelectButton{
         classes = {"selectButton"},
-        click = function(element)
+        press = function(element)
             _fireControllerEvent(element, "applyCurrentClass")
         end,
         refreshBuilderState = function(element, state)
@@ -225,7 +225,7 @@ function CBClassDetail._selectButton()
     }
 end
 
---- Build the Detail Panel
+--- The main panel for working with class
 --- @return Panel
 function CBClassDetail.CreatePanel()
 
@@ -404,6 +404,7 @@ function CBClassDetail._characteristicPanel()
                     local draggable = element.parent.data.locked == false
                     element.draggable = draggable
                     element.dragTarget = draggable
+                    element.hoverCursor = draggable and "hand" or nil
                 end,
             },
             gui.Panel{
