@@ -381,8 +381,8 @@ function gui.SelectorButton(options)
     local labelClasses = {"selector-button-label"}
     if opts.classes and #opts.classes > 0 then
         table.move(opts.classes, 1, #opts.classes, #classes + 1, classes)
-        table.move(opts.classes, 1, #opts.classes, #buttonClasses + 1, buttonClasses)
-        table.move(opts.classes, 1, #opts.classes, #labelClasses + 1, labelClasses)
+        -- table.move(opts.classes, 1, #opts.classes, #buttonClasses + 1, buttonClasses)
+        -- table.move(opts.classes, 1, #opts.classes, #labelClasses + 1, labelClasses)
     end
 
     local data = {
@@ -473,33 +473,26 @@ function gui.SelectorButton(options)
                 element:SetClass("selected", selected)
             end,
 
-            gui.Panel{
-                width = "90%",
-                height = "auto",
-                halign = "center",
-                valign = "center",
+            gui.Label{
+                classes = labelClasses,
+                width = "98%",
+                height = "98%",
+                halign = labelAlign,
+                fontFace = fontFace,
+                fontSize = fontSize,
+                text = labelText,
+                bold = fontBold,
                 interactable = false,
-                gui.Label{
-                    classes = labelClasses,
-                    width = "98%",
-                    height = "98%",
-                    halign = labelAlign,
-                    fontFace = fontFace,
-                    fontSize = fontSize,
-                    text = labelText,
-                    bold = fontBold,
-                    interactable = false,
-                    _setAvailable = function(element, available)
-                        element:SetClass("unavailable", not available)
-                        element:SetClass("selected", not available)
-                    end,
-                    _setSelected = function(element, selected)
-                        element:SetClass("selected", selected)
-                    end,
-                    _setText = function(element, newText)
-                        element.text = newText
-                    end,
-                }
+                _setAvailable = function(element, available)
+                    element:SetClass("unavailable", not available)
+                    element:SetClass("selected", not available)
+                end,
+                _setSelected = function(element, selected)
+                    element:SetClass("selected", selected)
+                end,
+                _setText = function(element, newText)
+                    element.text = newText
+                end,
             },
         },
     }

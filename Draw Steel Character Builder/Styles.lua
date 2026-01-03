@@ -361,6 +361,20 @@ local function _labelStyles()
             tmargin = 12,
         },
 
+        -- Overview panel
+        {
+            selectors = {"overview"},
+            width = "100%",
+            height = "auto",
+            hpad = 12,
+            textAlignment = "left",
+        },
+        {
+            selectors = {"info", "overview", "detail-header"},
+            fontSize = 22,
+            bold = true,
+        },
+
         -- Feature names & descriptions for selection panels
         {
             selectors = {"feature-header", "name"},
@@ -689,12 +703,12 @@ end
 function CBStyles.SelectorButtonOverrides()
     local styles = {
         {
-            selectors = {"destructive"},
+            selectors = {"parent:destructive"},
             borderColor = CBStyles.COLORS.DESTRUCTIVE_BORDER,
             bgcolor = CBStyles.COLORS.DESTRUCTIVE_BG,
         },
         {
-            selectors = {"destructive"},
+            selectors = {"parent:destructive"},
             color = CBStyles.COLORS.DESTRUCTIVE_TEXT,
         },
     }

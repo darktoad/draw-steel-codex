@@ -31,6 +31,7 @@ function CBClassDetail._navPanel()
         data = { category = INITIAL_CATEGORY },
     })
     local changeButton = _makeDetailNavButton(SELECTOR, {
+        styles = CBStyles.SelectorButtonOverrides(),
         classes = {"changeClass", "destructive"},
         text = "Change Class",
         data = { category = "change" },
@@ -84,12 +85,12 @@ end
 function CBClassDetail._overviewPanel()
 
     local nameLabel = gui.Label{
-        classes = {"builder-base", "label", "info", "header"},
-        width = "100%",
-        height = "auto",
-        hpad = 12,
+        classes = {"builder-base", "label", "info", "overview", "header"},
+        -- width = "100%",
+        -- height = "auto",
+        -- hpad = 12,
         text = "CLASS",
-        textAlignment = "left",
+        -- textAlignment = "left",
 
         refreshBuilderState = function(element, state)
             local text = "CLASS"
@@ -106,13 +107,13 @@ function CBClassDetail._overviewPanel()
     }
 
     local introLabel = gui.Label{
-        classes = {"builder-base", "label", "info"},
-        width = "100%",
-        height = "auto",
+        classes = {"builder-base", "label", "info", "overview"},
+        -- width = "100%",
+        -- height = "auto",
         vpad = 6,
-        hpad = 12,
+        -- hpad = 12,
         bmargin = 12,
-        textAlignment = "left",
+        -- textAlignment = "left",
         markdown = true,
         text = CharacterBuilder.STRINGS.CLASS.INTRO,
 
@@ -131,13 +132,13 @@ function CBClassDetail._overviewPanel()
     }
 
     local detailLabel = gui.Label{
-        classes = {"builder-base", "label", "info"},
-        width = "100%",
-        height = "auto",
+        classes = {"builder-base", "label", "info", "overview"},
+        -- width = "100%",
+        -- height = "auto",
         vpad = 6,
-        hpad = 12,
+        -- hpad = 12,
         tmargin = 12,
-        textAlignment = "left",
+        -- textAlignment = "left",
         bold = false,
         markdown = true,
         text = CharacterBuilder.STRINGS.CLASS.OVERVIEW,

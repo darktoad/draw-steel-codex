@@ -138,7 +138,9 @@ end
 --- The panel(s) to inject into the feature builder
 --- @return table
 function CharacterKitChoice:UIInjections()
-    -- TODO:
+    return {
+        afterOptions = CBKitDetail.Listener,
+    }
 end
 
 function CharacterKitChoice:VisitRecursive(fn)

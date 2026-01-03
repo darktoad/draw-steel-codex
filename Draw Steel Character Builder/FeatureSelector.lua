@@ -17,8 +17,14 @@
       - If selections aren't stored in levelChoices, implement
         SaveSelection and RemoveSelection on the feature class.
       - Your feature class can also inject custom UI at certain
-        points in the UI. See injections in BuildSelectorPanel
-        for details.
+        points in the UI. The injection can be any descendant of
+        gui.Panel or a function that returns the same. Valid
+        injection keys are:
+        - afterHeader
+        - afterTargets
+        - beforeOptions
+        - afterOptions
+        - extraChildren (an array)
 ]]
 CBFeatureSelector = RegisterGameType("CBFeatureSelector")
 

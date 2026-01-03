@@ -18,12 +18,12 @@ local _makeDetailNavButton = CharacterBuilder._makeDetailNavButton
 function CBCareerDetail._overviewPanel()
 
     local nameLabel = gui.Label{
-        classes = {"builder-base", "label", "info", "header"},
-        width = "100%",
-        height = "auto",
-        hpad = 12,
+        classes = {"builder-base", "label", "info", "overview", "header"},
+        -- width = "100%",
+        -- height = "auto",
+        -- hpad = 12,
         text = GameSystem.BackgroundName:upper(),
-        textAlignment = "left",
+        -- textAlignment = "left",
 
         refreshBuilderState = function(element, state)
             local text = GameSystem.BackgroundName:upper()
@@ -39,13 +39,13 @@ function CBCareerDetail._overviewPanel()
     }
 
     local introLabel = gui.Label{
-        classes = {"builder-base", "label", "info"},
-        width = "100%",
-        height = "auto",
+        classes = {"builder-base", "label", "info", "overview"},
+        -- width = "100%",
+        -- height = "auto",
         vpad = 6,
-        hpad = 12,
+        -- hpad = 12,
         bmargin = 12,
-        textAlignment = "left",
+        -- textAlignment = "left",
         text = CharacterBuilder.STRINGS.CAREER.INTRO,
 
         refreshBuilderState = function(element, state)
@@ -62,13 +62,13 @@ function CBCareerDetail._overviewPanel()
     }
 
     local detailLabel = gui.Label{
-        classes = {"builder-base", "label", "info"},
-        width = "100%",
-        height = "auto",
+        classes = {"builder-base", "label", "info", "overview"},
+        -- width = "100%",
+        -- height = "auto",
         vpad = 6,
-        hpad = 12,
+        -- hpad = 12,
         tmargin = 12,
-        textAlignment = "left",
+        -- textAlignment = "left",
         bold = false,
         text = CharacterBuilder.STRINGS.CAREER.OVERVIEW,
 
@@ -142,6 +142,7 @@ function CBCareerDetail._navPanel()
     })
 
     local changeButton = _makeDetailNavButton(SELECTOR, {
+        styles = CBStyles.SelectorButtonOverrides(),
         classes = {"changeCareer", "destructive"},
         text = string.format("Change %s", GameSystem.BackgroundName),
         data = { category = "change" },
