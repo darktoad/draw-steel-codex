@@ -959,7 +959,6 @@ end
 --- @param targets table
 --- @param options table
 function ActivatedAbilityAuraBehavior:Cast(ability, casterToken, targets, options)
-    print("Aura:: target area:", options.targetArea, "origin =", options.targetArea.origin.x, options.targetArea.origin.y)
     if options.targetArea ~= nil then
         self:CastOnArea(ability,casterToken, targets, options, options.targetArea)
     else
