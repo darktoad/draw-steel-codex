@@ -983,6 +983,116 @@ local function AurasEmittingPanel(m_token)
                 newChildren[#newChildren+1] = panel
             end
 
+            local ongoingEffectsTable = dmhub.GetTable(CharacterOngoingEffect.tableName)
+            local ongoingeffects = creature:try_get("ongoingEffects", {})
+            for _, effect in ipairs(ongoingeffects) do
+                local effectInfo = ongoingEffectsTable[effect.ongoingEffectid]
+                for _, mod in ipairs(effectInfo.modifiers) do
+                    if mod:has_key("aura") then
+                        local auraid = mod.aura.guid
+                        local panel = m_auraPanels[auraid] or gui.Panel{
+                            width = "100%",
+                            height = "auto",
+                            flow = "horizontal",
+                            vmargin = 4,
+                            bgimage = "panels/square.png",
+                            bgcolor = "clear",
+
+                            gui.DiamondButton{
+                                bgimage = 'panels/square.png',
+                                halign = "left",
+                                width = 24,
+                                height = 24,
+                                hmargin = 6,
+                                valign = "center",
+                                icon = mod.aura.iconid,
+                                create = function(element)
+                                    element:FireEvent("display", mod.aura.display)
+                                end,
+                            },
+
+                            gui.Label{
+                                height = "auto",
+                                width = 120,
+                                textWrap = false,
+                                halign = "left",
+                                valign = "center",
+                                rmargin = 4,
+                                fontSize = 14,
+                                minFontSize = 8,
+                                color = Styles.textColor,
+                                text = string.format("%s (Aura)", mod.aura.name),
+                            },
+
+                            gui.VisibilityPanel{
+                                valign = "center",
+                                halign = "left",
+                                opacity = 1,
+                                visible = true,
+                                bgcolor = "white",
+                                margin = 3,
+                                press = function(element)
+                                    local settings = DeepCopy(m_token.properties:GetAuraDisplaySetting(mod.aura.name))
+                                    settings.hide = not settings.hide
+
+                                    m_token:ModifyProperties{
+                                        description = tr("Set Aura Display Settings"),
+                                        undoable = false,
+                                        execute = function()
+                                            m_token.properties:SetAuraDisplaySetting(mod.aura.name, settings)
+                                        end,
+                                    }
+                                end,
+                                refresh = function(element)
+                                    if m_token == nil or not m_token.valid then
+                                        return
+                                    end
+
+                                    element:FireEvent("visible", not m_token.properties:GetAuraDisplaySetting(mod.aura.name).hide)
+                                end,
+                            },
+
+                            gui.PercentSlider{
+                                valign = "center",
+                                halign = "left",
+                                hmargin = 6,
+                                value = m_token.properties:GetAuraDisplaySetting(mod.aura.name).opacity,
+                                refresh = function(element)
+                                    if m_token == nil or not m_token.valid then
+                                        return
+                                    end
+
+                                    element.value = m_token.properties:GetAuraDisplaySetting(mod.aura.name).opacity
+                                end,
+                                preview = function(element)
+                                    local settings = DeepCopy(m_token.properties:GetAuraDisplaySetting(mod.aura.name))
+                                    settings.opacity = element.value
+                                    m_token.properties:SetAuraDisplaySetting(mod.aura.name, settings)
+                                    m_token:UpdateAuras()
+                                end,
+                                confirm = function(element)
+                                    --set it to off to force upload.
+                                    m_token.properties:SetAuraDisplaySetting(mod.aura.name, nil)
+
+                                    m_token:ModifyProperties{
+                                        description = tr("Set Aura Display Settings"),
+                                        undoable = false,
+                                        execute = function()
+                                            local settings = DeepCopy(m_token.properties:GetAuraDisplaySetting(mod.aura.name))
+                                            settings.opacity = element.value
+                                            m_token.properties:SetAuraDisplaySetting(mod.aura.name, settings)
+                                        end,
+                                    }
+                                end,
+                            },
+                        }
+
+                        newPanels[mod.aura.guid] = panel
+                        newChildren[#newChildren+1] = panel
+                    end
+                end
+            end
+
             m_auraPanels = newPanels
             element.children = newChildren
         end,
@@ -2053,6 +2163,8 @@ CharacterPanel.CreateCharacterDetailsPanel = function(m_token)
             }
         },
 
+        --auras.
+        AurasEmittingPanel(m_token),
 
         --ongoing effects.
         gui.Panel{
@@ -2230,9 +2342,6 @@ CharacterPanel.CreateCharacterDetailsPanel = function(m_token)
         },
 
         AurasAffectingPanel(m_token),
-
-        --auras.
-        AurasEmittingPanel(m_token),
 
         --inflicted conditions.
         InflictedConditionsPanel(m_token),
