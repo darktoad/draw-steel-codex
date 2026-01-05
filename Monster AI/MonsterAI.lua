@@ -406,7 +406,7 @@ function MonsterAI:ExecuteSquadStrike(ability)
                 self:Speech(squadMember.token, "Charge!")
                 self.Sleep(0.3)
                 print("AI:: CHARGE TO", bestOption.charge.x, bestOption.charge.y)
-             local path = squadMember.token:Move(bestOption.loc, {maxCost = 10000, ignoreFalling = false})
+                local path = squadMember.token:Move(bestOption.charge, {maxCost = 10000, ignoreFalling = false})
                 self.Sleep(1)
                 
             end

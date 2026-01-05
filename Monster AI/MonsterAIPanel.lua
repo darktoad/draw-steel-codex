@@ -234,7 +234,7 @@ MonsterAIPanel = function()
                                     newCategoryHeadings[currentCategory] = headingPanel
                                 end
 
-                                local movePanel = element.data.movePanels[j+1]
+                                local movePanel = element.data.movePanels[j]
                                 if movePanel == nil then
                                     movePanel = gui.Panel{
                                         width = "100%",
@@ -301,7 +301,7 @@ MonsterAIPanel = function()
                                             end,
                                         }
                                     }
-                                    element.data.movePanels[j+1] = movePanel
+                                    element.data.movePanels[j] = movePanel
                                 end
 
                                 movePanel:FireEventTree("setmove", moveEntry)
