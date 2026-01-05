@@ -99,6 +99,8 @@ function CBKitDetail._overviewPanel()
                 local levelChoices = hero:GetLevelChoices() or {}
                 local bonusChoices = levelChoices[kitKey] or {}
                 bonusChoices[element.data.bonusItemId] = kit.id
+                levelChoices[kitKey] = bonusChoices
+                hero.levelChoices = levelChoices
                 _fireControllerEvent("tokenDataChanged")
             end,
             gui.Label{
@@ -110,60 +112,6 @@ function CBKitDetail._overviewPanel()
             },
             choiceLabels[1],
             choiceLabels[2],
-            -- gui.Label{
-            --     classes = {"builder-base", "label", "info", "overview", "bonus-selector"},
-            --     textWrap = true,
-            --     width = "auto",
-            --     lmargin = 8,
-            --     data = {
-            --         kit = nil,
-            --         bonusItemId = bonusItem.id,
-            --     },
-            --     assignKits = function(element, values)
-            --         element.data.kit = values.kit1.item
-            --         element.text = values.kit1.text
-            --         element:FireEvent("refreshBuilderState", element, _getState(element))
-            --     end,
-            --     press = function(element)
-            --         if element.data.kit == nil then return end
-            --         element.parent:FireEvent("selectKit", element.data.kit)
-            --     end,
-            --     refreshBuilderState = function(element, state)
-            --         local hero = _getHero(state)
-            --         local kit = element.data.kit
-            --         if hero == nil or kit == nil then return end
-            --         local levelChoices = hero:GetLevelChoices() or {}
-            --         local bonusChoices = levelChoices[kitKey]
-            --         element:SetClass("selected", bonusChoices[element.data.bonusItemId] == kit.id)
-            --     end,
-            -- },
-            -- gui.Label{
-            --     classes = {"builder-base", "label", "info", "overview", "bonus-selector"},
-            --     textWrap = true,
-            --     width = "auto",
-            --     lmargin = 8,
-            --     data = {
-            --         kit = nil,
-            --         bonusItemId = bonusItem.id,
-            --     },
-            --     assignKits = function(element, values)
-            --         element.data.kit = values.kit2.item
-            --         element.text = values.kit2.text
-            --         element:FireEvent("refreshBuilderState", element, _getState(element))
-            --     end,
-            --     press = function(element)
-            --         if element.data.kit == nil then return end
-            --         element.parent:FireEvent("selectKit", element.data.kit)
-            --     end,
-            --     refreshBuilderState = function(element, state)
-            --         local hero = _getHero(state)
-            --         local kit = element.data.kit
-            --         if hero == nil or kit == nil then return end
-            --         local levelChoices = hero:GetLevelChoices() or {}
-            --         local bonusChoices = levelChoices[kitKey]
-            --         element:SetClass("selected", bonusChoices[element.data.bonusItemId] == kit.id)
-            --     end,
-            -- },
         }
     end
 
