@@ -29,7 +29,7 @@ function CBSelectors._makeItemsPanel(config)
             available = true,
 
             create = function(element)
-                element:FireEvent("refreshBuilderState", _getState(element))
+                element:FireEvent("refreshBuilderState", _getState())
             end,
 
             press = function(element)
@@ -40,7 +40,7 @@ function CBSelectors._makeItemsPanel(config)
             end,
 
             refreshBuilderState = function(element, state)
-                local hero = _getHero(state)
+                local hero = _getHero()
                 if hero then
                     local tokenSelected = config.getSelected(hero)
                     element:SetClass("collapsed", tokenSelected and tokenSelected ~= element.data.id)
@@ -293,7 +293,7 @@ function CBSelectors._kit()
         text = "Kit",
         data = { selector = SEL.KIT },
         refreshBuilderState = function(element, state)
-            local hero = _getHero(state)
+            local hero = _getHero()
             local visible = hero and hero:CanHaveKits()
             element:SetClass("collapsed", not visible)
             if not visible then return end
@@ -414,7 +414,7 @@ local TEST_DETAIL = [[
 - The "Change X" buttons are unfortunately placed.
 - Long text for overview panels should scroll instead of being truncated.
 - When selecting a kit bonus when you have 2 kits, the UI doesn't remember the kit you had selected.
-- Culture button opens inconsistently. (But its functionality isn't implemented yet.)
+- Culture button opens inconsistently, sometimes requiring multiple clicks. (But its functionality isn't implemented yet.)
 
 **Functionality**
 - Some skill lists still show skills you already have selected.

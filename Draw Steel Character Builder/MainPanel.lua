@@ -91,13 +91,16 @@ function CharacterBuilder.CreatePanel()
             local state = element.data.state
             local classId = state:Get(SEL.CLASS .. ".selectedId")
             if classId then
-                local hero = _getHero(state)
+                local hero = _getHero()
                 if hero then
                     local classes = hero:get_or_add("classes", {})
                     classes[1] = {
                         classid = classId,
                         level = hero:CharacterLevel(),
                     }
+
+                    hero.kitid = nil
+                    hero.kitid2 = nil
 
                     hero.attributeBuild = {}
 
@@ -119,7 +122,7 @@ function CharacterBuilder.CreatePanel()
 
         cacheLevelChoices = function(element)
             local state = element.data.state
-            local hero = _getHero(state)
+            local hero = _getHero()
             if hero then
                 local levelChoices = hero:GetLevelChoices()
                 state:Set{ key = "levelChoices", value = dmhub.DeepCopy(levelChoices) }
@@ -128,7 +131,7 @@ function CharacterBuilder.CreatePanel()
 
         cachePerks = function(element)
             local state = element.data.state
-            local hero = _getHero(state)
+            local hero = _getHero()
             local levelChoices = hero and hero:GetLevelChoices()
 
             if not levelChoices or not next(levelChoices) then
@@ -212,6 +215,16 @@ function CharacterBuilder.CreatePanel()
                         element:FireEvent("selectClass", classItem.id, true)
                     end
 
+                    local kitCache = element.data.state:Get(SEL.KIT .. ".featureCache")
+                    local hero = _getHero()
+                    if kitCache and hero then
+                        for _,featureEntry in ipairs(kitCache:GetSortedFeatures()) do
+                            local feature = kitCache:GetFeature(featureEntry.guid)
+                            if feature then feature:Update(hero) end
+                        end
+                    end
+
+
                     -- TODO: Remaining data stored into state
 
                     -- Always cache levelChoices last. Other actions depend
@@ -254,6 +267,10 @@ function CharacterBuilder.CreatePanel()
                 hero.attributeBuild = {}
                 hero.kitid = nil
                 hero.kitid2 = nil
+                local levelChoices = hero:GetLevelChoices() or {}
+                if levelChoices["kitBonusChoices"] then
+                    levelChoices["kitBonusChoices"] = nil
+                end
                 element:FireEvent("tokenDataChanged")
             end
         end,
@@ -265,7 +282,7 @@ function CharacterBuilder.CreatePanel()
             local cachedInheritedAncestryId = state:Get(SEL.ANCESTRY .. ".inheritedId")
             local cachedLevelChoices = state:Get("levelChoices")
 
-            local hero = _getHero(state)
+            local hero = _getHero()
             local levelChoices = hero and hero:GetLevelChoices() or {}
             local inheritedAncestry = hero:InheritedAncestry()
             local inheritedAncestryId = inheritedAncestry and inheritedAncestry.id or nil
@@ -299,7 +316,7 @@ function CharacterBuilder.CreatePanel()
             local state = element.data.state
             local cachedCareerId = state:Get(SEL.CAREER .. ".selectedId")
             local cachedLevelChoices = state:Get("levelChoices")
-            local hero = _getHero(state)
+            local hero = _getHero()
             local levelChoices = hero and hero:GetLevelChoices() or {}
 
             local careerChanged = careerId ~= cachedCareerId
@@ -349,14 +366,33 @@ function CharacterBuilder.CreatePanel()
 
         selectClass = function(element, classId, noFire)
             local state = element.data.state
-            local hero = _getHero(state)
-            local level = hero and hero:GetClassLevel()
-            local levelChoices = hero and hero:GetLevelChoices() or {}
-            local classAndSubClasses = hero and hero:GetClassesAndSubClasses() or {}
+            local cachedClassId = state:Get(SEL.CLASS .. ".selectedId")
+            local cachedLevel = state:Get(SEL.CLASS .. ".level")
+            local cachedSubclasses = state:Get(SEL.CLASS .. ".selectedSubclasses")
+            local cachedLevelChoices = state:Get("levelChoices")
+            local cachedKitId = state:Get(SEL.KIT .. ".selectedId")
 
-            -- TODO: For performance we might try to determine if anything changed
-            -- before doing all this work, but that's complicated because so much
-            -- is associated to class.
+            local hero = _getHero()
+            local level = hero and hero:GetClassLevel()
+            local classAndSubClasses = hero and hero:GetClassesAndSubClasses() or {}
+            local levelChoices = hero and hero:GetLevelChoices() or {}
+
+            -- If nothing changed, there's nothing to do
+            local classChanged = classId ~= cachedClassId
+            local levelChanged = level ~= cachedLevel
+            local subclassesChanged = dmhub.DeepEqual(classAndSubClasses, cachedSubclasses) ~= true
+            local levelChoicesChanged = dmhub.DeepEqual(levelChoices, cachedLevelChoices) ~= true
+            if not (classChanged or levelChanged or subclassesChanged or levelChoicesChanged) then
+                return
+            end
+
+            --[[
+                if Class changed then
+                    Redo everything
+                elseif level or Subclass or levelChoices changed then
+                    Redo feature fill 
+                end
+            ]]
 
             local newState = {
                 { key = SEL.CLASS .. ".selectedId", value = classId },
@@ -364,45 +400,52 @@ function CharacterBuilder.CreatePanel()
             }
             local classItem = dmhub.GetTableVisible(Class.tableName)[classId]
             if classItem then
-                local classFill = {}
+                if classChanged or levelChanged or subclassesChanged or levelChoicesChanged then
+                    local classFill = {}
 
-                -- Special case: Adapt baseCharacteristics to behave like a feature choice
-                local feature = CharacterCharacteristicChoice.CreateNew(classItem)
-                if feature then
-                    classFill[#classFill+1] = {
-                        feature = feature,
-                        class = classItem,
-                    }
-                end
-
-                local extraLevelInfo = hero:ExtraLevelInfo()
-                if #classAndSubClasses > 0 then
-                    for i,entry in ipairs(classAndSubClasses) do
-                        entry.class:FillFeatureDetailsForLevel(levelChoices, entry.level, extraLevelInfo, i ~= 1, classFill)
+                    -- Special case: Adapt baseCharacteristics to behave like a feature choice
+                    local feature = CharacterCharacteristicChoice.CreateNew(classItem)
+                    if feature then
+                        classFill[#classFill+1] = {
+                            feature = feature,
+                            class = classItem,
+                        }
                     end
-                else
-                    classItem:FillFeatureDetailsForLevel(levelChoices, 1, extraLevelInfo, "nonprimary", classFill)
+
+                    local extraLevelInfo = hero:ExtraLevelInfo()
+                    if #classAndSubClasses > 0 then
+                        for i,entry in ipairs(classAndSubClasses) do
+                            entry.class:FillFeatureDetailsForLevel(levelChoices, entry.level, extraLevelInfo, i ~= 1, classFill)
+                        end
+                    else
+                        classItem:FillFeatureDetailsForLevel(levelChoices, 1, extraLevelInfo, "nonprimary", classFill)
+                    end
+                    local featureCache = CBFeatureCache.CreateNew(hero, classId, classItem.name, classFill)
+
+                    newState[#newState+1] = { key = SEL.CLASS .. ".selectedItem", value = classItem }
+                    newState[#newState+1] = { key = SEL.CLASS .. ".selectedSubclasses", value = classAndSubClasses }
+                    newState[#newState+1] = { key = SEL.CLASS .. ".featureCache", value = featureCache }
+
                 end
-                local featureCache = CBFeatureCache.CreateNew(hero, classId, classItem.name, classFill)
-
-                newState[#newState+1] = { key = SEL.CLASS .. ".selectedItem", value = classItem }
-                newState[#newState+1] = { key = SEL.CLASS .. ".selectedSubclasses", value = classAndSubClasses }
-                newState[#newState+1] = { key = SEL.CLASS .. ".featureCache", value = featureCache }
-
-                local kitFeature = CharacterKitChoice.CreateNew(hero)
-                if kitFeature then
-                    local features = {
-                        { feature = kitFeature }
-                    }
-                    local kitFeatureCache = CBFeatureCache.CreateNew(hero, classItem.id, classItem.name, features)
-                    newState[#newState+1] = { key = SEL.KIT .. ".featureCache", value = kitFeatureCache }
-                else
-                    newState[#newState+1] = { key = SEL.KIT .. ".featureCache", value = nil }
-                end                    
+                if cachedKitId ~= classId then
+                    local kitFeature = CharacterKitChoice.CreateNew(hero)
+                    if kitFeature then
+                        local features = {
+                            { feature = kitFeature }
+                        }
+                        local kitFeatureCache = CBFeatureCache.CreateNew(hero, classItem.id, classItem.name, features)
+                        newState[#newState+1] = { key = SEL.KIT .. ".selectedId", value = classId }
+                        newState[#newState+1] = { key = SEL.KIT .. ".featureCache", value = kitFeatureCache }
+                    else
+                        newState[#newState+1] = { key = SEL.KIT .. ".selectedId", value = nil }
+                        newState[#newState+1] = { key = SEL.KIT .. ".featureCache", value = nil }
+                    end
+                end
             else
                 newState[#newState+1] = { key = SEL.CLASS .. ".selectedItem", value = nil }
                 newState[#newState+1] = { key = SEL.CLASS .. ".selectedSubclasses", value = nil }
                 newState[#newState+1] = { key = SEL.CLASS .. ".featureCache", value = nil }
+                newState[#newState+1] = { key = SEL.KIT .. ".selectedId", value = nil }
                 newState[#newState+1] = { key = SEL.KIT .. ".featureCache", value = nil }
             end
             state:Set(newState)

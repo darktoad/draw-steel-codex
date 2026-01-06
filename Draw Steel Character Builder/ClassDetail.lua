@@ -39,7 +39,7 @@ function CBClassDetail._navPanel()
             _fireControllerEvent("removeClass")
         end,
         refreshBuilderState = function(element, state)
-            local hero = _getHero(state)
+            local hero = _getHero()
             if hero then
                 local classes = hero:try_get("classes", {})
                 element:FireEvent("setAvailable", #classes > 0)
@@ -210,7 +210,7 @@ function CBClassDetail._selectButton()
             _fireControllerEvent("applyCurrentClass")
         end,
         refreshBuilderState = function(element, state)
-            local hero = _getHero(state)
+            local hero = _getHero()
             if hero then
                 local heroClass = hero:GetClass()
                 local canSelect = heroClass == nil and state:Get(SELECTOR .. ".selectedId") ~= nil
@@ -271,7 +271,7 @@ function CBClassDetail.CreatePanel()
 
             local categoryKey = SELECTOR .. ".category.selectedId"
             local currentCategory = state:Get(categoryKey) or INITIAL_CATEGORY
-            local hero = _getHero(state)
+            local hero = _getHero()
             if hero then
                 local heroClass = hero:GetClass()
 
@@ -364,7 +364,7 @@ function CBClassDetail._characteristicPanel()
                 end,
                 drag = function(element, target)
                     if target == nil then return end
-                    local hero = _getHero(element)
+                    local hero = _getHero()
                     if hero == nil then return end
                     local attributes = hero:try_get("attributes")
                     if attributes == nil then return end
@@ -392,7 +392,7 @@ function CBClassDetail._characteristicPanel()
                     _fireControllerEvent("tokenDataChanged")
                 end,
                 refreshBuilderState = function(element, state)
-                    local hero = _getHero(state)
+                    local hero = _getHero()
                     local attributes = hero:try_get("attributes")
                     local baseValue = attributes and attributes[attr.id] and attributes[attr.id].baseValue or 0
                     element.text = string.format("%+d", baseValue)

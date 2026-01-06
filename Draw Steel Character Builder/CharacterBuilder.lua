@@ -606,7 +606,7 @@ function CharacterBuilder._makeFeatureRegistry(options)
                     })
                 end,
                 refreshBuilderState = function(element, state)
-                    local tokenSelected = getSelected(CharacterBuilder._getHero(state)) or "nil"
+                    local tokenSelected = getSelected(CharacterBuilder._getHero()) or "nil"
                     local featureCache = state:Get(selector .. ".featureCache")
                     local featureAvailable = featureCache and featureCache:GetFeature(element.data.featureId) ~= nil
                     local visible = tokenSelected == element.data.selectedId and featureAvailable
@@ -638,25 +638,29 @@ end
 --- @param options ButtonOptions 
 --- @return PrettyButton|Panel
 function CharacterBuilder._makeSelectButton(options)
-    local opts = dmhub.DeepCopy(options)
-
-    opts.classes = {"builder-base", "button", "select"}
-    if options.classes then
-        table.move(options.classes, 1, #options.classes, #opts.classes + 1, opts.classes)
+    local opts = {
+        classes = {"builder-base", "button", "select"},
+        width = CBStyles.SIZES.SELECT_BUTTON_WIDTH,
+        height = CBStyles.SIZES.SELECT_BUTTON_HEIGHT,
+        text = "SELECT",
+        floating = true,
+        halign = "center",
+        valign = "bottom",
+        bmargin = -10,
+        fontSize = 24,
+        bold = true,
+        cornerRadius = 5,
+        border = 1,
+        borderWidth = 1,
+        borderColor = CBStyles.COLORS.CREAM03,
+    }
+    for k, v in pairs(options) do
+        if k == "classes" or k == "styles" then
+            table.move(v, 1, #v, #opts[k] + 1, opts[k])
+        else
+            opts[k] = v
+        end
     end
-    opts.width = CBStyles.SIZES.SELECT_BUTTON_WIDTH
-    opts.height = CBStyles.SIZES.SELECT_BUTTON_HEIGHT
-    opts.text = "SELECT"
-    opts.floating = true
-    opts.halign = "center"
-    opts.valign = "bottom"
-    opts.bmargin = -10
-    opts.fontSize = 24
-    opts.bold = true
-    opts.cornerRadius = 5
-    opts.border = 1
-    opts.borderWidth = 1
-    opts.borderColor = CBStyles.COLORS.CREAM03
 
     return gui.PrettyButton(opts)
 end

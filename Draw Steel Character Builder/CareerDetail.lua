@@ -150,7 +150,7 @@ function CBCareerDetail._navPanel()
             _fireControllerEvent("removeCareer")
         end,
         refreshBuilderState = function(element, state)
-            local hero = _getHero(state)
+            local hero = _getHero()
             if hero then
                 element:FireEvent("setAvailable", hero:try_get("backgroundid") ~= nil)
             end
@@ -198,7 +198,7 @@ function CBCareerDetail._selectButton()
             _fireControllerEvent("applyCurrentCareer")
         end,
         refreshBuilderState = function(element, state)
-            local hero = _getHero(state)
+            local hero = _getHero()
             if hero then
                 local canSelect = hero:try_get("backgroundid") == nil and state:Get(SELECTOR .. ".selectedId") ~= nil
                 element:SetClass("collapsed", not canSelect)
@@ -256,7 +256,7 @@ function CBCareerDetail.CreatePanel()
 
             local categoryKey = SELECTOR .. ".category.selectedId"
             local currentCategory = state:Get(categoryKey) or INITIAL_CATEGORY
-            local hero = _getHero(state)
+            local hero = _getHero()
             if hero then
                 local heroCareer = hero:try_get("backgroundid")
 

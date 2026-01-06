@@ -53,7 +53,7 @@ function CBDescriptionDetail._editPane()
         inputConfig.editlag = 0.5
 
         inputConfig.refreshBuilderState = function(element, state)
-            local hero = _getHero(state)
+            local hero = _getHero()
             if hero then
                 local desc = hero:Description()
                 if desc then
@@ -63,7 +63,7 @@ function CBDescriptionDetail._editPane()
         end
 
         inputConfig.change = function(element)
-            local hero = _getHero(element)
+            local hero = _getHero()
             if hero then
                 local desc = hero:Description()
                 if desc then
@@ -100,7 +100,7 @@ function CBDescriptionDetail._editPane()
             press = function(element)
                 -- TODO: Remove in production
                 if devmode() then
-                    local hero = _getHero(element)
+                    local hero = _getHero()
                     local desc = hero:Description()
                     local colors = {"black", "brown", "blonde", "red", "auburn", "chestnut", "gray", "white", "silver", "platinum","blue", "green", "hazel", "amber", "violet", "gold", "copper", "teal", "crimson", "indigo"}
                     local builds = {"lithe", "burly", "stocky", "lanky", "muscular", "petite", "towering", "wiry", "broad", "slender", "compact", "gaunt"}
@@ -156,7 +156,7 @@ function CBDescriptionDetail._editPane()
         },
 
         refreshBuilderState = function(element, state)
-            local hero = _getHero(state)
+            local hero = _getHero()
             if hero then
                 local level = hero:CharacterLevel()
                 if level == 1 then
@@ -174,7 +174,7 @@ function CBDescriptionDetail._editPane()
         end,
 
         change = function(element)
-            local hero = _getHero(element)
+            local hero = _getHero()
             if hero then
                 local extra = hero:ExtraLevelInfo()
                 if type(element.idChosen) == "string" then

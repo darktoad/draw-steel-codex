@@ -143,7 +143,7 @@ function CBFeatureWrapper.CreateNew(hero, feature)
         currentOptionId = nil,
     }
 
-    newObj:_update(hero)
+    newObj:Update(hero)
 
     return newObj
 end
@@ -510,7 +510,7 @@ end
 --- Update cached state from current hero selections
 --- TODO: Perf optimization: Call this only when first accessing a method.
 --- @param hero character
-function CBFeatureWrapper:_update(hero)
+function CBFeatureWrapper:Update(hero)
     local levelChoices = hero:GetLevelChoices()
 
     self.selected = self:_getSelected(hero)

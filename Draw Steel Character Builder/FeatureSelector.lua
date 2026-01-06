@@ -147,6 +147,7 @@ function CBFeatureSelector.BuildSelectorPanel(overrides)
     -- Build selectButton
     local selectButtonDef = _mergeKeyedTables({
         data = {},
+        bmargin = -40,
     }, overrides.selectButton)
     local selectButton = overrides.selectButton and CharacterBuilder._makeSelectButton(selectButtonDef)
 
@@ -158,7 +159,7 @@ function CBFeatureSelector.BuildSelectorPanel(overrides)
     local mainPanelDef = _mergeKeyedTables({
         classes = {controllerClass, "builder-base", "panel-base"},
         width = "98%",
-        height = "100%",
+        height = "100%-42",
         halign = "left",
         flow = "vertical",
         data = {},
@@ -307,7 +308,7 @@ function CBFeatureSelector.SelectionPanel(selector, feature)
             applyFilter = function(element, filterText)
                 if element.data.option == nil then return end
                 local option = element.data.option
-                local cachedFeature = getCachedFeature(_getState(element), element.data.featureId)
+                local cachedFeature = getCachedFeature(_getState(), element.data.featureId)
                 local optionSelected = cachedFeature and cachedFeature:GetSelectedOptionId() == option:GetGuid()
                 local filterMatch = optionSelected or CharacterBuilder._matchesFilter(filterText, option:GetName())
                 element:SetClass("filtered", not filterMatch)
@@ -438,13 +439,13 @@ function CBFeatureSelector.SelectionPanel(selector, feature)
         },
         applyCurrentItem = function(element, mode)
             if SELECT_MODES[mode] == nil then return end
-            local state = _getState(element)
+            local state = _getState()
             if state then
                 local cachedFeature = getCachedFeature(state, element.data.featureId)
                 if cachedFeature then
                     local selectedOption = cachedFeature:GetSelectedOption()
                     if selectedOption then
-                        local hero = _getHero(state)
+                        local hero = _getHero()
                         if hero then
                             local actionComplete = false
                             if mode == SELECT_MODES.REMOVE then
@@ -462,7 +463,7 @@ function CBFeatureSelector.SelectionPanel(selector, feature)
             end
         end,
         selectChoice = function(element, itemId)
-            local state = _getState(element)
+            local state = _getState()
             if state then
                 local cachedFeature = getCachedFeature(state, element.data.featureId)
                 if cachedFeature then
@@ -474,7 +475,7 @@ function CBFeatureSelector.SelectionPanel(selector, feature)
             end
         end,
         selectTarget = function(element, itemId)
-            local state = _getState(element)
+            local state = _getState()
             if state then
                 local cachedFeature = getCachedFeature(state, element.data.featureId)
                 if cachedFeature then
@@ -498,12 +499,12 @@ function CBFeatureSelector.SelectionPanel(selector, feature)
             halign = "left",
             valign = "bottom",
             hmargin = CBStyles.SIZES.SELECT_BUTTON_HEIGHT,
-            vmargin = -8,
+            bmargin = -40,
             width = CBStyles.SIZES.SELECT_BUTTON_HEIGHT,
             height = CBStyles.SIZES.SELECT_BUTTON_HEIGHT,
             faces = faces,
             press = function(element)
-                local hero = _getHero(element)
+                local hero = _getHero()
                 if hero == nil then return end
                 element:SetClass("collapsed-anim", true)
                 dmhub.Roll{

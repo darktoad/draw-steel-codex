@@ -52,9 +52,12 @@ end
 
 --- Create a panel to display an element of builder status
 --- @param selector string The primary selector for querying state
---- @param getSelected function(hero) Return the selected item on the hero
+--- @param visible? boolean|function(hero) Whether the panel should be visible
+--- @param suppressRow1? boolean Whether to suppress the first row of detail
 --- @return Panel
-function CBCharPanel._statusItem(selector, getSelected)
+function CBCharPanel._statusItem(selector, visible, suppressRow1)
+    if visible == nil then visible = true end
+    if suppressRow1 == nil then suppressRow1 = false end
 
     local headingText = _ucFirst(selector)
 
@@ -102,7 +105,7 @@ function CBCharPanel._statusItem(selector, getSelected)
         },
 
         create = function(element)
-            element:FireEvent("refreshBuilderState", _getState(element))
+            element:FireEvent("refreshBuilderState", _getState())
         end,
 
         calculateComplete = function(element)
@@ -123,21 +126,24 @@ function CBCharPanel._statusItem(selector, getSelected)
         end,
 
         calculateStatus = function(element, state)
-            local hero = _getHero(state)
+            local hero = _getHero()
             local featureCache = state:Get(selector .. ".featureCache")
-            local statusEntries = {
-                [headingText] = {
+            local statusEntries = {}
+            if not suppressRow1 then
+                statusEntries[headingText] = {
                     id = headingText,
                     order = _formatOrder(0, headingText),
                     available = 1,
                     selected = 0,
                     selectedDetail = {},
-                },
-            }
+                }
+            end
 
             if hero and featureCache then
-                statusEntries[headingText].selected = 1
-                statusEntries[headingText].selectedDetail = { featureCache:GetSelectedName() }
+                if not suppressRow1 then
+                    statusEntries[headingText].selected = 1
+                    statusEntries[headingText].selectedDetail = { featureCache:GetSelectedName() }
+                end
 
                 for _,item in ipairs(featureCache:GetSortedFeatures()) do
                     local feature = featureCache:GetFeature(item.guid)
@@ -206,12 +212,24 @@ function CBCharPanel._statusItem(selector, getSelected)
 
     return gui.Panel{
         classes = {"builder-base", "panel-base", "builder-content-entry", "panelStatusController"},
-        -- width = "100%",
-        -- halign = "center",
         flow = "vertical",
         data = {
             expanded = nil,
+            visible = visible,
         },
+        refreshBuilderState = function(element, state)
+            local visible = element.data.visible
+            if type(visible) == "function" then
+                local hero = _getHero()
+                visible = visible(hero)
+            else
+                visible = element.data.visible == true
+            end
+            element:SetClass("collapsed", not visible)
+            if not visible then
+                element:HaltEventPropagation()
+            end
+        end,
         setStatus = function(element, info)
             element.data.expanded = not info.complete
             element:FireEventTree("setExpanded", element.data.expanded)
@@ -227,17 +245,12 @@ end
 
 function CBCharPanel._builderPanel(tabId)
 
-    local ancestryStatusItem = CBCharPanel._statusItem(SEL.ANCESTRY, function(hero)
-        return hero:Race()
-    end)
-
-    local careerStatusItem = CBCharPanel._statusItem(SEL.CAREER, function(hero)
-        return hero:Background()
-    end)
-
-    local classStatusItem = CBCharPanel._statusItem(SEL.CLASS, function(hero)
-        return hero:GetClass()
-    end)
+    local ancestryStatusItem = CBCharPanel._statusItem(SEL.ANCESTRY, true)
+    local careerStatusItem = CBCharPanel._statusItem(SEL.CAREER, true)
+    local classStatusItem = CBCharPanel._statusItem(SEL.CLASS, true)
+    local kitStatusItem = CBCharPanel._statusItem(SEL.KIT, function(hero)
+        return hero:CanHaveKits()
+    end, true)
 
     return gui.Panel {
         classes = {"builder-base", "panel-base", "charpanel", "tab-content"},
@@ -248,7 +261,7 @@ function CBCharPanel._builderPanel(tabId)
         },
 
         create = function(element)
-            element:FireEventTree("refreshBuilderState", _getState(element))
+            element:FireEventTree("refreshBuilderState", _getState())
         end,
 
         _refreshTabs = function(element, tabId)
@@ -258,6 +271,7 @@ function CBCharPanel._builderPanel(tabId)
         ancestryStatusItem,
         careerStatusItem,
         classStatusItem,
+        kitStatusItem,
     }
 end
 
@@ -294,7 +308,7 @@ function CBCharPanel._descriptorsPanel()
 
     local weight = makeDescriptionLabel("Weight", {
         refreshBuilderState = function(element, state)
-            local hero = _getHero(state)
+            local hero = _getHero()
             if hero then
                 local desc = hero:Description()
                 if desc then element.text = _blankToDashes(desc:GetWeight()) end
@@ -303,7 +317,7 @@ function CBCharPanel._descriptorsPanel()
     })
     local height = makeDescriptionLabel("Height", {
         refreshBuilderState = function(element, state)
-            local hero = _getHero(state)
+            local hero = _getHero()
             if hero then
                 local desc = hero:Description()
                 if desc then element.text = _blankToDashes(desc:GetHeight()) end
@@ -312,7 +326,7 @@ function CBCharPanel._descriptorsPanel()
     })
     local hair = makeDescriptionLabel("Hair", {
         refreshBuilderState = function(element, state)
-            local hero = _getHero(state)
+            local hero = _getHero()
             if hero then
                 local desc = hero:Description()
                 if desc then element.text = _blankToDashes(desc:GetHair()) end
@@ -321,7 +335,7 @@ function CBCharPanel._descriptorsPanel()
     })
     local eyes = makeDescriptionLabel("Eyes", {
         refreshBuilderState = function(element, state)
-            local hero = _getHero(state)
+            local hero = _getHero()
             if hero then
                 local desc = hero:Description()
                 if desc then element.text = _blankToDashes(desc:GetEyes()) end
@@ -330,7 +344,7 @@ function CBCharPanel._descriptorsPanel()
     })
     local build = makeDescriptionLabel("Build", {
         refreshBuilderState = function(element, state)
-            local hero = _getHero(state)
+            local hero = _getHero()
             if hero then
                 local desc = hero:Description()
                 if desc then element.text = _blankToDashes(desc:GetBuild()) end
@@ -339,7 +353,7 @@ function CBCharPanel._descriptorsPanel()
     })
     local skin = makeDescriptionLabel("Skin", {
         refreshBuilderState = function(element, state)
-            local hero = _getHero(state)
+            local hero = _getHero()
             if hero then
                 local desc = hero:Description()
                 if desc then element.text = _blankToDashes(desc:GetSkinTone()) end
@@ -348,7 +362,7 @@ function CBCharPanel._descriptorsPanel()
     })
     local gender = makeDescriptionLabel("Gender", {
         refreshBuilderState = function(element, state)
-            local hero = _getHero(state)
+            local hero = _getHero()
             if hero then
                 local desc = hero:Description()
                 if desc then element.text = _blankToDashes(desc:GetGenderPresentation()) end
@@ -357,7 +371,7 @@ function CBCharPanel._descriptorsPanel()
     })
     local pronouns = makeDescriptionLabel("Pronouns", {
         refreshBuilderState = function(element, state)
-            local hero = _getHero(state)
+            local hero = _getHero()
             if hero then
                 local desc = hero:Description()
                 if desc then element.text = _blankToDashes(desc:GetPronouns()) end
@@ -442,7 +456,7 @@ function CBCharPanel._descriptionPanel(tabId)
             border = 1,
             borderColor = "purple",
             refreshBuilderState = function(element, state)
-                local hero = _getHero(state)
+                local hero = _getHero()
                 if hero then
                     local desc = hero:Description()
                     if desc then element.text = _blankToDashes(desc:GetPhysicalFeatures()) end
@@ -458,7 +472,7 @@ function CBCharPanel._descriptionPanel(tabId)
         },
 
         create = function(element)
-            element:FireEventTree("refreshBuilderState", _getState(element))
+            element:FireEventTree("refreshBuilderState", _getState())
         end,
 
         _refreshTabs = function(element, tabId)
@@ -501,7 +515,7 @@ function CBCharPanel._explorationPanel(tabId)
             text = "calculating...",
 
             refreshBuilderState = function(element, state)
-                local hero = _getHero(state)
+                local hero = _getHero()
                 if hero then
                     local catSkills = hero:GetCategorizedSkills()
                     if catSkills then
@@ -557,7 +571,7 @@ function CBCharPanel._explorationPanel(tabId)
             text = "calculating...",
 
             refreshBuilderState = function(element, state)
-                local hero = _getHero(state)
+                local hero = _getHero()
                 if hero then
                     local knownLangs = {}
                     local langs = hero:LanguagesKnown()
@@ -586,7 +600,7 @@ function CBCharPanel._explorationPanel(tabId)
             id = tabId,
         },
         create = function(element)
-            element:FireEventTree("refreshBuilderState", _getState(element))
+            element:FireEventTree("refreshBuilderState", _getState())
         end,
         _refreshTabs = function(element, tabId)
             element:SetClass("collapsed", tabId ~= element.data.id)
@@ -605,7 +619,7 @@ function CBCharPanel._tacticalPanel(tabId)
         },
 
         create = function(element)
-            element:FireEventTree("refreshBuilderState", _getState(element))
+            element:FireEventTree("refreshBuilderState", _getState())
         end,
 
         _refreshTabs = function(element, tabId)
@@ -882,7 +896,7 @@ function CBCharPanel._headerPanel()
         text = "(class & level)",
         tmargin = 4,
         refreshBuilderState = function(element, state)
-            local hero = _getHero(state)
+            local hero = _getHero()
             if hero then
                 local class = hero:GetClass()
                 local level = hero:CharacterLevel()

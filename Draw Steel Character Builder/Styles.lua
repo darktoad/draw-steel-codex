@@ -494,9 +494,13 @@ local function _labelStyles()
             selectors = {"bonus-selector"},
             color = CBStyles.COLORS.GRAY02,
             bgimage = true,
-            borderColor = CBStyles.COLORS.gray02,
+            borderColor = CBStyles.COLORS.GRAY02,
             border = 1,
             cornerRadius = 3,
+        },
+        {
+            selectors = {"bonus-selector", "hover", "~selected"},
+            brightness = 1.5,
         },
         {
             selectors = {"bonus-selector", "selected"},

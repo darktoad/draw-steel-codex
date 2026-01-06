@@ -34,7 +34,7 @@ function CBAncestryDetail._navPanel()
             _fireControllerEvent("removeAncestry")
         end,
         refreshBuilderState = function(element, state)
-            local hero = _getHero(state)
+            local hero = _getHero()
             if hero then
                 element:FireEvent("setAvailable", hero:try_get("raceid") ~= nil)
             end
@@ -261,7 +261,7 @@ function CBAncestryDetail._selectButton()
             _fireControllerEvent("applyCurrentAncestry")
         end,
         refreshBuilderState = function(element, state)
-            local hero = _getHero(state)
+            local hero = _getHero()
             if hero then
                 local canSelect = hero:try_get("raceid") == nil and state:Get(SELECTOR .. ".selectedId") ~= nil
                 element:SetClass("collapsed", not canSelect)
@@ -323,7 +323,7 @@ function CBAncestryDetail.CreatePanel()
 
             local categoryKey = SELECTOR .. ".category.selectedId"
             local currentCategory = state:Get(categoryKey) or INITIAL_CATEGORY
-            local hero = _getHero(state)
+            local hero = _getHero()
             if hero then
                 local heroAncestry = hero:try_get("raceid")
 

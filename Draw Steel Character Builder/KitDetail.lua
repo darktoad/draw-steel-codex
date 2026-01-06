@@ -62,26 +62,26 @@ function CBKitDetail._overviewPanel()
                 lmargin = 8,
                 data = {
                     index = i,
-                    kit = nil,
+                    kits = {},
                     bonusItemId = bonusItem.id,
                 },
                 assignKits = function(element, values)
-                    element.data.kit = values[element.data.index].item
+                    element.data.kits = {
+                        values[1] and values[1].item,
+                        values[2] and values[2].item
+                    }
                     element.text = values[element.data.index].text
-                    element:FireEvent("refreshBuilderState", element, _getState(element))
+                    element:FireEvent("refreshBuilderState", element, _getState())
                 end,
                 press = function(element)
-                    if element.data.kit == nil then return end
-                    element.parent:FireEvent("selectKit", element.data.kit)
+                    if #element.data.kits < element.data.index then return end
+                    element.parent:FireEvent("selectKit", element.data.kits[element.data.index])
                 end,
                 refreshBuilderState = function(element, state)
-                    if state == nil then state = _getState(element) end
-                    local hero = _getHero(state)
-                    local kit = element.data.kit
-                    if hero == nil or kit == nil then return end
-                    local levelChoices = hero:GetLevelChoices() or {}
-                    local bonusChoices = levelChoices[kitKey] or {}
-                    element:SetClass("selected", bonusChoices[element.data.bonusItemId] == kit.id)
+                    local hero = _getHero()
+                    local kits = element.data.kits or {}
+                    local selected1 = Kit.DamageBonusSelected(hero, element.data.bonusItemId, kits[1], kits[2])
+                    element:SetClass("selected", (selected1 and element.data.index == 1) or (not selected1 and element.data.index == 2))
                 end,
             }
         end
@@ -94,7 +94,7 @@ function CBKitDetail._overviewPanel()
                 bonusItemId = bonusItem.id
             },
             selectKit = function(element, kit)
-                local hero = _getHero(element)
+                local hero = _getHero()
                 if hero == nil or kit == nil then return end
                 local levelChoices = hero:GetLevelChoices() or {}
                 local bonusChoices = levelChoices[kitKey] or {}
