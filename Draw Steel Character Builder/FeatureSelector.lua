@@ -69,7 +69,7 @@ function CBFeatureSelector.BuildSelectorPanel(overrides)
 
     local headerPanel = gui.Panel{
         classes = {"builder-base", "panel-base"},
-        width = "100%",
+        width = "100%-14",
         height = "auto",
         halign = "left",
         valign = "top",
@@ -96,7 +96,7 @@ function CBFeatureSelector.BuildSelectorPanel(overrides)
 
     local targetsPanel = gui.Panel{
         classes = {"builder-base", "panel-base"},
-        width = "100%",
+        width = "100%-14",
         height = "auto",
         halign = "left",
         valign = "top",

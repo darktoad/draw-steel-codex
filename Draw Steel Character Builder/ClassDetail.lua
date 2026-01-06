@@ -84,84 +84,81 @@ end
 --- @return Panel
 function CBClassDetail._overviewPanel()
 
-    local nameLabel = gui.Label{
-        classes = {"builder-base", "label", "info", "overview", "header"},
-        -- width = "100%",
-        -- height = "auto",
-        -- hpad = 12,
-        text = "CLASS",
-        -- textAlignment = "left",
+    local nameLabel = gui.Panel{
+        classes = {"builder-base", "panel-base", "detail-overview-labels"},
+        gui.Label{
+            classes = {"builder-base", "label", "info", "overview", "header"},
+            text = "CLASS",
 
-        refreshBuilderState = function(element, state)
-            local text = "CLASS"
-            local classId = state:Get(SELECTOR .. ".selectedId")
-            if classId then
-                local class = state:Get(SELECTOR .. ".selectedItem")
-                if not class then
-                    class = dmhub.GetTable(Class.tableName)[classId]
-                end
-                if class then text = class.name end
-            end
-            element.text = text
-        end
-    }
-
-    local introLabel = gui.Label{
-        classes = {"builder-base", "label", "info", "overview"},
-        -- width = "100%",
-        -- height = "auto",
-        vpad = 6,
-        -- hpad = 12,
-        bmargin = 12,
-        -- textAlignment = "left",
-        markdown = true,
-        text = CharacterBuilder.STRINGS.CLASS.INTRO,
-
-        refreshBuilderState = function(element, state)
-            local text = CharacterBuilder.STRINGS.CLASS.INTRO
-            local classId = state:Get(SELECTOR .. ".selectedId")
-            if classId then
-                local class = state:Get(SELECTOR .. ".selectedItem")
-                if not class then
-                    class = dmhub.GetTable(Class.tableName)[classId]
-                end
-                if class then text = CharacterBuilder._trimToLength(class.details, 300) end
-            end
-            element.text = text
-        end,
-    }
-
-    local detailLabel = gui.Label{
-        classes = {"builder-base", "label", "info", "overview"},
-        -- width = "100%",
-        -- height = "auto",
-        vpad = 6,
-        -- hpad = 12,
-        tmargin = 12,
-        -- textAlignment = "left",
-        bold = false,
-        markdown = true,
-        text = CharacterBuilder.STRINGS.CLASS.OVERVIEW,
-
-        refreshBuilderState = function(element, state)
-            local text = CharacterBuilder.STRINGS.CLASS.OVERVIEW
-            local classId = state:Get(SELECTOR .. ".selectedId")
-            if classId then
-                local textItems = {}
-
-                local featureCache = state:Get(SELECTOR .. ".featureCache")
-                local featureDetails = featureCache:GetFlattenedFeatures()
-                for _,item in ipairs(featureDetails) do
-                    local s = item.feature:GetSummaryText()
-                    if s ~= nil and #s > 0 then
-                        textItems[#textItems+1] = s
+            refreshBuilderState = function(element, state)
+                local text = "CLASS"
+                local classId = state:Get(SELECTOR .. ".selectedId")
+                if classId then
+                    local class = state:Get(SELECTOR .. ".selectedItem")
+                    if not class then
+                        class = dmhub.GetTable(Class.tableName)[classId]
                     end
+                    if class then text = class.name end
                 end
-
-                text = CharacterBuilder._trimToLength(table.concat(textItems, "\n\n"), CharacterBuilder.OVERVIEW_MAX_LENGTH, false)
+                element.text = text
             end
-            element.text = text
-        end
+        }
+    }
+
+    local introLabel = gui.Panel{
+        classes = {"builder-base", "panel-base", "detail-overview-labels"},
+        gui.Label{
+            classes = {"builder-base", "label", "info", "overview"},
+            vpad = 6,
+            bmargin = 12,
+            markdown = true,
+            text = CharacterBuilder.STRINGS.CLASS.INTRO,
+
+            refreshBuilderState = function(element, state)
+                local text = CharacterBuilder.STRINGS.CLASS.INTRO
+                local classId = state:Get(SELECTOR .. ".selectedId")
+                if classId then
+                    local class = state:Get(SELECTOR .. ".selectedItem")
+                    if not class then
+                        class = dmhub.GetTable(Class.tableName)[classId]
+                    end
+                    if class then text = class.details end
+                end
+                element.text = text
+            end,
+        }
+    }
+
+    local detailLabel = gui.Panel{
+        classes = {"builder-base", "panel-base", "detail-overview-labels"},
+        gui.Label{
+            classes = {"builder-base", "label", "info", "overview"},
+            vpad = 6,
+            tmargin = 12,
+            bold = false,
+            markdown = true,
+            text = CharacterBuilder.STRINGS.CLASS.OVERVIEW,
+
+            refreshBuilderState = function(element, state)
+                local text = CharacterBuilder.STRINGS.CLASS.OVERVIEW
+                local classId = state:Get(SELECTOR .. ".selectedId")
+                if classId then
+                    local textItems = {}
+
+                    local featureCache = state:Get(SELECTOR .. ".featureCache")
+                    local featureDetails = featureCache:GetFlattenedFeatures()
+                    for _,item in ipairs(featureDetails) do
+                        local s = item.feature:GetSummaryText()
+                        if s ~= nil and #s > 0 then
+                            textItems[#textItems+1] = s
+                        end
+                    end
+
+                    text = table.concat(textItems, "\n\n")
+                end
+                element.text = text
+            end
+        }
     }
 
     return gui.Panel{
@@ -193,7 +190,11 @@ function CBClassDetail._overviewPanel()
         end,
 
         gui.Panel{
-            classes = {"builder-base", "panel-base", "detail-overview-labels"},
+            classes = {"builder-base", "panel-base", "container"},
+            height = "100%-80",
+            bmargin = 32,
+            valign = "bottom",
+            vscroll = true,
             nameLabel,
             introLabel,
             detailLabel,

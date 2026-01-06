@@ -17,83 +17,78 @@ local _makeDetailNavButton = CharacterBuilder._makeDetailNavButton
 --- @return Panel
 function CBCareerDetail._overviewPanel()
 
-    local nameLabel = gui.Label{
-        classes = {"builder-base", "label", "info", "overview", "header"},
-        -- width = "100%",
-        -- height = "auto",
-        -- hpad = 12,
-        text = GameSystem.BackgroundName:upper(),
-        -- textAlignment = "left",
+    local nameLabel = gui.Panel{
+        classes = {"builder-base", "panel-base", "detail-overview-labels"},
+        gui.Label{
+            classes = {"builder-base", "label", "info", "overview", "header"},
+            text = GameSystem.BackgroundName:upper(),
 
-        refreshBuilderState = function(element, state)
-            local text = GameSystem.BackgroundName:upper()
-            local careerId = state:Get(SELECTOR .. ".selectedId")
-            if careerId then
-                local careerItem = state:Get(SELECTOR .. ".selectedItem")
-                if careerItem then
-                    text = careerItem.name
-                end
-            end
-            element.text = text
-        end
-    }
-
-    local introLabel = gui.Label{
-        classes = {"builder-base", "label", "info", "overview"},
-        -- width = "100%",
-        -- height = "auto",
-        vpad = 6,
-        -- hpad = 12,
-        bmargin = 12,
-        -- textAlignment = "left",
-        text = CharacterBuilder.STRINGS.CAREER.INTRO,
-
-        refreshBuilderState = function(element, state)
-            local text = CharacterBuilder.STRINGS.CAREER.INTRO
-            local careerId = state:Get(SELECTOR .. ".selectedId")
-            if careerId then
-                local careerItem = state:Get(SELECTOR .. ".selectedItem")
-                if careerItem then
-                    text = careerItem.description
-                end
-            end
-            element.text = text
-        end,
-    }
-
-    local detailLabel = gui.Label{
-        classes = {"builder-base", "label", "info", "overview"},
-        -- width = "100%",
-        -- height = "auto",
-        vpad = 6,
-        -- hpad = 12,
-        tmargin = 12,
-        -- textAlignment = "left",
-        bold = false,
-        text = CharacterBuilder.STRINGS.CAREER.OVERVIEW,
-
-        refreshBuilderState = function(element, state)
-            local text = CharacterBuilder.STRINGS.CAREER.OVERVIEW
-            local careerId = state:Get(SELECTOR .. ".selectedId")
-            if careerId then
-                local careerItem = state:Get(SELECTOR .. ".selectedItem")
-                if careerItem then
-                    local featureCache = state:Get(SELECTOR .. ".featureCache")
-                    local featureDetails = featureCache:GetFlattenedFeatures()
-                    if featureDetails then
-                        local textItems = {}
-                        for _,item in ipairs(featureDetails) do
-                            local s = item.feature:GetSummaryText()
-                            if s ~= nil and #s > 0 then
-                                textItems[#textItems+1] = s
-                            end
-                        end
-                        text = table.concat(textItems, "\n\n")
+            refreshBuilderState = function(element, state)
+                local text = GameSystem.BackgroundName:upper()
+                local careerId = state:Get(SELECTOR .. ".selectedId")
+                if careerId then
+                    local careerItem = state:Get(SELECTOR .. ".selectedItem")
+                    if careerItem then
+                        text = careerItem.name
                     end
                 end
+                element.text = text
             end
-            element.text = text
-        end
+        }
+    }
+
+    local introLabel = gui.Panel{
+        classes = {"builder-base", "panel-base", "detail-overview-labels"},
+        gui.Label{
+            classes = {"builder-base", "label", "info", "overview"},
+            vpad = 6,
+            text = CharacterBuilder.STRINGS.CAREER.INTRO,
+
+            refreshBuilderState = function(element, state)
+                local text = CharacterBuilder.STRINGS.CAREER.INTRO
+                local careerId = state:Get(SELECTOR .. ".selectedId")
+                if careerId then
+                    local careerItem = state:Get(SELECTOR .. ".selectedItem")
+                    if careerItem then
+                        text = careerItem.description
+                    end
+                end
+                element.text = text
+            end,
+        }
+    }
+
+    local detailLabel = gui.Panel{
+        classes = {"builder-base", "panel-base", "detail-overview-labels"},
+        gui.Label{
+            classes = {"builder-base", "label", "info", "overview"},
+            vpad = 6,
+            bold = false,
+            text = CharacterBuilder.STRINGS.CAREER.OVERVIEW,
+
+            refreshBuilderState = function(element, state)
+                local text = CharacterBuilder.STRINGS.CAREER.OVERVIEW
+                local careerId = state:Get(SELECTOR .. ".selectedId")
+                if careerId then
+                    local careerItem = state:Get(SELECTOR .. ".selectedItem")
+                    if careerItem then
+                        local featureCache = state:Get(SELECTOR .. ".featureCache")
+                        local featureDetails = featureCache:GetFlattenedFeatures()
+                        if featureDetails then
+                            local textItems = {}
+                            for _,item in ipairs(featureDetails) do
+                                local s = item.feature:GetSummaryText()
+                                if s ~= nil and #s > 0 then
+                                    textItems[#textItems+1] = s
+                                end
+                            end
+                            text = table.concat(textItems, "\n\n")
+                        end
+                    end
+                end
+                element.text = text
+            end
+        }
     }
 
     return gui.Panel{
@@ -124,7 +119,11 @@ function CBCareerDetail._overviewPanel()
         end,
 
         gui.Panel{
-            classes = {"builder-base", "panel-base", "detail-overview-labels"},
+            classes = {"builder-base", "panel-base", "container"},
+            height = "100%-40",
+            bmargin = 32,
+            valign = "bottom",
+            vscroll = true,
             nameLabel,
             introLabel,
             detailLabel,

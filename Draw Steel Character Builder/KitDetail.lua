@@ -16,7 +16,7 @@ local _getState = CharacterBuilder._getState
 function CBKitDetail._navPanel()
     -- TODO: Maybe put inside another panel to shrink vertically.
     return gui.Panel{
-        classes = {"categoryNavPanel", "builder-base", "panel-base", "detail-nav-panel"},
+        classes = {"categoryNavPanel", "builder-base", "panel-base", "wide", "detail-nav-panel"},
         vscroll = true,
 
         data = {
@@ -396,7 +396,7 @@ function CBKitDetail._detailPanel()
 
     return gui.Panel{
         id = "classDetailPanel",
-        classes = {"builder-base", "panel-base", "inner-detail-panel", "wide", "classDetailpanel"},
+        classes = {"builder-base", "panel-base", "inner-detail-panel", "xwide", "classDetailpanel"},
 
         refreshBuilderState = function(element, state)
         end,

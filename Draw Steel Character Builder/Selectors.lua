@@ -413,7 +413,6 @@ local TEST_DETAIL = [[
 **User Experience**
 - The "Change X" buttons are unfortunately placed.
 - Long text for overview panels should scroll instead of being truncated.
-- When selecting a kit bonus when you have 2 kits, the UI doesn't remember the kit you had selected.
 - Culture button opens inconsistently, sometimes requiring multiple clicks. (But its functionality isn't implemented yet.)
 
 **Functionality**

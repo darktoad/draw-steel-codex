@@ -79,90 +79,88 @@ end
 --- @return Panel
 function CBAncestryDetail._overviewPanel()
 
-    local nameLabel = gui.Label{
-        classes = {"builder-base", "label", "info", "overview", "header"},
-        -- width = "100%",
-        -- height = "auto",
-        -- hpad = 12,
-        text = GameSystem.RaceName:upper(),
-        -- textAlignment = "left",
+    local nameLabel = gui.Panel{
+        classes = {"builder-base", "panel-base", "detail-overview-labels"},
+        gui.Label{
+            classes = {"builder-base", "label", "info", "overview", "header"},
+            text = GameSystem.RaceName:upper(),
 
-        refreshBuilderState = function(element, state)
-            local text = GameSystem.RaceName:upper()
-            local ancestryId = state:Get(SELECTOR .. ".selectedId")
-            if ancestryId then
-                local race = state:Get(SELECTOR .. ".selectedItem")
-                if not race then
-                    race = dmhub.GetTable(Race.tableName)[ancestryId]
-                end
-                if race then text = race.name end
-            end
-            element.text = text
-        end
-    }
-
-    local introLabel = gui.Label{
-        classes = {"builder-base", "label", "info", "overview"},
-        -- width = "100%",
-        -- height = "auto",
-        vpad = 6,
-        -- hpad = 12,
-        bmargin = 12,
-        -- textAlignment = "left",
-        text = CharacterBuilder.STRINGS.ANCESTRY.INTRO,
-
-        refreshBuilderState = function(element, state)
-            local text = CharacterBuilder.STRINGS.ANCESTRY.INTRO
-            local ancestryId = state:Get(SELECTOR .. ".selectedId")
-            if ancestryId then
-                local race = state:Get(SELECTOR .. ".selectedItem")
-                if not race then
-                    race = dmhub.GetTable(Race.tableName)[ancestryId]
-                end
-                if race then text = CharacterBuilder._trimToLength(race.details, 300) end
-            end
-            element.text = text
-        end,
-    }
-
-    local detailLabel = gui.Label{
-        classes = {"builder-base", "label", "info", "overview"},
-        -- width = "100%",
-        -- height = "auto",
-        vpad = 6,
-        -- hpad = 12,
-        tmargin = 12,
-        -- textAlignment = "left",
-        bold = false,
-        text = CharacterBuilder.STRINGS.ANCESTRY.OVERVIEW,
-
-        refreshBuilderState = function(element, state)
-            local text = CharacterBuilder.STRINGS.ANCESTRY.OVERVIEW
-            local ancestryId = state:Get(SELECTOR .. ".selectedId")
-            if ancestryId then
-                local race = state:Get(SELECTOR .. ".selectedItem")
-                local textItems = {
-                    string.format(tr("<b>Size.</b>  Your people are size %s creatures."), race.size),
-                    string.format(tr("<b>Height.</b>  Your people are %s tall."), race.height),
-                    string.format(tr("<b>Weight.</b>  Your people weigh %s pounds."), race.weight),
-                    string.format(tr("<b>Life Expectancy.</b>  Your people live %s years."), race.lifeSpan),
-                    string.format(tr("<b>Speed.</b>  Your base walking speed is %s"),
-                        MeasurementSystem.NativeToDisplayStringWithUnits(race.moveSpeeds.walk)),
-                }
-
-                local featureCache = state:Get(SELECTOR .. ".featureCache")
-                local featureDetails = featureCache:GetFlattenedFeatures()
-                for _,item in ipairs(featureDetails) do
-                    local s = item.feature:GetSummaryText()
-                    if s ~= nil and #s > 0 then
-                        textItems[#textItems+1] = s
+            refreshBuilderState = function(element, state)
+                local text = GameSystem.RaceName:upper()
+                local ancestryId = state:Get(SELECTOR .. ".selectedId")
+                if ancestryId then
+                    local race = state:Get(SELECTOR .. ".selectedItem")
+                    if not race then
+                        race = dmhub.GetTable(Race.tableName)[ancestryId]
                     end
+                    if race then text = race.name end
                 end
-
-                text = table.concat(textItems, "\n\n")
+                element.text = text
             end
-            element.text = text
-        end
+        }
+    }
+
+    local introLabel = gui.Panel{
+        classes = {"builder-base", "panel-base", "detail-overview-labels"},
+        gui.Label{
+            classes = {"builder-base", "label", "info", "overview"},
+            vpad = 6,
+            -- bmargin = 12,
+            markdown = true,
+            text = CharacterBuilder.STRINGS.ANCESTRY.INTRO,
+
+            refreshBuilderState = function(element, state)
+                local text = CharacterBuilder.STRINGS.ANCESTRY.INTRO
+                local ancestryId = state:Get(SELECTOR .. ".selectedId")
+                if ancestryId then
+                    local raceItem = state:Get(SELECTOR .. ".selectedItem")
+                    if not raceItem then
+                        raceItem = dmhub.GetTable(Race.tableName)[ancestryId]
+                    end
+                    if raceItem then text = raceItem.details end
+                end
+                element.text = text
+            end,
+        },
+    }
+
+    local detailLabel = gui.Panel{
+        classes = {"builder-base", "panel-base", "detail-overview-labels"},
+        gui.Label{
+            classes = {"builder-base", "label", "info", "overview"},
+            vpad = 6,
+            -- tmargin = 12,
+            bold = false,
+            text = CharacterBuilder.STRINGS.ANCESTRY.OVERVIEW,
+
+            refreshBuilderState = function(element, state)
+                local text = CharacterBuilder.STRINGS.ANCESTRY.OVERVIEW
+                local ancestryId = state:Get(SELECTOR .. ".selectedId")
+                if ancestryId then
+                    local race = state:Get(SELECTOR .. ".selectedItem")
+                    local textItems = {
+                        string.format(tr("<b>Size.</b>  Your people are size %s creatures."), race.size),
+                        string.format(tr("<b>Height.</b>  Your people are %s tall."), race.height),
+                        string.format(tr("<b>Weight.</b>  Your people weigh %s pounds."), race.weight),
+                        string.format(tr("<b>Life Expectancy.</b>  Your people live %s years."), race.lifeSpan),
+                        string.format(tr("<b>Speed.</b>  Your base walking speed is %s"),
+                            MeasurementSystem.NativeToDisplayStringWithUnits(race.moveSpeeds.walk)),
+                    }
+
+                    local featureCache = state:Get(SELECTOR .. ".featureCache")
+                    local featureDetails = featureCache:GetFlattenedFeatures()
+                    for _,item in ipairs(featureDetails) do
+                        local s = item.feature:GetSummaryText()
+                        if s ~= nil and #s > 0 then
+                            textItems[#textItems+1] = s
+                        end
+                    end
+
+                    text = table.concat(textItems, "\n\n")
+                end
+                element.text = text
+            end
+        },
     }
 
     return gui.Panel{
@@ -196,7 +194,11 @@ function CBAncestryDetail._overviewPanel()
         end,
 
         gui.Panel{
-            classes = {"builder-base", "panel-base", "detail-overview-labels"},
+            classes = {"builder-base", "panel-base", "container"},
+            height = "100%-40",
+            bmargin = 32,
+            valign = "bottom",
+            vscroll = true,
             nameLabel,
             introLabel,
             detailLabel,

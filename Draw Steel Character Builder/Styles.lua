@@ -15,6 +15,7 @@ CBStyles.COLORS = {
     GOLD03 = "#F1D3A5",
     GRAY02 = "#666663",
     PANEL_BG = "#080B09",
+    GRAY_TRANSPARENT = "#10110FF0",
 
     -- For selections like skills etc.
     FILLED_ITEM_BG = "#E9B86F0F",
@@ -157,8 +158,12 @@ local function _panelStyles()
             borderColor = "teal",
         },
         {
+            selectors = {"detail-nav-panel", "wide"},
+            width = 480,
+        },
+        {
             selectors = {"inner-detail-panel"},
-            width = 440,
+            width = 580,
             height = "100%",
             valign = "center",
             halign = "center",
@@ -177,20 +182,19 @@ local function _panelStyles()
             bgcolor = "white",
         },
         {
-            selectors = {"detail-overview-panel", "has-kit"},
-            bgcolor = "#666666",
-        },
-        {
             selectors = {"detail-overview-labels"},
             width = "100%-4",
             height = "auto",
             halign = "center",
             valign = "bottom",
-            vmargin = 32,
-            vpad = 8,
+            vmargin = 8,
             flow = "vertical",
             bgimage = true,
-            bgcolor = "#10110FE5",
+            bgcolor = CBStyles.COLORS.GRAY_TRANSPARENT,
+        },
+        {
+            selectors = {"detail-overview-panel", "has-kit"},
+            bgcolor = "#666666",
         },
 
         -- Feature selectors
