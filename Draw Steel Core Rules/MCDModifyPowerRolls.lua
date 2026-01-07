@@ -233,7 +233,7 @@ CharacterModifier.TypeInfo.power = {
             }
         end
 
-        if self:has_key("keywords") and options.ability ~= nil then
+        if self:has_key("keywords") and self.rollType ~= "all" and options.ability ~= nil then
             local totalCount = 0
             local matchCount = 0
             local keywordFail = {}
