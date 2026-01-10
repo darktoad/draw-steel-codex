@@ -1220,7 +1220,6 @@ function CharSheet.CharacterSheetAndAvatarPanel()
 
             --monster organization.
             gui.Dropdown {
-                classes = { "monsteronly" },
                 options = {
                     { id = "minion",  text = "Minion" },
                     { id = "horde",   text = "Horde" },
@@ -1291,7 +1290,7 @@ function CharSheet.CharacterSheetAndAvatarPanel()
             },
 
             gui.Label {
-                classes = { "monsteronly", "followeronly" },
+                classes = { "monsteronly" },
                 text = "Organization",
                 color = border_color,
                 fontSize = 12,
@@ -1304,7 +1303,7 @@ function CharSheet.CharacterSheetAndAvatarPanel()
 
             --monster role.
             gui.Dropdown {
-                classes = { "monsteronly", "followeronly" },
+                classes = { "monsteronly" },
                 options = {
                     { id = "ambusher",   text = "Ambusher" },
                     { id = "artillery",  text = "Artillery" },
@@ -2219,8 +2218,7 @@ local function DSCharSheet()
                                     valign = "center",
 
                                     refreshToken = function(element, info)
-                                        local creature = CharacterSheet.instance.data.info.token.properties
-                                        element.text = info.token.creatureSize
+                                        element.text = info.token.properties:try_get("_tmp_creaturesize") or info.token.creatureSize
                                     end,
                                 },
 
