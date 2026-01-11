@@ -1220,6 +1220,7 @@ function CharSheet.CharacterSheetAndAvatarPanel()
 
             --monster organization.
             gui.Dropdown {
+                classes = { "monsteronly" },
                 options = {
                     { id = "minion",  text = "Minion" },
                     { id = "horde",   text = "Horde" },
@@ -1259,6 +1260,19 @@ function CharSheet.CharacterSheetAndAvatarPanel()
                 end,
             },
 
+            gui.Label {
+                classes = { "monsteronly" },
+                text = "Organization",
+                color = border_color,
+                fontSize = 12,
+                textAlignment = "center",
+
+                width = "100%",
+                height = "auto",
+                halign = "center",
+            },
+
+
             --Followers only
             gui.Dropdown {
                 classes = { "followeronly" },
@@ -1290,8 +1304,8 @@ function CharSheet.CharacterSheetAndAvatarPanel()
             },
 
             gui.Label {
-                classes = { "monsteronly" },
-                text = "Organization",
+                classes = { "followeronly" },
+                text = "Follower Type",
                 color = border_color,
                 fontSize = 12,
                 textAlignment = "center",
@@ -1303,7 +1317,7 @@ function CharSheet.CharacterSheetAndAvatarPanel()
 
             --monster role.
             gui.Dropdown {
-                classes = { "monsteronly" },
+                classes = { "monsterorfolloweronly" },
                 options = {
                     { id = "ambusher",   text = "Ambusher" },
                     { id = "artillery",  text = "Artillery" },
@@ -1343,7 +1357,7 @@ function CharSheet.CharacterSheetAndAvatarPanel()
             },
 
             gui.Label {
-                classes = { "monsteronly" },
+                classes = { "monsterorfolloweronly" },
                 text = "Role",
                 color = border_color,
                 fontSize = 12,
@@ -1954,6 +1968,10 @@ local function DSCharSheet()
 
         styles = {
             g_styles,
+            {
+                selectors = {"~monster", "~follower", "monsterorfolloweronly" },
+                collapsed = 1,
+            },
             {
                 selectors = { "~monster", "monsteronly" },
                 collapsed = 1,
