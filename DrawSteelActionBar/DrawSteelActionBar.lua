@@ -4313,7 +4313,7 @@ local function CalculateSpellTargetFocusing(range)
                     failReason = "Cannot target a hidden creature with a strike"
                 end
 
-                if canTarget and targetToken.properties:CalculateNamedCustomAttribute("Untargetable") > 0 then
+                if targetToken.properties:CalculateNamedCustomAttribute("Untargetable") > 0 then
                     failReason = "Target is untargetable"
                 end
 
