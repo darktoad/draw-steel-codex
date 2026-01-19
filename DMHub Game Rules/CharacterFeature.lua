@@ -646,6 +646,7 @@ function CharacterFeature:EditorPanel(editorPanelOptions)
 					text = self:GetDescription(),
 					multiline = true,
 					classes = {'input', 'form-input'},
+                    characterLimit = 8192,
 					selfStyle = {
 						textAlignment = "topleft",
 						height = 'auto',
