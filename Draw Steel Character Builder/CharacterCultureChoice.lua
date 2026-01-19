@@ -71,6 +71,7 @@ function CharacterAspectChoice:RemoveSelection(hero, option)
             aspects[self.guid] = ""
         end
     end
+    return true
 end
 
 --- Save the selected option to the hero.
@@ -83,7 +84,7 @@ function CharacterAspectChoice:SaveSelection(hero, option)
         culture = Culture.CreateNew()
         hero.culture = culture
     end
-    culture.aspects[self.guid] = option.guid
+    culture.aspects[self.guid] = option.id
     return true
 end
 
