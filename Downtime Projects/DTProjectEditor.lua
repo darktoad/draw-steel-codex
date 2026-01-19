@@ -569,6 +569,15 @@ function DTProjectEditor:_createProjectForm()
         width = "98%",
         flow = "vertical",
         borderColor = "green",
+        data = {
+            getProject = function(element)
+                local projectController = element:FindParentWithClass("projectController")
+                if projectController then
+                    return projectController.data.project
+                end
+                return nil
+            end
+        },
         children = {
             gui.Label {
                 text = "Status:",
@@ -579,23 +588,14 @@ function DTProjectEditor:_createProjectForm()
                 width = "100%-4",
                 classes = {"DTDropdown", "DTBase"},
                 options = DTHelpers.ListToDropdownOptions(DTConstants.STATUS),
-                data = {
-                    getProject = function(element)
-                        local projectController = element:FindParentWithClass("projectController")
-                        if projectController then
-                            return projectController.data.project
-                        end
-                        return nil
-                    end
-                },
                 refreshToken = function(element)
-                    local project =element.data.getProject(element)
+                    local project = element.parent.data.getProject(element)
                     if project and element.idChosen ~= project:GetStatus() then
                         element.idChosen = project:GetStatus()
                     end
                 end,
                 change = function(element)
-                    local project =element.data.getProject(element)
+                    local project =element.parent.data.getProject(element)
                     if project and element.idChosen ~= project:GetStatus() then
                         project:SetStatus(element.idChosen)
                         dmhub.Schedule(0.1, function()
@@ -606,27 +606,30 @@ function DTProjectEditor:_createProjectForm()
                 end
             } or gui.Label {
                 classes = {"DTLabel", "DTBase"},
-                width = "98%",
+                height = 32,
+                width = "auto",
+                hpad = 20,
                 valign = "center",
-                data = {
-                    getProject = function(element)
-                        local projectController = element:FindParentWithClass("projectController")
-                        if projectController then
-                            return projectController.data.project
-                        end
-                        return nil
-                    end
-                },
+                linger = function(element)
+                    gui.Tooltip{
+                        maxWidth = 300,
+                        fontSize = 16,
+                        bgimage = true,
+                        bgcolor = "#663100",
+                        text = "Your Director must activate this project by editing this form.",
+                    }(element)
+                end,
                 refreshToken = function(element)
-                    local project =element.data.getProject(element)
+                    local project = element.parent.data.getProject(element)
                     if project then
                         local status = project:GetStatus()
                         element.text = DTConstants.GetDisplayText(DTConstants.STATUS, status)
                         element:SetClass("DTStatusAvailable", status == "ACTIVE")
                         element:SetClass("DTStatusPaused", status ~= "ACTIVE")
+                        element:SetClass("DTHelpHover", status == "PAUSED" or status == "MILESTONE")
                     end
                 end
-            }
+            },
         }
     }
 
