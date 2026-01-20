@@ -192,6 +192,22 @@ function DTHelpers.GetDialogStyles()
             height = 20
         },
 
+        -- Help hover targets
+        gui.Style{
+            selectors = {"DTLabel", "DTBase", "DTHelpHover"},
+            height = 20,
+            width = 20,
+            fontSize = 20,
+            halign= "left",
+            valign = "center",
+            hmargin = 4,
+            bgimage = true,
+            borderColor = "#FF9800",
+            color = "#FF9800",
+            border = 1,
+            textAlignment = "center",
+        },
+
         -- Rolling status color classes
         gui.Style{
             selectors = {"DTStatusAvailable"},
