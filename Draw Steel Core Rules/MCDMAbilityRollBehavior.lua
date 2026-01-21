@@ -1176,6 +1176,8 @@ function ActivatedAbilityPowerRollBehavior:Cast(ability, casterToken, targets, o
 
         local targetRollProperties = rollProperties
 
+        options.symbols.cast.total = m_result.total
+
         if targetToken ~= nil then
             if multitargetResults ~= nil then
                 for i,multitarget in ipairs(multitargetResults) do
@@ -1190,14 +1192,6 @@ function ActivatedAbilityPowerRollBehavior:Cast(ability, casterToken, targets, o
             end
 
             local command = targetRollProperties.tiers[tier]
-
-            if ability.keywords["Strike"] then
-                targetToken.properties:TriggerEvent("attacked", {
-                    outcome = tier,
-                    roll = m_result.total,
-                    attacker = GenerateSymbols(casterToken.properties),
-                })
-            end
 
             local surges = 0
             local potencyApplied = 0
