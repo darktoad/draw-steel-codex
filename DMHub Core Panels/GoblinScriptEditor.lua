@@ -953,8 +953,10 @@ local GetFriendlyTypeName = function(name)
 	return GoblinScriptFriendlyTypeNames[name] or name
 end
 
+local g_registeredTypeInfo = {}
+
 local GetTypeInfoMap = function()
-    return {
+    local result = {
         creature = creature.helpSymbols,
         attack = Attack.helpSymbols,
         weapon = weapon.helpSymbols,
@@ -966,9 +968,21 @@ local GetTypeInfoMap = function()
 		resources = CharacterResourceCollection.helpSymbols,
         path = PathMoved.helpSymbols,
     }
+	
+	-- Add registered types
+	for typeName, helpSymbols in pairs(g_registeredTypeInfo) do
+		result[typeName] = helpSymbols
+	end
+	
+	return result
 end
 
 dmhub.GetSymbolTypesDocumentation = GetTypeInfoMap
+
+RegisterGoblinScriptTypeInfo = function(typeName, helpSymbols)
+	local normalizedTypeName = string.gsub(string.lower(typeName), " ", "")
+	g_registeredTypeInfo[normalizedTypeName] = helpSymbols
+end
 
 local FieldsPanel = function(fields, options)
     local typeInfoMap = GetTypeInfoMap()
