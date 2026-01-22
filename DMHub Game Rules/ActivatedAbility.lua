@@ -2470,6 +2470,24 @@ function ActivatedAbility.CastCoroutine(self, casterToken, targets, options)
 		return
 	end
 
+	if self.keywords["Strike"] then
+		local castInfo = options.symbols.cast
+		for _, target in ipairs(castInfo.targets or {}) do
+			if target.token ~= nil then
+				local targetToken = target.token
+				local tier = castInfo.tier or 0
+				if castInfo:has_key("tokenToTier") and type(castInfo.tokenToTier) == "table" then
+					tier = castInfo.tokenToTier[targetToken.charid] or 0
+				end
+				targetToken.properties:TriggerEvent("attacked", {
+                    outcome = tier,
+                    roll = castInfo:try_get("total", 0),
+                    attacker = GenerateSymbols(casterToken.properties),
+                })
+			end
+		end
+	end
+
 	self:FinishCast(casterToken, options)
 end
 
