@@ -498,9 +498,14 @@ local TEST_DETAIL = [[
 
 # Recent Changes *(Please test!)*
 
-*In newest to oldest order...*
+**Latest Release**
 
-* Fixed issue w/ status indicators on kits
+* Fixed issue with ability cards not appearing in selected items.
+* Fixed issue with ability cards not appearing in some choices. **If you find more of these, please report!**
+
+**Previous Releases**
+
+* Fixed issue w/ status indicators on kits.
 * Added progress indicators to buttons in columns 1 & 2.
 * Skill items display descriptions.
 * Selecting and de-selecting Ancestry, Career, and Class changed - new buttons above Overview button.
@@ -510,7 +515,6 @@ local TEST_DETAIL = [[
 # Known Issues
 
 **Functionality**
-* Some selection items that should have ability cards do not.
 * In the selection lists, we sometimes display redundant, empty, or meaningless extra info / description info. But try hovering it.
 * Exploration tab should list Perks.
 
