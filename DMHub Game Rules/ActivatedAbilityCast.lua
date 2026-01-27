@@ -190,6 +190,11 @@ ActivatedAbilityCast.helpSymbols = {
         type = "boolean",
         desc = "True if this ability cast has inflicted conditions on creatures.",
     },
+	purgedconditions = {
+		name = "Purged Conditions",
+		type = "number",
+		desc = "The number of conditions purged by this ability cast.",
+	},
 }
 
 ActivatedAbilityCast.lookupSymbols = {
@@ -373,6 +378,10 @@ ActivatedAbilityCast.lookupSymbols = {
     inflictedconditions = function(c)
         return c:try_get("inflictedConditions") ~= nil
     end,
+
+	purgedconditions = function(c)
+		return c:try_get("purgedConditions") or 0
+	end,
 }
 
 --- @param tokenid string

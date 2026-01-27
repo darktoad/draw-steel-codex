@@ -1794,6 +1794,7 @@ end
 -- returns: { damageDealt = number }
 function creature.InflictDamageInstance(self, amount, damageType, keywords, sourceDescription, symbols)
 	amount = math.floor(amount)
+	local originalAmount = amount
 	local resistanceEntry = self:DamageResistance(damageType, keywords)
 	local resistance = resistanceEntry.resistance
 
@@ -1840,7 +1841,9 @@ function creature.InflictDamageInstance(self, amount, damageType, keywords, sour
     end
 
 	symbols = symbols or {}
+	symbols.rawdamage = originalAmount
 	symbols.damagetype = damageType
+	symbols.damageimmunity = resistanceEntry
     symbols.damagesound = symbols.damagesound
 	symbols.sourcedescription = sourceDescription
     symbols.keywords = StringSet.new{

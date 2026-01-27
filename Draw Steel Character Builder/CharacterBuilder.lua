@@ -707,8 +707,9 @@ function CharacterBuilder._makeFeatureRegistry(options)
 
     if featurePanel then
         return {
-            button = CharacterBuilder._makeCategoryButton{
-                text = CharacterBuilder._stripSignatureTrait(feature:GetName()),
+            button = gui.Panel{
+                classes = {"builder-base", "panel-base"},
+                valign= "top",
                 data = {
                     featureId = feature:GetGuid(),
                     selectedId = selectedId,
@@ -720,15 +721,44 @@ function CharacterBuilder._makeFeatureRegistry(options)
                         value = element.data.featureId
                     })
                 end,
-                refreshBuilderState = function(element, state)
-                    local tokenSelected = getSelected(CharacterBuilder._getHero()) or "nil"
-                    local featureCache = state:Get(selector .. ".featureCache")
-                    local featureAvailable = featureCache and featureCache:GetFeature(element.data.featureId) ~= nil
-                    local visible = tokenSelected == element.data.selectedId and featureAvailable
-                    element:FireEvent("setAvailable", visible)
-                    element:FireEvent("setSelected", element.data.featureId == state:Get(selector .. ".category.selectedId"))
-                    element:SetClass("collapsed", not visible)
-                end,
+                CharacterBuilder._makeCategoryButton{
+                    text = CharacterBuilder._stripSignatureTrait(feature:GetName()),
+                    press = function(element)
+                        CharacterBuilder._fireControllerEvent("updateState", {
+                            key = selector .. ".category.selectedId",
+                            value = element.parent.data.featureId
+                        })
+                    end,
+                    refreshBuilderState = function(element, state)
+                        local tokenSelected = getSelected(CharacterBuilder._getHero()) or "nil"
+                        local featureCache = state:Get(selector .. ".featureCache")
+                        feature = featureCache and featureCache:GetFeature(element.parent.data.featureId)
+                        local featureAvailable = feature ~= nil
+                        local visible = tokenSelected == element.parent.data.selectedId and featureAvailable
+                        element:FireEvent("setAvailable", visible)
+                        element:FireEvent("setSelected", element.parent.data.featureId == state:Get(selector .. ".category.selectedId"))
+                        element:SetClass("collapsed", not visible)
+                    end,
+                },
+                CharacterBuilder.ProgressBar{
+                    vmargin = CBStyles.SIZES.PROGRESS_PIP_SIZE + 7,
+                    minPips = 1,
+                    refreshBuilderState = function(element, state)
+                        local visible = state:Get(selector .. ".blockFeatureSelection") ~= true
+                        if visible then
+                            local featureCache = state:Get(selector .. ".featureCache")
+                            local feature = featureCache and featureCache:GetFeature(element.parent.data.featureId)
+                            local status = feature and feature:GetStatus()
+                            if status then
+                                element:FireEventTree("updateProgress", {
+                                    slots = status.numChoices,
+                                    done = status.selected,
+                                })
+                            end
+                        end
+                        element:SetClass("collapsed", not visible)
+                    end,
+                }
             },
             panel = CharacterBuilder._makeFeaturePanelContainer{
                 data = {
@@ -808,4 +838,71 @@ function CharacterBuilder._sortButtons(children)
     table.move(suffix, 1, #suffix, #result + 1, result)
 
     return result
+end
+
+--- @return Panel
+function CharacterBuilder.ProgressPip(index, opts)
+    local options = {
+        classes = {"builder-base", "panel-base", "progress-pip"},
+        rotate = 45,
+        data = {
+            index = index,
+        },
+        updateProgress = function(element, progress)
+            local visible = element.parent.data.visible
+            element:SetClass("collapsed", not visible)
+            if not visible then return end
+
+            local maxPips = math.min(progress.slots, 20)
+            local filled
+            if progress.slots > 20 then
+                local filledCount = math.floor((progress.done / progress.slots) * 20)
+                filled = element.data.index <= filledCount
+            else
+                filled = progress.done >= element.data.index
+            end
+            element:SetClass("filled", filled)
+            element:SetClass("collapsed", element.data.index > maxPips)
+        end
+    }
+
+    for k,v in pairs(opts or {}) do
+        options[k] = v
+    end
+
+    return gui.Panel(options)
+end
+
+--- @return Panel
+function CharacterBuilder.ProgressBar(opts)
+
+    local minPips = opts.minPips or 2
+    opts.minPips = nil
+
+    local options = {
+        classes = {"builder-base", "panel-base", "progress-bar"},
+        floating = true,
+        valign = "bottom",
+        halign = "center",
+        vmargin = -1 * (CBStyles.SIZES.PROGRESS_PIP_SIZE / 2),
+        data = {
+            visible = false,
+        },
+        updateProgress = function(element, progress)
+            element.data.visible = progress.slots >= minPips
+            element:SetClass("collapsed", not element.data.visible)
+            if not element.data.visible then return end
+
+            local maxPips = math.min(progress.slots, 20)
+            for i = #element.children + 1, maxPips do
+                element:AddChild(CharacterBuilder.ProgressPip(i))
+            end
+        end,
+    }
+
+    for k,v in pairs(opts) do
+        options[k] = v
+    end
+
+    return gui.Panel(options)
 end

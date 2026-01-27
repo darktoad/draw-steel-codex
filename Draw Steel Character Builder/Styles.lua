@@ -52,12 +52,13 @@ CBStyles.SIZES = {
     SELECT_BUTTON_WIDTH = 200,
     SELECT_BUTTON_HEIGHT = 36,
 
+    PROGRESS_PIP_SIZE = 6,
+
     -- The little buttons top right on feature selector pane 3
     FEATURE_SELECT_WIDTH = 24,
     FEATURE_SELECT_HEIGHT = 24,
 
     BUTTON_SPACING = 12,
-
 }
 CBStyles.SIZES.BUTTON_PANEL_WIDTH = CBStyles.SIZES.ACTION_BUTTON_WIDTH + 60
 CBStyles.SIZES.CENTER_PANEL_WIDTH = "100%-" .. (30 + CBStyles.SIZES.BUTTON_PANEL_WIDTH + CBStyles.SIZES.CHARACTER_PANEL_WIDTH)
@@ -369,6 +370,196 @@ local function _panelStyles()
             halign = "left",
             flow = "horizontal",
             tmargin = 4,
+        },
+
+        -- Progress Bar
+        {
+            selectors = {"progress-bar"},
+            valign = "top",
+            halign = "center",
+            flow = "horizontal",
+            width = "auto",
+            height = CBStyles.SIZES.PROGRESS_PIP_SIZE,
+        },
+        {
+            selectors = {"progress-pip"},
+            valign = "top",
+            halign = "center",
+            hmargin = 2,
+            width = CBStyles.SIZES.PROGRESS_PIP_SIZE,
+            height = CBStyles.SIZES.PROGRESS_PIP_SIZE,
+            bgimage = true,
+            bgcolor = CBStyles.COLORS.BLACK,
+            border = 1,
+            borderColor = CBStyles.COLORS.GOLD03,
+        },
+        {
+            selectors = {"progress-pip", "filled"},
+            bgcolor = CBStyles.COLORS.GOLD,
+        },
+
+        -- Gradient-based progress pip styles (fill from bottom to top)
+        -- For diamond shape (45° rotated), gradient goes from bottom corner to top corner
+        {
+            selectors = {"progress-pip", "progress-gradient-0"},
+            bgcolor = "white",
+            gradient = gui.Gradient{
+                type = "radial",
+                point_a = {x = 0.0, y = 0.0},
+                point_b = {x = 1.0, y = 1.0},
+                stops = {
+                    {position = 0.0, color = CBStyles.COLORS.BLACK},
+                    {position = 1.0, color = CBStyles.COLORS.BLACK},
+                },
+            },
+        },
+        {
+            selectors = {"progress-pip", "progress-gradient-10"},
+            bgcolor = "white",
+            gradient = gui.Gradient{
+                type = "radial",
+                point_a = {x = 0.0, y = 0.0},
+                point_b = {x = 1.0, y = 1.0},
+                stops = {
+                    {position = 0.0, color = CBStyles.COLORS.GOLD},
+                    {position = 0.10, color = CBStyles.COLORS.GOLD},
+                    {position = 0.10, color = CBStyles.COLORS.BLACK},
+                    {position = 1.0, color = CBStyles.COLORS.BLACK},
+                },
+            },
+        },
+        {
+            selectors = {"progress-pip", "progress-gradient-20"},
+            bgcolor = "white",
+            gradient = gui.Gradient{
+                type = "radial",
+                point_a = {x = 0.0, y = 0.0},
+                point_b = {x = 1.0, y = 1.0},
+                stops = {
+                    {position = 0.0, color = CBStyles.COLORS.GOLD},
+                    {position = 0.20, color = CBStyles.COLORS.GOLD},
+                    {position = 0.20, color = CBStyles.COLORS.BLACK},
+                    {position = 1.0, color = CBStyles.COLORS.BLACK},
+                },
+            },
+        },
+        {
+            selectors = {"progress-pip", "progress-gradient-30"},
+            bgcolor = "white",
+            gradient = gui.Gradient{
+                type = "radial",
+                point_a = {x = 0.0, y = 0.0},
+                point_b = {x = 1.0, y = 1.0},
+                stops = {
+                    {position = 0.0, color = CBStyles.COLORS.GOLD},
+                    {position = 0.30, color = CBStyles.COLORS.GOLD},
+                    {position = 0.30, color = CBStyles.COLORS.BLACK},
+                    {position = 1.0, color = CBStyles.COLORS.BLACK},
+                },
+            },
+        },
+        {
+            selectors = {"progress-pip", "progress-gradient-40"},
+            bgcolor = "white",
+            gradient = gui.Gradient{
+                type = "radial",
+                point_a = {x = 0.0, y = 0.0},
+                point_b = {x = 1.0, y = 1.0},
+                stops = {
+                    {position = 0.0, color = CBStyles.COLORS.GOLD},
+                    {position = 0.40, color = CBStyles.COLORS.GOLD},
+                    {position = 0.40, color = CBStyles.COLORS.BLACK},
+                    {position = 1.0, color = CBStyles.COLORS.BLACK},
+                },
+            },
+        },
+        {
+            selectors = {"progress-pip", "progress-gradient-50"},
+            bgcolor = "white",
+            gradient = gui.Gradient{
+                type = "radial",
+                point_a = {x = 0.0, y = 0.0},
+                point_b = {x = 1.0, y = 1.0},
+                stops = {
+                    {position = 0.0, color = CBStyles.COLORS.GOLD},
+                    {position = 0.50, color = CBStyles.COLORS.GOLD},
+                    {position = 0.50, color = CBStyles.COLORS.BLACK},
+                    {position = 1.0, color = CBStyles.COLORS.BLACK},
+                },
+            },
+        },
+        {
+            selectors = {"progress-pip", "progress-gradient-60"},
+            bgcolor = "white",
+            gradient = gui.Gradient{
+                type = "radial",
+                point_a = {x = 0.0, y = 0.0},
+                point_b = {x = 1.0, y = 1.0},
+                stops = {
+                    {position = 0.0, color = CBStyles.COLORS.GOLD},
+                    {position = 0.60, color = CBStyles.COLORS.GOLD},
+                    {position = 0.60, color = CBStyles.COLORS.BLACK},
+                    {position = 1.0, color = CBStyles.COLORS.BLACK},
+                },
+            },
+        },
+        {
+            selectors = {"progress-pip", "progress-gradient-70"},
+            bgcolor = "white",
+            gradient = gui.Gradient{
+                type = "radial",
+                point_a = {x = 0.0, y = 0.0},
+                point_b = {x = 1.0, y = 1.0},
+                stops = {
+                    {position = 0.0, color = CBStyles.COLORS.GOLD},
+                    {position = 0.70, color = CBStyles.COLORS.GOLD},
+                    {position = 0.70, color = CBStyles.COLORS.BLACK},
+                    {position = 1.0, color = CBStyles.COLORS.BLACK},
+                },
+            },
+        },
+        {
+            selectors = {"progress-pip", "progress-gradient-80"},
+            bgcolor = "white",
+            gradient = gui.Gradient{
+                type = "radial",
+                point_a = {x = 0.0, y = 0.0},
+                point_b = {x = 1.0, y = 1.0},
+                stops = {
+                    {position = 0.0, color = CBStyles.COLORS.GOLD},
+                    {position = 0.80, color = CBStyles.COLORS.GOLD},
+                    {position = 0.80, color = CBStyles.COLORS.BLACK},
+                    {position = 1.0, color = CBStyles.COLORS.BLACK},
+                },
+            },
+        },
+        {
+            selectors = {"progress-pip", "progress-gradient-90"},
+            bgcolor = "white",
+            gradient = gui.Gradient{
+                type = "radial",
+                point_a = {x = 0.0, y = 0.0},
+                point_b = {x = 1.0, y = 1.0},
+                stops = {
+                    {position = 0.0, color = CBStyles.COLORS.GOLD},
+                    {position = 0.90, color = CBStyles.COLORS.GOLD},
+                    {position = 0.90, color = CBStyles.COLORS.BLACK},
+                    {position = 1.0, color = CBStyles.COLORS.BLACK},
+                },
+            },
+        },
+        {
+            selectors = {"progress-pip", "progress-gradient-100"},
+            bgcolor = "white",
+            gradient = gui.Gradient{
+                type = "radial",
+                point_a = {x = 0.0, y = 0.0},
+                point_b = {x = 1.0, y = 1.0},
+                stops = {
+                    {position = 0.0, color = CBStyles.COLORS.CREAM03},
+                    {position = 1.0, color = CBStyles.COLORS.CREAM03},
+                },
+            },
         },
 
         -- Contains all the tab content

@@ -162,11 +162,15 @@ end
 
 --- Factory for selector buttons with default event handlers.
 --- @param options table Button options; must include `data.selector`
---- @return ActionButton
+--- @return Panel
 function CBSelectors._makeButton(options)
+
+    options.button.valign = "top"
+    options.button.available = true
+
+    options.classes = {"builder-base", "panel-base"}
     options.valign = "top"
     options.tmargin = CBStyles.SIZES.BUTTON_SPACING
-    options.available = true
     if options.press == nil then
         options.press = function(element)
             local selectorsPanel = element:FindParentWithClass("selectorsPanel")
@@ -177,10 +181,58 @@ function CBSelectors._makeButton(options)
     end
     if options.refreshBuilderState == nil then
         options.refreshBuilderState = function(element, state)
-            element:FireEvent("setSelected", state:Get("activeSelector") == element.data.selector)
+            element:FireEventTree("setSelected", state:Get("activeSelector") == element.data.selector)
         end
     end
-    return gui.ActionButton(options)
+
+    local button = dmhub.DeepCopy(options.button)
+    options.button = nil
+
+    options.children = {
+        gui.ActionButton(button),
+        CharacterBuilder.ProgressPip(1, {
+            floating = true,
+            halign = "center",
+            valign = "top",
+            height = 12,
+            width = 12,
+            borderColor = CBStyles.COLORS.GOLD03,
+            refreshBuilderState = function(element, state)
+                for i = 0, 100, 10 do
+                    element:SetClass("progress-gradient-" .. i, false)
+                end
+                local selector = element.parent.data.selector
+                local selectionStatus = state:Get(selector .. ".selectionStatus")
+                if selectionStatus then
+                    local done, slots = selectionStatus:GetStatusSummary()
+                    if slots > 0 then
+                        local pctComplete = math.floor((done / slots * 100) + 5)
+                        pctComplete = math.floor(pctComplete / 10) * 10
+                        element:SetClass("progress-gradient-" .. pctComplete, true)
+                    end
+                end
+            end,
+        }),
+        CharacterBuilder.ProgressBar{
+            refreshBuilderState = function(element, state)
+                local selector = element.parent.data.selector
+                local visible = state:Get(selector .. ".blockFeatureSelection") ~= true
+                if visible then
+                    local selectionStatus = state:Get(selector .. ".selectionStatus")
+                    if selectionStatus then
+                        local done, slots = selectionStatus:GetStatusSummary()
+                        element:FireEventTree("updateProgress", {
+                            slots = slots,
+                            done = done,
+                        })
+                    end
+                end
+                element:SetClass("collapsed", not visible)
+            end,
+        }
+    }
+
+    return gui.Panel(options)
 end
 
 --- Creates a selector button that lazily loads a detail panel when selected.
@@ -188,7 +240,6 @@ end
 --- @return Panel
 function CBSelectors._makeDetailed(config)
     local selectorButton = CBSelectors._makeButton{
-        text = config.text,
         data = {
             defaultText = config.text,
             selector = config.selectorName
@@ -197,8 +248,8 @@ function CBSelectors._makeDetailed(config)
             local selfSelected = state:Get("activeSelector") == element.data.selector
             local parentPane = element:FindParentWithClass(config.selectorName .. "-selector")
             if parentPane then
-                element:FireEvent("setSelected", selfSelected)
-                parentPane:FireEvent("showDetail", selfSelected)
+                element:FireEventTree("setSelected", selfSelected)
+                parentPane:FireEventTree("showDetail", selfSelected)
             end
             local text = element.data.defaultText
             if config.selectedText ~= nil then
@@ -206,19 +257,13 @@ function CBSelectors._makeDetailed(config)
                 local heroText = hero and config.selectedText(hero)
                 if heroText and #heroText > 0 then
                     text = heroText
-                    -- local featureCache = state:Get(element.data.selector .. ".featureCache")
-                    -- if featureCache then
-                    --     if featureCache:AllFeaturesComplete() then
-                    --         text = text .. " chk"
-                    --     else
-                    --         local sel, avail = featureCache:GetStatusSummary()
-                    --         text = string.format("%s (%d/%d)", text, sel, avail)
-                    --     end
-                    -- end
                 end
             end
-            element:FireEvent("setText", text)
+            element:FireEventTree("setText", text)
         end,
+        button = {
+            text = config.text,
+        }
     }
 
     local selector = gui.Panel{
@@ -250,7 +295,7 @@ function CBSelectors._makeDetailed(config)
     return selector
 end
 
---- @return ActionButton Back button (hidden when in CharSheet)
+--- @return Panel Back button (hidden when in CharSheet)
 function CBSelectors._back()
     return CBSelectors._makeButton{
         text = "BACK",
@@ -261,14 +306,20 @@ function CBSelectors._back()
         press = function(element)
             print("THC:: TODO:: Not in CharSheet. Close the window, probably?")
         end,
+        button = {
+            text = "BACK",
+        }
     }
 end
 
---- @return ActionButton Character selector button
+--- @return Panel Character selector button
 function CBSelectors._character()
     return CBSelectors._makeButton{
         text = "Character",
         data = { selector = SEL.CHARACTER },
+        button = {
+            text = "Character",
+        }
     }
 end
 
@@ -286,14 +337,19 @@ function CBSelectors._ancestry()
             end
             return nil
         end,
+        button = {
+        }
     }
 end
 
---- @return ActionButton Culture selector with detail panel
+--- @return Panel
 function CBSelectors._culture()
     return CBSelectors._makeButton{
         text = "Culture",
         data = { selector = SEL.CULTURE },
+        button = {
+            text = "Culture",
+        }
     }
 end
 
@@ -311,6 +367,9 @@ function CBSelectors._career()
             end
             return nil
         end,
+        button = {
+            text = "Culture",
+        }
     }
 end
 
@@ -325,10 +384,13 @@ function CBSelectors._class()
             if classItem then return classItem.name end
             return nil
         end,
+        button = {
+            text = "Class",
+        }
     }
 end
 
---- @return ActionButton Kit selector button
+--- @return Panel Kit selector button
 function CBSelectors._kit()
     return CBSelectors._makeButton{
         text = "Kit",
@@ -338,16 +400,22 @@ function CBSelectors._kit()
             local visible = hero and hero:CanHaveKits()
             element:SetClass("collapsed", not visible)
             if not visible then return end
-            element:FireEvent("setSelected", state:Get("activeSelector") == element.data.selector)
+            element:FireEventTree("setSelected", state:Get("activeSelector") == element.data.selector)
         end,
+        button = {
+            text = "Kit",
+        }
     }
 end
 
---- @return ActionButton Complication selector button
+--- @return Panel Complication selector button
 function CBSelectors._complication()
     return CBSelectors._makeButton{
         text = "Complication",
         data = { selector = SEL.COMPLICATION },
+        button = {
+            text = "Complication",
+        }
     }
 end
 
@@ -430,6 +498,18 @@ local TEST_DETAIL = [[
 
 # Recent Changes *(Please test!)*
 
+**Latest Release**
+
+* Made the background on certain ability cards dark instead of transparent.
+* Added status indicator to Character left-side button.
+
+**Previous Releases**
+
+* Fixed issue with ability cards not appearing in selected items.
+* Fixed issue with ability cards not appearing in some choices. **If you find more of these, please report!**
+
+* Fixed issue w/ status indicators on kits.
+* Added progress indicators to buttons in columns 1 & 2.
 * Skill items display descriptions.
 * Selecting and de-selecting Ancestry, Career, and Class changed - new buttons above Overview button.
 * Updated selection of features like skills, languages, etc. Removed the Select/Remove button at the bottom in favor of buttons on the choices. Let us know what you think of the new way.
@@ -489,8 +569,10 @@ local function _testDetail()
 end
 function CBSelectors._test()
     return CBSelectors._makeButton{
-        text = "Testing Info (README)",
         data = { selector = "test" },
+        button = {
+            text = "Testing Info (README)",
+        }
     }
 end
 CharacterBuilder.RegisterSelector{

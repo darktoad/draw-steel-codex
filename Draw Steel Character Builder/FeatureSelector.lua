@@ -223,7 +223,8 @@ function CBFeatureSelector.SelectionPanel(selector, feature)
                 if option and cachedFeature then
                     isSelected = cachedFeature:GetSelectedOptionId() == option:GetGuid()
                     local choice = cachedFeature:GetChoice(option:GetGuid())
-                    element:FireEventTree("customPanel", choice and choice:Panel())
+                    -- element:FireEventTree("customPanel", choice and choice:Panel())
+                    element:FireEventTree("customPanel", option:Panel())
                 end
                 element:SetClass("filled", option ~= nil)
                 element:SetClass("selected", isSelected)
@@ -557,12 +558,14 @@ function CBFeatureSelector.SelectionPanel(selector, feature)
                     featureId = feature:GetGuid()
                 },
                 edit = function(element)
-                    element.parent:FireEventTreeVisible("applyFilter", element.text or "")
+                    element.parent:FireEventTree("applyFilter", element.text or "")
                 end,
                 refreshBuilderState = function(element, state)
                     local cachedFeature = getCachedFeature(state, element.data.featureId)
                     local numOptions = cachedFeature and feature:GetOptionsCount()
-                    element:SetClass("collapsed", numOptions < CharacterBuilder.FILTER_VISIBLE_COUNT)
+                    local visible = numOptions >= CharacterBuilder.FILTER_VISIBLE_COUNT
+                    element:SetClass("collapsed", not visible)
+                    if not visible then element.parent:FireEventTree("applyFilter", "") end
                 end,
             }
         end

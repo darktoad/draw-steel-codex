@@ -1232,10 +1232,20 @@ TriggeredAbility.RegisterTrigger{
             type = "number",
             desc = "The amount of damage taken when triggering this event.",
         },
+        rawdamage = {
+            name = "Raw Damage",
+            type = "number", 
+            desc = "The amount of damage taken before any immunities or damage reduction.",
+        },
         damagetype = {
             name = "Damage Type",
             type = "text",
             desc = "The type of damage taken when triggering this event.",
+        },
+        damageimmunity = {
+            name = "Damage Immunity",
+            type = "boolean",
+            desc = "True if the damage was reduced or increased due to a damage immunity or weakness.",
         },
         keywords = {
             name = "Keywords",
@@ -2650,10 +2660,20 @@ TriggeredAbility.RegisterTrigger{
             type = "number",
             desc = "The amount of damage taken when triggering this event.",
         },
+        rawdamage = {
+            name = "Raw Damage",
+            type = "number", 
+            desc = "The amount of damage taken before any immunities or damage reduction.",
+        },
         damagetype = {
             name = "Damage Type",
             type = "text",
             desc = "The type of damage taken when triggering this event.",
+        },
+        damageimmunity = {
+            name = "Damage Immunity",
+            type = "boolean",
+            desc = "True if the damage was reduced or increased due to a damage immunity or weakness.",
         },
         keywords = {
             name = "Keywords",

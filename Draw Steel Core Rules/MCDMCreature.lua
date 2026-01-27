@@ -3119,6 +3119,8 @@ function creature.TakeDamage(self, amount, note, info)
             eventArg.attacker = nil
         end
         eventArg.damage = amount
+        eventArg.rawdamage = info.rawdamage
+        eventArg.damageimmunity = info.damageImmunity and info.damageImmunity.dr ~= nil
         eventArg.damagetype = eventArg.damagetype or "none"
         eventArg.hasattacker = eventArg.attacker ~= nil
         eventArg.surges = info.surges or 0
@@ -3197,6 +3199,8 @@ function creature.TakeDamage(self, amount, note, info)
         eventArg.attacker = nil
     end
     eventArg.damage = amount
+    eventArg.rawdamage = info.rawdamage
+    eventArg.damageimmunity = info.damageImmunity and info.damageImmunity.dr ~= nil
     eventArg.damagetype = eventArg.damagetype or "untyped"
     eventArg.hasattacker = eventArg.attacker ~= nil
     eventArg.surges = info.surges or 0

@@ -153,13 +153,18 @@ function CBFeatureCache._processFeatures(opts, hero, features)
     opts.allFeaturesComplete = true
 
     for _,item in ipairs(features) do
-        if item.features ~= nil then
-            for _,feature in ipairs(item.features) do
+        local itemFeatures = _safeGet(item, "features")
+        local itemFeature = _safeGet(item, "feature")
+        if itemFeatures ~= nil then
+            for _,feature in ipairs(itemFeatures) do
                 flattened[#flattened+1] = { feature = feature }
                 addFeature(feature)
             end
-        elseif item.feature ~= nil then
+        elseif itemFeature ~= nil then
             addFeature(item.feature)
+        else
+            flattened[#flattened+1] = { feature = item }
+            addFeature(item)
         end
     end
 
@@ -747,15 +752,43 @@ function CBOptionWrapper:GetUnique()
     return _safeGet(self.option, "unique", true)
 end
 
---- @return boolean
-function CBOptionWrapper:HasCustomPanel()
-    return _safeGet(self.option, "hasCustomPanel", false)
-        and _safeGet(self.option, "panel", nil) ~= nil
-end
-
 --- @return function|nil
 function CBOptionWrapper:Panel()
-    return _safeGet(self.option, "panel", nil)
+    -- It has a panel built in (from Choices())
+    local fn = _safeGet(self.option, "panel", nil)
+    if fn ~= nil then return fn end
+
+    -- Check if raw option has CreateDropdownPanel method (from GetOptions())
+    local option = self.option
+    if type(option.CreateDropdownPanel) == "function" then
+        return function()
+            return option:CreateDropdownPanel(self:GetName())
+        end
+    end
+
+    -- See if we can calculate a panel from modifierInfo
+    local modifierInfo = _safeGet(self.option, "modifierInfo")
+    if modifierInfo then
+        for _,feature in ipairs(modifierInfo:try_get("features", {})) do
+            for _,modifier in ipairs(feature:try_get("modifiers", {})) do
+                if modifier.behavior == "activated" or modifier.behavior == "triggerdisplay" or modifier.behavior == "routine" then
+                    local ability = rawget(modifier, cond(modifier.behavior == "activated", "activatedAbility", "ability"))
+                    if ability ~= nil then
+                       return function()
+                            return ability:Render({
+                                width = "96%",
+                                halign = "center",
+                                bgimage = true,
+                                bgcolor = CBStyles.COLORS.BLACK03}, {})
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    -- No panel
+    return nil
 end
 
 --- Set whether this option is selected on the hero.

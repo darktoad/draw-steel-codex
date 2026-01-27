@@ -137,9 +137,18 @@ function CharacterBuilder.CreatePanel()
                     end
                 end
                 local featureCache = CBFeatureCache.CreateNew(hero, SEL.COMPLICATION, "Complication", features)
+                local selectionStatus = CBSelectionStatus.CreateNew{
+                    featureCache = featureCache,
+                    selectorName = SEL.COMPLICATION,
+                    visible = true,
+                    suppressRow1 = true,
+                    displayName = "Complication",
+                }
                 state:Set{ key = SEL.COMPLICATION .. ".featureCache", value = featureCache }
+                state:Set{ key = SEL.COMPLICATION .. ".selectionStatus", value = selectionStatus }
             else
                 state:Set{ key = SEL.COMPLICATION .. ".featureCache", value = nil }
+                state:Set{ key = SEL.COMPLICATION .. ".selectionStatus", value = nil }
             end
         end,
 
@@ -156,8 +165,27 @@ function CharacterBuilder.CreatePanel()
 
                 cultureFeatures = table.append_arrays(aspectFeatures, cultureFeatures)
                 local featureCache = CBFeatureCache.CreateNew(hero, SEL.CULTURE, "Culture", cultureFeatures)
+                local selectionStatus = CBSelectionStatus.CreateNew{
+                    featureCache = featureCache,
+                    selectorName = SEL.CULTURE,
+                    visible = true,
+                    suppressRow1 = true,
+                    displayName = "Culture",
+                }
                 element.data.state:Set{ key = SEL.CULTURE .. ".featureCache", value = featureCache }
+                element.data.state:Set{ key = SEL.CULTURE .. ".selectionStatus", value = selectionStatus }
             end
+        end,
+
+        cacheDescriptionStatus = function(element, hero)
+            local state = element.data.state
+            local descriptionStatus = CBDescriptionStatus.CreateNew{
+                selectorName = SEL.CHARACTER,
+                visible = true,
+                suppressRow1 = true,
+                displayName = "Character",
+            }
+            state:Set{ key = SEL.CHARACTER .. ".selectionStatus", value = descriptionStatus }
         end,
 
         cacheLevelChoices = function(element)
@@ -244,6 +272,15 @@ function CharacterBuilder.CreatePanel()
                 if creature:IsHero() then
                     local hero = creature
 
+                    -- Validate the description info
+                    -- TODO: Ensure server storage if not in char sheet
+                    if element.data.charSheetInstance ~= nil then
+                        local desc = hero:Description()
+                        if desc == nil then
+                            hero[CharacterDescription.CHARACTER_KEY] = CharacterDescription.new{}
+                        end
+                    end
+
                     local ancestryId = creature:try_get("raceid")
                     if ancestryId  then
                         element:FireEvent("selectAncestry", ancestryId, true)
@@ -252,6 +289,8 @@ function CharacterBuilder.CreatePanel()
                     element:FireEvent("cacheComplication", hero)
 
                     element:FireEvent("cacheCultures", hero)
+
+                    element:FireEvent("cacheDescriptionStatus", hero)
 
                     local careerItem = creature:Background()
                     if careerItem then
@@ -371,10 +410,18 @@ function CharacterBuilder.CreatePanel()
                 ancestryItem:FillFeatureDetails(nil, levelChoices, featureDetails)
 
                 local featureCache = CBFeatureCache.CreateNew(hero, ancestryId, ancestryItem.name, featureDetails)
+                local selectionStatus = CBSelectionStatus.CreateNew{
+                    featureCache = featureCache,
+                    selectorName = SEL.ANCESTRY,
+                    visible = true,
+                    suppressRow1 = false,
+                    displayName = "Ancestry",
+                }
 
                 newState[#newState+1] = { key = SEL.ANCESTRY .. ".selectedItem", value = ancestryItem }
                 newState[#newState+1] = { key = SEL.ANCESTRY .. ".inheritedId", value = inheritedAncestryId }
                 newState[#newState+1] = { key = SEL.ANCESTRY .. ".featureCache", value = featureCache }
+                newState[#newState+1] = { key = SEL.ANCESTRY .. ".selectionStatus", value = selectionStatus }
                 newState[#newState+1] = { key = SEL.ANCESTRY .. ".blockFeatureSelection", value = hero:try_get("raceid") == nil}
             end
             state:Set(newState)
@@ -388,7 +435,7 @@ function CharacterBuilder.CreatePanel()
 
             local cachedCareerId = state:Get(SEL.CAREER .. ".selectedId")
             local cachedLevelChoices = state:Get("levelChoices")
-            
+
             local hero = _getHero()
             local levelChoices = hero and hero:GetLevelChoices() or {}
 
@@ -434,9 +481,17 @@ function CharacterBuilder.CreatePanel()
                 end
 
                 local featureCache = CBFeatureCache.CreateNew(hero, careerId, careerItem.name, featureDetails)
+                local selectionStatus = CBSelectionStatus.CreateNew{
+                    featureCache = featureCache,
+                    selectorName = SEL.CAREER,
+                    visible = true,
+                    suppressRow1 = false,
+                    displayName = "Career",
+                }
 
                 newState[#newState+1] = { key = SEL.CAREER .. ".selectedItem", value = careerItem }
                 newState[#newState+1] = { key = SEL.CAREER .. ".featureCache", value = featureCache }
+                newState[#newState+1] = { key = SEL.CAREER .. ".selectionStatus", value = selectionStatus }
                 newState[#newState+1] = { key = SEL.CAREER .. ".blockFeatureSelection", value = hero:try_get("backgroundid") == nil}
             end
             state:Set(newState)
@@ -507,7 +562,6 @@ function CharacterBuilder.CreatePanel()
                         }
                     end
 
-                    
                     if #classAndSubClasses > 0 then
                         for i,entry in ipairs(classAndSubClasses) do
                             entry.class:FillFeatureDetailsForLevel(levelChoices, entry.level, extraLevelInfo, i ~= 1, classFill)
@@ -516,31 +570,49 @@ function CharacterBuilder.CreatePanel()
                         classItem:FillFeatureDetailsForLevel(levelChoices, 1, extraLevelInfo, "nonprimary", classFill)
                     end
                     local featureCache = CBFeatureCache.CreateNew(hero, classId, classItem.name, classFill)
+                    local selectionStatus = CBSelectionStatus.CreateNew{
+                        featureCache = featureCache,
+                        selectorName = SEL.CLASS,
+                        visible = true,
+                        suppressRow1 = false,
+                        displayName = "Class",
+                    }
 
                     newState[#newState+1] = { key = SEL.CLASS .. ".selectedItem", value = classItem }
                     newState[#newState+1] = { key = SEL.CLASS .. ".selectedSubclasses", value = classAndSubClasses }
                     newState[#newState+1] = { key = SEL.CLASS .. ".featureCache", value = featureCache }
+                    newState[#newState+1] = { key = SEL.CLASS .. ".selectionStatus", value = selectionStatus }
                 end
-                if cachedKitId ~= classId then
-                    local kitFeature = CharacterKitChoice.CreateNew(hero)
-                    if kitFeature then
-                        local features = {
-                            { feature = kitFeature }
-                        }
-                        local kitFeatureCache = CBFeatureCache.CreateNew(hero, classItem.id, classItem.name, features)
-                        newState[#newState+1] = { key = SEL.KIT .. ".selectedId", value = classId }
-                        newState[#newState+1] = { key = SEL.KIT .. ".featureCache", value = kitFeatureCache }
-                    else
-                        newState[#newState+1] = { key = SEL.KIT .. ".selectedId", value = nil }
-                        newState[#newState+1] = { key = SEL.KIT .. ".featureCache", value = nil }
-                    end
+
+                local kitFeature = CharacterKitChoice.CreateNew(hero)
+                if kitFeature then
+                    local features = {
+                        { feature = kitFeature }
+                    }
+                    local kitFeatureCache = CBFeatureCache.CreateNew(hero, classItem.id, classItem.name, features)
+                    local kitSelectionStatus = CBSelectionStatus.CreateNew{
+                        featureCache = kitFeatureCache,
+                        selectorName = SEL.KIT,
+                        visible = function(h) return h:CanHaveKits() end,
+                        suppressRow1 = true,
+                        displayName = "Kit",
+                    }
+                    newState[#newState+1] = { key = SEL.KIT .. ".selectedId", value = classId }
+                    newState[#newState+1] = { key = SEL.KIT .. ".featureCache", value = kitFeatureCache }
+                    newState[#newState+1] = { key = SEL.KIT .. ".selectionStatus", value = kitSelectionStatus }
+                else
+                    newState[#newState+1] = { key = SEL.KIT .. ".selectedId", value = nil }
+                    newState[#newState+1] = { key = SEL.KIT .. ".featureCache", value = nil }
+                    newState[#newState+1] = { key = SEL.KIT .. ".selectionStatus", value = nil }
                 end
             else
                 newState[#newState+1] = { key = SEL.CLASS .. ".selectedItem", value = nil }
                 newState[#newState+1] = { key = SEL.CLASS .. ".selectedSubclasses", value = nil }
                 newState[#newState+1] = { key = SEL.CLASS .. ".featureCache", value = nil }
+                newState[#newState+1] = { key = SEL.CLASS .. ".selectionStatus", value = nil }
                 newState[#newState+1] = { key = SEL.KIT .. ".selectedId", value = nil }
                 newState[#newState+1] = { key = SEL.KIT .. ".featureCache", value = nil }
+                newState[#newState+1] = { key = SEL.KIT .. ".selectionStatus", value = nil }
             end
             state:Set(newState)
             if not noFire then
