@@ -1801,7 +1801,7 @@ function creature:GrappleTN()
 end
 
 function creature:BloodiedThreshold()
-    return math.floor(self:MaxHitpoints() / 2)
+    return self:CalculateNamedCustomAttribute("dying value")
 end
 
 CustomAttribute.RegisterAttribute { id = "recoveryvalue", text = "Recovery Value", attributeType = "number", category = "Basic Attributes" }
@@ -3163,7 +3163,7 @@ function creature.TakeDamage(self, amount, note, info)
         return
     end
 
-    local isWindedAtStart = self:CurrentHitpoints() <= self:MaxHitpoints() / 2
+    local isWindedAtStart = self:IsWinded()
     local isBelowZeroAtStart = self:CurrentHitpoints() <= 0
     local isDeadAtStart = self:IsDead()
 
@@ -3216,7 +3216,7 @@ function creature.TakeDamage(self, amount, note, info)
     end
 
     --handle firing audio events.
-    local isWindedNow = self:CurrentHitpoints() <= self:MaxHitpoints() / 2
+    local isWindedNow = self:IsWinded()
     local isBelowZeroNow = self:CurrentHitpoints() <= 0
     local isDeadNow = self:IsDead()
 
