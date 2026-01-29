@@ -258,7 +258,8 @@ function CharacterBuilder.CreatePanel()
             -- print("THC:: MAIN:: REFRESHTOKEN::", os.date("%Y-%m-%d %H:%M:%S"))
             local state = element.data.state
 
-            local cachedToken = _getToken(state)
+            local cachedToken = _getToken()
+            local cachedTokenId = cachedToken and cachedToken.id
             local token
             if info then
                 token = info.token
@@ -268,9 +269,10 @@ function CharacterBuilder.CreatePanel()
             end
 
             if token then
-                if cachedToken and cachedToken.id ~= token.id then
-                    state = CharacterBuilderState.CreateNew()
-                    state:Set({key = "token", value = token})
+                if cachedTokenId ~= token.id then
+                    element.data.state = CharacterBuilderState.CreateNew()
+                    state = element.data.state
+                    state:Set{ key = "token", value = token }
                 end
                 element:FireEvent("ensureActiveSelector")
 
@@ -287,7 +289,7 @@ function CharacterBuilder.CreatePanel()
                     end
 
                     local ancestryId = hero:try_get("raceid")
-                    if ancestryId  then
+                    if true or ancestryId  then
                         element:FireEvent("selectAncestry", ancestryId, true)
                     end
 
@@ -314,8 +316,6 @@ function CharacterBuilder.CreatePanel()
                             if feature then feature:Update(hero) end
                         end
                     end
-
-                    -- TODO: Remaining data stored into state
 
                     -- Always cache levelChoices last. Other actions depend
                     -- on determining the difference between cache and current.
@@ -397,7 +397,7 @@ function CharacterBuilder.CreatePanel()
             local cachedLevelChoices = state:Get("levelChoices")
 
             local hero = _getHero()
-            local levelChoices = hero and hero:GetLevelChoices() or {}
+            local levelChoices = hero:GetLevelChoices() or {}
             local inheritedAncestry = hero:InheritedAncestry()
             local inheritedAncestryId = inheritedAncestry and inheritedAncestry.id or nil
 
@@ -427,8 +427,8 @@ function CharacterBuilder.CreatePanel()
                 newState[#newState+1] = { key = SEL.ANCESTRY .. ".inheritedId", value = inheritedAncestryId }
                 newState[#newState+1] = { key = SEL.ANCESTRY .. ".featureCache", value = featureCache }
                 newState[#newState+1] = { key = SEL.ANCESTRY .. ".selectionStatus", value = selectionStatus }
-                newState[#newState+1] = { key = SEL.ANCESTRY .. ".blockFeatureSelection", value = hero:try_get("raceid") == nil}
             end
+            newState[#newState+1] = { key = SEL.ANCESTRY .. ".blockFeatureSelection", value = hero:try_get("raceid") == nil}
             state:Set(newState)
             if not noFire then
                 element:FireEventTree("refreshBuilderState", state)
