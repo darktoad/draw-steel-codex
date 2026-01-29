@@ -8228,8 +8228,6 @@ function creature:DispatchEvent(eventName, info, onCompleteCallback)
 		end
 	end
 
-    --print("DISPATCH:: HAVE TRIGGER:", hasTrigger)
-
 	if hasTrigger == false then
 		--still remove any ongoing effects.
 		self:RemoveOngoingEffectsOnTrigger(eventName, info)
@@ -8241,8 +8239,6 @@ function creature:DispatchEvent(eventName, info, onCompleteCallback)
 
 	local token = dmhub.LookupToken(self)
 	local activecontroller = token.activeControllerId
-
-    --print("DISPATCH:: token =", creature.GetTokenDescription(token), "active controller =", activecontroller, "from event", eventName, "vs", dmhub.userid)
 
 	--we are the best choice to handle this event.
 	if activecontroller == nil then

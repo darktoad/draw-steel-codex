@@ -3954,7 +3954,6 @@ function creature:StartOnDying()
 end
 
 function creature:EndCombat()
-    local token = dmhub.LookupToken(self)
 
     local persistentAbilities = self:try_get("persistentAbilities", {})
     for i = #persistentAbilities, 1, -1 do
@@ -3990,8 +3989,12 @@ function creature:EndCombat()
         end
     end
 
+    local token = dmhub.LookupToken(self)
+    if token == nil then
+        return
+    end
+
     if not self:has_key("temporary_hitpoints_effect") and self:TemporaryHitpoints() > 0 then
-        local token = dmhub.LookupToken(self)
         token:ModifyProperties {
             description = "Remove Temporary Hit Points",
             execute = function()

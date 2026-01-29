@@ -5056,6 +5056,7 @@ function GameHud.CreateActionBar(self, dialog, tokenInfo)
 				end
 			end,
 
+
             chooseTarget = function(element, options)
 
                 ClearRadiusMarkers()

@@ -883,7 +883,6 @@ function TriggeredAbility:Trigger(characterModifier, creature, symbols, auraCont
             success = true,
         }
 
-        print("DISPATCH:: HANDLE TRIGGER", self.name, "TOKEN", creature.GetTokenDescription(casterToken))
     end
 
 	local executeTrigger = function()
@@ -1104,7 +1103,6 @@ end
 
 function TriggeredAbility:TriggerCo(targets, characterModifier, casterToken, creature, symbols, auraControllerToken, modContext, argOptions)
 
-    print("COROUTINE:: TriggerCo", self.name, "targets:", #targets, "symbols:", symbols, "auraControllerToken:", auraControllerToken and auraControllerToken.name or "nil", "modContext:", modContext)
     argOptions = argOptions or {}
 
 	if auraControllerToken == nil then
