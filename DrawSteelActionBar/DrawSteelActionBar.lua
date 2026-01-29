@@ -2158,6 +2158,7 @@ local g_castButton
 local g_skipButton
 local g_castMessage
 local g_castMessageContainer
+local g_tokenSelectionContainer
 
 local g_castModesPanel
 local g_forcedMovementTypePanel
@@ -2574,6 +2575,82 @@ local SetTargetsInRadius = function(tokens)
     g_pointForceTargets = tokens
 end
 
+local function CreateTokenSelectionContainer()
+    local resultPanel
+    
+    resultPanel = gui.Panel {
+        styles = {
+            {
+                selectors = {"selectable"},
+                opacity = 0,
+            },
+            {
+                selectors = {"selectable", "hover"},
+                opacity = 1,
+            }
+        },
+        width = "auto",
+        height = "auto",
+        halign = "center",
+        valign = "bottom",
+        flow = "horizontal",
+        bgimage = true,
+		cornerRadius = 10,
+		bgcolor = "#000000fa",
+		borderColor = "#000000fa",
+		borderWidth = 10,
+		borderFade = true,
+        pad = 10,
+
+        maxWidth = 800,
+        wrap = true,
+        settokens = function(element, tokens)
+            if tokens == nil then
+                element.children = {}
+                element:SetClass("collapsed", true)
+                return
+            end
+
+            local children = {}
+
+            for _,token in ipairs(tokens) do
+                local image = gui.CreateTokenImage(token, {
+                    width = 64,
+                    height = 64,
+                    halign = "center",
+                    valign = "center",
+                })
+
+                local tok = token
+
+                local child = gui.Panel{
+                    classes = {"selectable"},
+                    width = "auto",
+                    height = "auto",
+                    bgimage = true,
+                    bgcolor = "#ffffff22",
+                    borderWidth = 1,
+                    borderColor = "white",
+                    image,
+                    press = function(element)
+                        if tok.valid then
+                            dmhub.CenterOnToken(tok)
+                        end
+                    end,
+                }
+
+
+                children[#children + 1] = child
+            end
+
+            element.children = children
+            element:SetClass("collapsed", #children == 0)
+        end,
+    }
+
+    return resultPanel
+end
+
 CreateAbilityController = function()
     local resultPanel
 
@@ -2612,18 +2689,19 @@ CreateAbilityController = function()
         height = "auto",
         bold = true,
         fontSize = 16,
-        classes = { 'collapsed' },
         refresh = function(element)
+            print("ChooseTarget:: have message", element.data.promptText)
             if element.data.promptText == nil or element.data.promptText == "" then
                 g_castMessageContainer:SetClass("collapsed", true)
                 return
             end
 
             element.text = element.data.promptText
-
-            g_castMessageContainer:SetClass("collapsed", element.text == "")
+            g_castMessageContainer:SetClass("collapsed", false)
         end,
     }
+
+    g_tokenSelectionContainer = CreateTokenSelectionContainer()
 
     g_castMessageContainer = gui.TooltipFrame(g_castMessage, {
     })
@@ -3015,6 +3093,7 @@ CreateAbilityController = function()
         g_triggerReactionPanel,
 
         g_castMessageContainer,
+        g_tokenSelectionContainer,
 
 
         g_forcedMovementTypePanel,
@@ -3167,7 +3246,9 @@ CreateAbilityController = function()
 
             g_targetInfo = CreateTargetInfo(g_currentAbility)
 
+            print("ChooseTarget:: collapse message")
             g_castMessageContainer:SetClass("collapsed", true)
+            g_tokenSelectionContainer:SetClass("collapsed", true)
             g_castButton:SetClass("collapsed", true)
 
             if ability.targetType ~= 'self' and ability.targetType ~= 'target' and ability.targetType ~= 'all' and ability.targetType ~= 'areatemplate' then
@@ -3357,11 +3438,15 @@ CreateAbilityController = function()
             element:SetClass("collapsed", true)
         end,
 
+        chooseTargetToken = function(element, options)
+            element:FireEvent("chooseTarget", options)
+        end,
+
         chooseTarget = function(element, options)
             assert(g_actionBar ~= nil)
             ClearRadiusMarkers()
 
-            if options.sourceToken ~= nil then
+            if options.sourceToken ~= nil and options.radius ~= nil then
                 print("MovementRadius:: MARK", options.radius)
                 AddRadiusMarker(options.sourceToken.locsOccupying, options.radius)
             end
@@ -3371,14 +3456,19 @@ CreateAbilityController = function()
             local choose = options.choose or function(target) end
             local cancel = options.cancel or function() end
 
+            print("ChooseTarget:: targets=", #targets)
+
             gui.SetFocus(nil)
             g_actionBar:FireEvent("refresh")
 
             g_actionBar:SetClassTree("choosingTarget", true)
 
-            g_castMessage:SetClass('collapsed', false)
+            g_tokenSelectionContainer:FireEvent("settokens", targets)
+
             g_castMessage.data.promptText = promptText
             g_castMessage:FireEvent("refresh")
+            g_abilityController:SetClass("collapsed", false)
+            g_castButton:SetClass("collapsed", true)
 
             local targetChooser = gui.Panel {
                 width = 1,
@@ -3387,13 +3477,18 @@ CreateAbilityController = function()
                 escapePriority = EscapePriority.CANCEL_ACTION_BAR,
                 captureEscape = true,
                 escape = function(element)
+                print("ChooseTarget:: escape")
                     element:DestroySelf()
                 end,
                 defocus = function(element)
+                print("ChooseTarget:: defocus")
                     element:DestroySelf()
                 end,
                 destroy = function()
-                    g_castMessage:SetClass('collapsed', true)
+                print("ChooseTarget:: destroy")
+                    g_castMessage.data.promptText = ''
+                    g_castMessage:FireEvent("refresh")
+                    g_abilityController:SetClass("collapsed", true)
                     ClearRadiusMarkers()
                     cancel()
                     for _, tok in ipairs(targets) do
@@ -3407,13 +3502,12 @@ CreateAbilityController = function()
                 end,
             }
 
-            g_actionBar:AddChild(targetChooser)
-            gui.SetFocus(targetChooser)
 
             local targetInfo = {
                 type = "ActivatedAbility",
                 guid = dmhub.GenerateGuid(),
                 execute = function(targetToken, info) --info has {targetEffects = {list of effect panels}}
+                print("ChooseTarget:: execute")
                     choose(targetToken)
                     cancel = function() end
                     gui.SetFocus(nil)
@@ -3430,6 +3524,9 @@ CreateAbilityController = function()
                     tok.sheet:FireEvent("target", {})
                 end
             end
+
+            g_actionBar:AddChild(targetChooser)
+            gui.SetFocus(targetChooser)
         end,
 
         --- @param invokerInfo nil|{oncast=nil|function, oncancel=nil|function}
@@ -4140,7 +4237,6 @@ CreateAbilityController = function()
                     end
 
                     local promptText = g_currentAbility:PromptText(g_token, targets, g_currentSymbols)
-                    g_castMessage:SetClass('collapsed', false)
                     g_castMessage.data.promptText = promptText
                     g_castMessage:FireEvent("refresh")
                     return
@@ -4488,7 +4584,6 @@ CalculateSpellTargeting = function(forceCast, initialSetup)
 
 
             local promptText = g_currentAbility:PromptText(g_token, targets, g_currentSymbols, synthesizedSpells)
-            g_castMessage:SetClass('collapsed', false)
             g_castMessage.data.promptText = promptText
             g_castMessage:FireEvent("refresh")
 

@@ -619,6 +619,7 @@ TokenHud.RegisterPanel{
 
 										local percent = barInfo.value/max
 										element.data.value = percent
+                                        element.data.rawValue = barInfo.value/barInfo.max
 										element.data.prevTime = dmhub.Time()
 										local seek = barInfo.seek or barInfo.base.seek
 										if seek == nil then
@@ -671,7 +672,7 @@ TokenHud.RegisterPanel{
 
 										if element.data.colorTable ~= nil then
 											for i,entry in ipairs(element.data.colorTable) do
-												if entry.value == nil or element.data.prevValue >= entry.value then
+												if entry.value == nil or element.data.rawValue >= entry.value then
 													element.selfStyle.bgcolor = entry.color
 
 													if entry.gradient ~= nil then

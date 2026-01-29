@@ -1331,18 +1331,20 @@ end
 function ActivatedAbilityDrawSteelCommandBehavior.DisplayRuleTextForCreature(caster, rule, notes, fullyImplemented)
     local starting = rule
     if caster ~= nil then
-        local potency = caster:CalculatePotencyValue("Strong")
+        local potencyStrong = caster:CalculatePotencyValue("Strong")
+        local potencyAverage = caster:CalculatePotencyValue("Average")
+        local potencyWeak = caster:CalculatePotencyValue("Weak")
         local startingRule = rule
 
         --old way. Deprecate later?
-        rule = regex.ReplaceAll(rule, "(?<attr>[MARIP]) \\[weak\\]", string.format("<color=#ff4444><uppercase>${attr}</uppercase>%d</color>", potency-2))
-        rule = regex.ReplaceAll(rule, "(?<attr>[MARIP]) \\[average\\]", string.format("<color=#ff4444><uppercase>${attr}</uppercase>%d</color>", potency-1))
-        rule = regex.ReplaceAll(rule, "(?<attr>[MARIP]) \\[strong\\]", string.format("<color=#ff4444><uppercase>${attr}</uppercase>%d</color>", potency))
+        rule = regex.ReplaceAll(rule, "(?<attr>[MARIP]) \\[weak\\]", string.format("<color=#ff4444><uppercase>${attr}</uppercase>%d</color>", potencyWeak))
+        rule = regex.ReplaceAll(rule, "(?<attr>[MARIP]) \\[average\\]", string.format("<color=#ff4444><uppercase>${attr}</uppercase>%d</color>", potencyAverage))
+        rule = regex.ReplaceAll(rule, "(?<attr>[MARIP]) \\[strong\\]", string.format("<color=#ff4444><uppercase>${attr}</uppercase>%d</color>", potencyStrong))
 
         --new way.
-        rule = regex.ReplaceAll(rule, "(if the target has )?(?<attr>[MARIP]) < \\[?weak\\]?", string.format("<color=#ff4444><uppercase>${attr}</uppercase> < %d</color>", potency-2))
-        rule = regex.ReplaceAll(rule, "(if the target has )?(?<attr>[MARIP]) < \\[?average\\]?", string.format("<color=#ff4444><uppercase>${attr}</uppercase> < %d</color>", potency-1))
-        rule = regex.ReplaceAll(rule, "(if the target has )?(?<attr>[MARIP]) < \\[?strong\\]?", string.format("<color=#ff4444><uppercase>${attr}</uppercase> < %d</color>", potency))
+        rule = regex.ReplaceAll(rule, "(if the target has )?(?<attr>[MARIP]) < \\[?weak\\]?", string.format("<color=#ff4444><uppercase>${attr}</uppercase> < %d</color>", potencyWeak))
+        rule = regex.ReplaceAll(rule, "(if the target has )?(?<attr>[MARIP]) < \\[?average\\]?", string.format("<color=#ff4444><uppercase>${attr}</uppercase> < %d</color>", potencyAverage))
+        rule = regex.ReplaceAll(rule, "(if the target has )?(?<attr>[MARIP]) < \\[?strong\\]?", string.format("<color=#ff4444><uppercase>${attr}</uppercase> < %d</color>", potencyStrong))
 
         --Add potency bonus when numeric gate is used
         local potencyBonus = caster:CalculateNamedCustomAttribute("Potency Bonus")
@@ -1354,7 +1356,7 @@ function ActivatedAbilityDrawSteelCommandBehavior.DisplayRuleTextForCreature(cas
         end
 
         if rule ~= startingRule and notes ~= nil then
-            notes[#notes+1] = string.format("<color=#ff4444>Caster has a Potency of %d</color>", potency)
+            notes[#notes+1] = string.format("<color=#ff4444>Caster has a Potency of %d/%d/%d</color>", potencyWeak, potencyAverage, potencyStrong)
         end
 
         rule = ActivatedAbilityDrawSteelCommandBehavior.NormalizeRuleTextForCreature(caster, rule, notes)
