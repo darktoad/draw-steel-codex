@@ -779,12 +779,26 @@ function CBOptionWrapper:Panel()
     local fn = _safeGet(self.option, "panel", nil)
     if fn ~= nil then return fn end
 
-    -- Check if raw option has CreateDropdownPanel method (from GetOptions())
-    local option = self.option
-    if type(_safeGet(option, "CreateDropdownPanel")) == "function" then
-        return function()
-            return option:CreateDropdownPanel(self:GetName())
+    local function evaluateModifier(modifier)
+        if modifier.behavior == "activated" or modifier.behavior == "triggerdisplay" or modifier.behavior == "routine" then
+            local ability = rawget(modifier, cond(modifier.behavior == "activated", "activatedAbility", "ability"))
+            if ability ~= nil then
+                return function()
+                    return ability:Render({
+                        width = "96%",
+                        halign = "center",
+                        bgimage = true,
+                        bgcolor = CBStyles.COLORS.BLACK03}, {})
+                end
+            end
         end
+    end
+
+    -- See if we can calculate a panel from modifiers
+    local modifiers = _safeGet(self.option, "modifiers", {})
+    for _,modifier in ipairs(modifiers) do
+        local fn = evaluateModifier(modifier)
+        if fn then return fn end
     end
 
     -- See if we can calculate a panel from modifierInfo
@@ -792,18 +806,8 @@ function CBOptionWrapper:Panel()
     if modifierInfo then
         for _,feature in ipairs(modifierInfo:try_get("features", {})) do
             for _,modifier in ipairs(feature:try_get("modifiers", {})) do
-                if modifier.behavior == "activated" or modifier.behavior == "triggerdisplay" or modifier.behavior == "routine" then
-                    local ability = rawget(modifier, cond(modifier.behavior == "activated", "activatedAbility", "ability"))
-                    if ability ~= nil then
-                       return function()
-                            return ability:Render({
-                                width = "96%",
-                                halign = "center",
-                                bgimage = true,
-                                bgcolor = CBStyles.COLORS.BLACK03}, {})
-                        end
-                    end
-                end
+                local fn = evaluateModifier(modifier)
+                if fn then return fn end
             end
         end
     end

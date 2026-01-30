@@ -499,6 +499,10 @@ local TEST_DETAIL = [[
 
 **Latest Release**
 
+* Resolved issue with (sometimes?) not displaying ability cards in selected features.
+
+**Previous Releases**
+
 * Swapped order of Ancestry & Character buttons.
 * Removed the debug data randomizer on character description.
 * Resolved issue w/ status indicators displaying inaccurately on Ancestry, Career, and Class when switching between characters.
@@ -507,13 +511,10 @@ local TEST_DETAIL = [[
 * Added hover tooltip to remind you to choose your main feature before choosing sub-features.
 * Aggregate cultures that have langages now set their cultural language.
 
-**Previous Releases**
-
 * Everyone is opted in. Happy testing. Let us know what we broke.
 * Added double-click as a way to select & deselect features (column 3).
 * Added drag & drop as a way to select & deselect features (column 3).
 * Changed the select feature icon / button to a + (column 3) & added hover tooltip.
-
 * Added the ability to select aggregate cultures as starting points, then you can still change individual aspects.
 * Modified the progress indicators on the buttons in column 2.
 * Made the background on certain ability cards dark instead of transparent.
@@ -527,12 +528,12 @@ local TEST_DETAIL = [[
 # Known Issues
 
 **Functionality**
-* In the selection lists, we sometimes display redundant, empty, or meaningless extra info / description info. But try hovering it.
+* In the selection lists, we sometimes display redundant, empty, or meaningless extra info / description info. But try hovering it. We can fix this once we're confident enough to remove the previous builder.
 * Exploration tab should list Perks.
 
 **Styling / UI**
-* Some ability cards do not like to be constrained within parent panels.
-* Second tier selection buttons, like after you've selected a class, are displayed in a long (albeit sorted) list instead of categorized.
+* Some ability cards do not like to be constrained within parent panels. This will also be resolved after we're confident enough to remove the previous builder.
+* Second tier selection buttons, like after you've selected a class, are displayed in a long (albeit sorted) list instead of categorized. Primarily an issue in Class, which can get very long.
 
 # Reporting Issues
 

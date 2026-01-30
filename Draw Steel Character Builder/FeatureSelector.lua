@@ -236,13 +236,10 @@ function CBFeatureSelector.SelectionPanel(selector, feature)
                 element:FireEventTree("updateName", name)
                 element:FireEventTree("updateDesc", option and option:GetDescription() or "")
 
-                -- Workaround: Options never have panels but choices do.
                 local isSelected = false
                 if option and cachedFeature then
-                    isSelected = cachedFeature:GetSelectedOptionId() == option:GetGuid()
-                    local choice = cachedFeature:GetChoice(option:GetGuid())
-                    -- element:FireEventTree("customPanel", choice and choice:Panel())
                     element:FireEventTree("customPanel", option:Panel())
+                    isSelected = cachedFeature:GetSelectedOptionId() == option:GetGuid()
                 end
                 element:SetClass("filled", option ~= nil)
                 element:SetClass("selected", isSelected)
