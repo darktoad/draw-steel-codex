@@ -500,6 +500,8 @@ local TEST_DETAIL = [[
 **Latest Release**
 
 * Resolved issue with (sometimes?) not displaying ability cards in selected features.
+* Added filter to Complications selector.
+* Added level groupings to Class feature selection (col2).
 
 **Previous Releases**
 

@@ -93,6 +93,11 @@ function CBFeatureCache:GetFlattenedFeatures()
     return self.flattened
 end
 
+--- @return table
+function CBFeatureCache:GetKeyedFeatures()
+    return self.keyed
+end
+
 --- @return string key The key of the item selected on the hero
 function CBFeatureCache:GetSelectedId()
     return self.selectedId
@@ -159,7 +164,7 @@ function CBFeatureCache._processFeatures(opts, hero, features)
         local itemFeatures = _safeGet(item, "features")
         local itemFeature = _safeGet(item, "feature")
         local levels = _safeGet(item, "levels")
-        local level = levels and levels[1] or 1
+        local level = levels and levels[1] or 0
         if itemFeatures ~= nil then
             for _,feature in ipairs(itemFeatures) do
                 flattened[#flattened+1] = { feature = feature }
@@ -201,6 +206,7 @@ function CBFeatureWrapper.CreateNew(hero, feature, level)
         order = nameOrder,
         categoryOrder = categoryOrder,
         currentOptionId = nil,
+        level = level,
     }
 
     newObj:Update(hero)
@@ -289,6 +295,11 @@ end
 --- @return string
 function CBFeatureWrapper:GetGuid()
     return self.feature.guid
+end
+
+--- @return integer|nil
+function CBFeatureWrapper:GetLevel()
+    return self:try_get("level")
 end
 
 --- Get the maximum number of target panels that should be visible

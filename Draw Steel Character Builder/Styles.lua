@@ -344,6 +344,30 @@ local function _panelStyles()
             bgcolor = CBStyles.COLORS.GRAY02,
         },
 
+        -- Level Dividers in Class Panel
+        {
+            selectors = {"class-divider", "builder-header"},
+            width = "100%",
+            height = "auto",
+            valign = "top",
+            halign = "left",
+            tmargin = 4,
+        },
+        {
+            selectors = {"class-divider", "builder-check"},
+            halign = "right",
+            valign = "center",
+            hmargin = 40,
+            width = 24,
+            height = 24,
+            bgimage = "icons/icon_common/icon_common_29.png",
+            bgcolor = "clear",
+        },
+        {
+            selectors = {"class-divider", "builder-check", "complete"},
+            bgcolor = CBStyles.COLORS.GOLD03,
+        },
+
         -- Right-side character panel
         {
             selectors = {"charpanel", "tab-content"},
@@ -799,6 +823,21 @@ local function _labelStyles()
             selectors = {"bonus-selector", "selected"},
             color = CBStyles.COLORS.GOLD03,
             borderColor = CBStyles.COLORS.CREAM03,
+        },
+
+        -- Class panel level dividers
+        {
+            selectors = {"class-divider", "builder-header"},
+            halign = "left",
+            valign = "bottom",
+            width = "90%",
+            textAlignment = "left",
+            vpad = 4,
+            fontSize = 20,
+            color = CBStyles.COLORS.GOLD03,
+            bgimage = true,
+            border = {y1 = 2, y2 = 0, x1 = 0, x2 = 0},
+            borderColor = CBStyles.COLORS.GOLD03,
         },
 
         -- For the right-side character panel / builder tab

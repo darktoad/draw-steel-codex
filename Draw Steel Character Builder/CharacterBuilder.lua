@@ -730,12 +730,20 @@ function CharacterBuilder._makeFeatureRegistry(options)
                     featureId = feature:GetGuid(),
                     selectedId = selectedId,
                     order = feature:GetOrder(),
+                    level = feature:GetLevel(),
+                    visible = true,
                 },
                 press = function(element)
                     CharacterBuilder._fireControllerEvent("updateState", {
                         key = selector .. ".category.selectedId",
                         value = element.data.featureId
                     })
+                end,
+                showLevel = function(element, level, expanded)
+                    if element.data.level == level then
+                        element.data.visible = expanded
+                    end
+                    element:SetClass("collapsed-anim", not element.data.visible)
                 end,
                 CharacterBuilder._makeCategoryButton{
                     text = CharacterBuilder._stripSignatureTrait(feature:GetName()),
@@ -750,19 +758,19 @@ function CharacterBuilder._makeFeatureRegistry(options)
                         local featureCache = state:Get(selector .. ".featureCache")
                         feature = featureCache and featureCache:GetFeature(element.parent.data.featureId)
                         local featureAvailable = feature ~= nil
-                        local visible = tokenSelected == element.parent.data.selectedId and featureAvailable
+                        local visible = (tokenSelected == element.parent.data.selectedId) and featureAvailable
                         element:FireEvent("setAvailable", visible)
                         element:FireEvent("setSelected", element.parent.data.featureId == state:Get(selector .. ".category.selectedId"))
                         element:SetClass("collapsed", not visible)
                     end,
                 },
                 CharacterBuilder.ProgressPip(1, {
-                    rotate = 45,
+                    rotate = 0,
                     classes = {"builder-base", "panel-base", "progress-pip", "solo"},
                     halign = "right",
                     valign = "top",
-                    hmargin = -6,
-                    vmargin = -6,
+                    hmargin = 3,
+                    vmargin = 3,
                     width = 12,
                     height = 12,
                     borderColor = CBStyles.COLORS.GOLD,
