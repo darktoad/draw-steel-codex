@@ -371,7 +371,7 @@ function DTGrantRollsDialog:_createCharacterSelector()
 
     local function followerFilter(token)
         local follower = token.properties
-        if follower and follower.followerType and type(follower.followerType) == "string" then
+        if follower and follower:try_get("followerType") and type(follower.followerType) == "string" then
             local type = follower.followerType:lower()
             return type == "artisan" or type == "sage"
         end
