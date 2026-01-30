@@ -335,9 +335,11 @@ local function CreateAbilityPanel()
 
         gui.Panel {
             classes = { "abilityIconPanel" },
+            gradientMapping = true,
             ability = function(element, ability, c)
                 element.bgimage = ability.iconid
                 element.selfStyle = ability.display
+                element.selfStyle.gradient = DisplayGradients.GetGradient(rawget(ability, "iconGradient"))
             end,
         },
 

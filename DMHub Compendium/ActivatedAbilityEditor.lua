@@ -1086,6 +1086,7 @@ function ActivatedAbility:IconEditorPanel()
 		width = 64,
 		height = 64,
 		halign = "left",
+        gradientMapping = true,
 		value = self.iconid,
 		change = function(element)
 			self.iconid = element.value
@@ -1094,6 +1095,7 @@ function ActivatedAbility:IconEditorPanel()
 			element.selfStyle.hueshift = self.display['hueshift']
 			element.selfStyle.saturation = self.display['saturation']
 			element.selfStyle.brightness = self.display['brightness']
+            element.selfStyle.gradient = DisplayGradients.GetGradient(self:try_get("iconGradient") or "none")
 		end,
 	}
 
@@ -1176,6 +1178,22 @@ function ActivatedAbility:IconEditorPanel()
 		height = "auto",
 		flow = "vertical",
 		iconPanel,
+        gui.Panel{
+            classes = {"formPanel"},
+            gui.Label{
+                classes = {"formLabel"},
+                text = "Gradient:",
+            },
+            gui.Dropdown{
+                classes = {"formDropdown"},
+                options = DisplayGradients.GetOptions(),
+                idChosen = self:try_get("iconGradient", "none"),
+                change = function(element)
+                    self.iconGradient = element.idChosen
+					iconEditor:FireEvent('create')
+                end,
+            }
+        },
 		CreateDisplaySlider{ label = "Hue:", attr = 'hueshift', minValue = 0, maxValue = 1, },
 		CreateDisplaySlider{ label = "Saturation:", attr = 'saturation', minValue = 0, maxValue = 2, },
 		CreateDisplaySlider{ label = "Brightness:", attr = 'brightness', minValue = 0, maxValue = 2, },

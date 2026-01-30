@@ -1310,15 +1310,17 @@ local function AbilityHeading(args)
                     element.bgimage = "panels/square.png"
                     element.selfStyle.gradient = cond(ability.actionResourceId == CharacterResource.triggerResourceId,
                         mod.shared.triggerGradient, mod.shared.freeTriggerGradient)
+                    element.selfStyle.gradientMapping = false
                     element.selfStyle.bgcolor = "white"
                     element.selfStyle.hueshift = 0
                     element.selfStyle.saturation = 1
                     element.selfStyle.brightness = 1
                 else
                     element.text = ""
-                    element.selfStyle.gradient = nil
                     element.bgimage = ability.iconid
                     element.selfStyle = ability.display
+                    element.selfStyle.gradient = DisplayGradients.GetGradient(rawget(ability, "iconGradient"))
+                    element.selfStyle.gradientMapping = true
                 end
             end,
         },
