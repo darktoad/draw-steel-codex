@@ -375,12 +375,17 @@ local function CreateAbilityPanel()
                 element:SetClass("hidden", not c:IsActivatedAbilityInnate(ability))
             end,
             press = function(element)
-                CharacterSheet.instance:AddChild(m_ability:ShowEditActivatedAbilityDialog {
+                --this gets the actual underlying ability.
+                local ability = CharacterSheet.instance.data.info.token.properties:IsActivatedAbilityInnate(m_ability)
+                if not ability then
+                    return
+                end
+                CharacterSheet.instance:AddChild(ability:ShowEditActivatedAbilityDialog {
                     close = function(element)
                         CharacterSheet.instance:FireEvent("refreshAll")
                     end,
                     delete = function(element)
-                        CharacterSheet.instance.data.info.token.properties:RemoveInnateActivatedAbility(m_ability)
+                        CharacterSheet.instance.data.info.token.properties:RemoveInnateActivatedAbility(ability)
                     end,
                 })
             end,
@@ -639,7 +644,7 @@ local function CreateAbilityListPanel()
         refreshToken = function(element)
             local token = CharacterSheet.instance.data.info.token
             local c = token.properties
-            local abilities = c:GetActivatedAbilities { characterSheet = true }
+            local abilities = c:GetActivatedAbilities {} -- characterSheet = true }
             local children = {}
 
             local showAbilities = {}

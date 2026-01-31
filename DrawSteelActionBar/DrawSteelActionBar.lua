@@ -1047,7 +1047,6 @@ local function CreateActionBar()
         refresh = function(element)
             if #g_casterTokenStack == 0 then
                 g_token = dmhub.selectedOrPrimaryTokens[1]
-    print("ActionBar:: refresh g_token =", g_token)
             end
 
             if g_token == nil then
@@ -1258,15 +1257,17 @@ local function AbilityHeading(args)
                 --do not show ability if ctrl is held.
                 return
             end
-            local menu = element:FindParentWithClass("actionMenu")
-            if menu ~= nil then
-                menu:FireEvent("showability", m_ability)
-            else
+            --local menu = element:FindParentWithClass("actionMenu")
+            --if menu ~= nil then
+            --    menu:FireEvent("showability", m_ability)
+            --else
                 m_showingAbility = CharacterPanel.DisplayAbility(g_token, m_ability)
-            end
+            --end
+            print("ABILITY:: SHOW", m_showingAbility, m_ability)
         end,
 
         dehover = function(element)
+            print("ABILITY:: HIDE", m_showingAbility, m_ability)
             if m_showingAbility then
                 CharacterPanel.HideAbility(m_ability)
             end
@@ -2073,7 +2074,6 @@ end
 local g_radiusMarkers = {}
 
 local AddCustomAreaMarker = function(locs, color)
-    print("MARK:: MARK LOCS")
     g_radiusMarkers[#g_radiusMarkers + 1] = dmhub.MarkLocs {
         locs = locs,
         color = color,
@@ -2117,8 +2117,6 @@ local AddRadiusMarker = function(locOverride, radius, color, filterFunction)
         locs = newLocs
     end
 
-
-    print("MARK:: MovementRadius:: MarkLocs", locs and #locs, "radius =", radius, "from token", tokenCasting.charid, "override =", locOverride)
     g_radiusMarkers[#g_radiusMarkers + 1] = dmhub.MarkLocs {
         locs = locs,
         color = color,
@@ -2126,7 +2124,6 @@ local AddRadiusMarker = function(locOverride, radius, color, filterFunction)
 end
 
 local function ClearRadiusMarkers()
-    print("MovementRadius:: CLEAR")
     for i, marker in ipairs(g_radiusMarkers) do
         marker:Destroy()
     end
@@ -2143,6 +2140,7 @@ local function RemoveTokenTargeting()
     if g_targetInfo == nil then
         return
     end
+
     for _, token in ipairs(dmhub.allTokensIncludingObjects) do
         if token.valid and token.sheet ~= nil and token.sheet.data.targetInfo == g_targetInfo then
             token.sheet:FireEvent("untarget")
@@ -2606,8 +2604,12 @@ local function CreateTokenSelectionContainer()
 
         maxWidth = 800,
         wrap = true,
+        disable = function(element)
+            element.mapfocus = false
+        end,
         settokens = function(element, tokens)
             if tokens == nil then
+                element.mapfocus = false
                 element.children = {}
                 element:SetClass("collapsed", true)
                 return
@@ -2625,6 +2627,7 @@ local function CreateTokenSelectionContainer()
 
                 local tok = token
 
+
                 local child = gui.Panel{
                     classes = {"selectable"},
                     width = "auto",
@@ -2636,8 +2639,11 @@ local function CreateTokenSelectionContainer()
                     image,
                     press = function(element)
                         if tok.valid then
-                            dmhub.CenterOnToken(tok)
+                            dmhub.CenterOnToken(tok.charid)
                         end
+                    end,
+                    linger = function(element)
+                        gui.Tooltip(creature.GetTokenDescription(tok))(element)
                     end,
                 }
 
@@ -2647,6 +2653,7 @@ local function CreateTokenSelectionContainer()
 
             element.children = children
             element:SetClass("collapsed", #children == 0)
+            element.mapfocus = #children > 0
         end,
     }
 
@@ -2692,7 +2699,6 @@ CreateAbilityController = function()
         bold = true,
         fontSize = 16,
         refresh = function(element)
-            print("ChooseTarget:: have message", element.data.promptText)
             if element.data.promptText == nil or element.data.promptText == "" then
                 g_castMessageContainer:SetClass("collapsed", true)
                 return
@@ -3248,7 +3254,6 @@ CreateAbilityController = function()
 
             g_targetInfo = CreateTargetInfo(g_currentAbility)
 
-            print("ChooseTarget:: collapse message")
             g_castMessageContainer:SetClass("collapsed", true)
             g_tokenSelectionContainer:SetClass("collapsed", true)
             g_castButton:SetClass("collapsed", true)
@@ -3458,8 +3463,6 @@ CreateAbilityController = function()
             local choose = options.choose or function(target) end
             local cancel = options.cancel or function() end
 
-            print("ChooseTarget:: targets=", #targets)
-
             gui.SetFocus(nil)
             g_actionBar:FireEvent("refresh")
 
@@ -3479,15 +3482,12 @@ CreateAbilityController = function()
                 escapePriority = EscapePriority.CANCEL_ACTION_BAR,
                 captureEscape = true,
                 escape = function(element)
-                print("ChooseTarget:: escape")
                     element:DestroySelf()
                 end,
                 defocus = function(element)
-                print("ChooseTarget:: defocus")
                     element:DestroySelf()
                 end,
                 destroy = function()
-                print("ChooseTarget:: destroy")
                     g_castMessage.data.promptText = ''
                     g_castMessage:FireEvent("refresh")
                     g_abilityController:SetClass("collapsed", true)
@@ -3509,7 +3509,6 @@ CreateAbilityController = function()
                 type = "ActivatedAbility",
                 guid = dmhub.GenerateGuid(),
                 execute = function(targetToken, info) --info has {targetEffects = {list of effect panels}}
-                print("ChooseTarget:: execute")
                     choose(targetToken)
                     cancel = function() end
                     gui.SetFocus(nil)

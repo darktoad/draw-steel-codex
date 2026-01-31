@@ -2799,6 +2799,10 @@ function ActivatedAbilityBehavior:ApplyToEditor(parentPanel, list)
 			text = "Caster's Riders",
 		},
 		{
+			id = "caster_including_squad",
+			text = "Caster (including Squad)",
+		},
+		{
 			id = "caster_minions",
 			text = "Caster's Minions",
 		},

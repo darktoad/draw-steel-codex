@@ -110,7 +110,7 @@ function ActivatedAbilityInvokeAbilityBehavior:Cast(ability, casterToken, target
 
     repeat
 
-        if promptWhenResolving then
+        if promptWhenResolving and #targetChoices > 0 then
 
             print("ChooseTarget:: prompting...")
             targets = nil

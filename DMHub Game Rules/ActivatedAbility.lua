@@ -2893,6 +2893,24 @@ function ActivatedAbilityBehavior:ApplyToTargets(ability, casterToken, targets, 
                 result[#result+1] = { token = tok }
             end
         end
+    elseif self.applyto == 'caster_including_squad' then
+        result = {
+            {
+                token = casterToken,
+            },
+        }
+
+        if casterToken.properties.minion then
+            local squad = casterToken.properties:MinionSquad()
+            if squad ~= nil then
+
+                for _,tok in ipairs(dmhub.allTokens) do
+                    if tok.charid ~= casterToken.charid and tok.properties.minion and tok.properties:MinionSquad() == squad then
+                        result[#result+1] = { token = tok }
+                    end
+                end
+            end
+        end
     elseif self.applyto == 'caster_minions' then
         result = {}
 
@@ -2900,7 +2918,7 @@ function ActivatedAbilityBehavior:ApplyToTargets(ability, casterToken, targets, 
         if squad ~= nil then
 
             for _,tok in ipairs(dmhub.allTokens) do
-                if tok.charid ~= casterToken.charid and tok.properties:MinionSquad() == squad then
+                if tok.charid ~= casterToken.charid and tok.properties.minion and tok.properties:MinionSquad() == squad then
                     result[#result+1] = { token = tok }
                 end
             end

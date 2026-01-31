@@ -2195,6 +2195,7 @@ function CreateTokenHud(token)
 			end,
 
 			untarget = function(element)
+                print("ChooseTarget:: untarget token")
                 element.data.targetReason = nil
 				if targetEffect ~= nil then
                     print("TARGET:: UNTARGET")

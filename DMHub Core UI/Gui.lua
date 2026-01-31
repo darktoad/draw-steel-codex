@@ -3601,7 +3601,7 @@ function gui.CreateTokenImage(tokenArg, options)
 	local portraitPanel = gui.Panel{
 		idprefix = "token-portrait",
 		classes = 'token-image-portrait',
-		interactable = options.interactable or false,
+		interactable = false,
 
 		bgimage = bgimage,
 

@@ -3476,8 +3476,8 @@ end
 
 function creature:IsActivatedAbilityInnate(ability)
 	for i,a in ipairs(self.innateActivatedAbilities) do
-		if a == ability then
-			return true
+		if a == ability or a.guid == ability.guid then
+			return a
 		end
 	end
 
@@ -3487,7 +3487,7 @@ end
 function creature:RemoveInnateActivatedAbility(ability)
 	local abilities = {}
 	for i,a in ipairs(self.innateActivatedAbilities) do
-		if a ~= ability then
+		if a ~= ability and a.guid ~= ability.guid then
 			abilities[#abilities+1] = a
 		end
 	end
@@ -9771,6 +9771,12 @@ function creature:IsValid()
 		end
 	end
 
+    for _,a in ipairs(self:try_get("persistentAbilities", {})) do
+        if a.ability ~= nil and (type(a.ability) ~= "table" or getmetatable(a.ability) == nil) then
+            return false
+        end
+    end
+
 	for k,resource in pairs(self:try_get("resources", {})) do
 		if type(resource) ~= "table" or getmetatable(resource) == nil then
 			return false
@@ -9907,6 +9913,19 @@ function creature:Repair(localOnly)
 	for _,ability in ipairs(deleteList) do
 		self:RemoveInnateActivatedAbility(ability)
 	end
+
+    deleteList = {}
+
+    for i,a in ipairs(self:try_get("persistentAbilities", {})) do
+        if a.ability ~= nil and (type(a.ability) ~= "table" or getmetatable(a.ability) == nil) then
+            deleteList[#deleteList+1] = i
+        end
+    end
+
+    for i=#deleteList,1,-1 do
+        printf("Creature validation: removing invalid persistent ability from character %s", charid)
+        table.remove(self.persistentAbilities, deleteList[i])
+    end
 
 	deleteList = {}
 

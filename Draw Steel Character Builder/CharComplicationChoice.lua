@@ -63,7 +63,7 @@ end
 
 function CharacterComplicationChoice:OfferFilter()
     -- TODO: This throws the list height off. Need to resolve that.
-    return false
+    return true
 end
 
 function CharacterComplicationChoice:RemoveSelection(hero, option)
