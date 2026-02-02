@@ -429,7 +429,6 @@ dmhub.GetLightingInfo = function(floorid)
 	local shadows = dayInfo.GetShadows(t)
 	if dayInfo.outside then
 		local sunlight = dmhub.GetSettingValue("sunbrightness")
-		color = g_lightingColor
 		color.r = color.r * sunlight
 		color.g = color.g * sunlight
 		color.b = color.b * sunlight
