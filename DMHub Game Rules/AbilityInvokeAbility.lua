@@ -281,6 +281,9 @@ function ActivatedAbilityInvokeAbilityBehavior:Cast(ability, casterToken, target
 end
 
 function ActivatedAbilityInvokeAbilityBehavior.ExecuteInvoke(invokerToken, abilityClone, casterToken, targeting, symbols, options)
+    --record if we have to 'pay' for the invoke -- if work was done.
+    local haveToPay = false
+
     options = options or {}
 
     print("INVOKE:: STARTING:", abilityClone.name)
@@ -334,6 +337,7 @@ function ActivatedAbilityInvokeAbilityBehavior.ExecuteInvoke(invokerToken, abili
         if options.pay then
             --if the ability we invoked had to be paid for, we have to pay for the invoke.
             ability:CommitToPaying(casterToken, options)
+            haveToPay = true --we'll return that we 'did work' and have to pay.
         end
 	end
 
@@ -426,6 +430,7 @@ function ActivatedAbilityInvokeAbilityBehavior.ExecuteInvoke(invokerToken, abili
 
     print("INVOKE:: FINISHED FOR", abilityClone.name, coroutine.running(), "CANCELED:", canceled)
 
+    return haveToPay
 end
 
 ActivatedAbilityInvokeAbilityBehavior.abilityType = "custom"

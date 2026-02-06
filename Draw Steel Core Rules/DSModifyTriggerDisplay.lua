@@ -301,6 +301,7 @@ function TriggeredAbilityDisplay:Render(args)
     args.symbols = nil
 
     args.summary = nil
+    args.noninteractive = nil
 
     --see if there is a reason this trigger cannot be used.
     local suppressPanel = nil

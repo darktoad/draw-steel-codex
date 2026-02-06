@@ -421,6 +421,10 @@ function ActivatedAbility:AbilityTypeDescription()
     return resourceInfo.name
 end
 
+function ActivatedAbility.TabBGImage()
+    return mod.images.tabbg
+end
+
 function ActivatedAbility:Render(options, params)
 
 	params = params or {}
@@ -690,6 +694,10 @@ function ActivatedAbility:Render(options, params)
 
 		if #tokenDependentChildren > 0 then
 			tokenDependentInfoPanel = gui.Panel{
+                embedRollDialog = function(element, dialog)
+                    print("HIDE:: DO HIDE")
+                    element:SetClass("collapsed", true)
+                end,
 				width = "100%",
 				height = "auto",
 				flow = "vertical",
@@ -1320,7 +1328,6 @@ function ActivatedAbility:Render(options, params)
                 height = "auto",
                 tmargin = 2,
                 flow = "vertical",
-                wrap = true,
 
                 showAbilitySection = function(element, options)
                     if options.ability.name ~= self.name then
@@ -1334,6 +1341,44 @@ function ActivatedAbility:Render(options, params)
                         element:SetClass("highlight", false)
                     end
                 end,
+
+                --tab panel
+                gui.Panel{
+                    styles = {
+                        {
+                            selectors = {"tab"},
+                            collapsed = 1,
+                        },
+                        {
+                            selectors = {"tab", "parent:highlight"},
+                            collapsed = 0,
+                        }
+                    },
+
+                    classes = {"tab"},
+                    x = -46,
+                    floating = true,
+                    valign = "top",
+                    halign = "left",
+                    height = 136*0.8,
+                    width = 33*0.8,
+                    bgimage = mod.images.tabbg,
+                    bgcolor = 'white',
+
+                    gui.Label{
+                        color = "black",
+                        width = "auto",
+                        height = "auto",
+                        fontSize = 22,
+                        bold = true,
+                        text = "Target",
+                        y = -18,
+                        rotate = 90,
+                        halign = "center",
+                        valign = "center",
+                    },
+                },
+
 
                 gui.Panel{
                     width = "auto",
@@ -1411,8 +1456,20 @@ function ActivatedAbility:Render(options, params)
                 markdown = true,
             },
 
+            gui.Panel{
+                width = "100%",
+                height = "auto",
+                vmargin = 2,
+                embedRollDialog = function(element, dialog)
+                    element.children = {dialog}
+                end,
+            },
+
             --main Power Roll name + rolls king panel
             gui.Panel{
+                embedRollDialog = function(element, dialog)
+                    element:SetClass("collapsed", true)
+                end,
 
                 classes = {"abilitySection", cond(self:GetPowerRollDisplay() == "", "collapsed", nil)},
                 width = "100%",
@@ -1594,7 +1651,9 @@ function ActivatedAbility:Render(options, params)
 			width = 33*0.8,
 			bgimage = mod.images.tabbg,
 			bgcolor = 'white',
-
+            showAbilitySection = function(element, options)
+                element:SetClass("collapsed", true)
+            end,
 		},
 
         suppressPanel,

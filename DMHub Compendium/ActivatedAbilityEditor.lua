@@ -14,10 +14,8 @@ function CreateCompendiumItemTooltip(spell, options)
 		return nil
 	end
 
-	--some heuristics to grow the width if we are rendering a very long spell
-	local width = options.width or (400 + math.floor(#spell.description/1000)*100)
 
-	local result = spell:Render({
+    local args = {
 		pad = 0,
 		cornerRadius = 0,
 		bgimage = 'panels/square.png',
@@ -25,9 +23,18 @@ function CreateCompendiumItemTooltip(spell, options)
 		borderWidth = 0,
 		borderFade = false,
         blurBackground = true,
-		width = width,
         opacity = 1,
-	}, options)
+    }
+
+    for k,v in pairs(args) do
+        args[k] = options[k] or args[k]
+    end
+
+	--some heuristics to grow the width if we are rendering a very long spell
+	local width = options.width or (400 + math.floor(#spell.description/1000)*100)
+    args.width = width
+
+	local result = spell:Render(args, options)
 
 	if result == nil then
 		return result

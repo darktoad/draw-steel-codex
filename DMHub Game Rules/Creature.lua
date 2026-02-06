@@ -5808,6 +5808,11 @@ PathMoved.helpSymbols = {
         type = "boolean",
         desc = "Whether this path was a forced move.",
     },
+    verticalonly = {
+        name = "Vertical Only",
+        type = "boolean",
+        desc = "Whether this path only moved vertically (no horizontal movement).",
+    },
     distancetocreature = {
         name = "Distance to Creature",
         type = "function",
@@ -5838,6 +5843,16 @@ PathMoved.lookupSymbols = {
 
     forced = function(c)
         return c.path.forced
+    end,
+
+    verticalonly = function(c)
+        for i,step in ipairs(c.path.steps) do
+            if step.x ~= c.path.steps[1].x or step.y ~= c.path.steps[1].y then
+                return false
+            end
+        end
+
+        return true
     end,
 
     distancetocreature = function(c)

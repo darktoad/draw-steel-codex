@@ -354,6 +354,23 @@ function Kit.CombineKits(creature, a, b)
         modifierInfo = modifierInfo
 	}
 
+    result.weapons = {}
+    for k,v in pairs(a.weapons) do
+        result.weapons[k] = v
+    end
+
+    for k,v in pairs(b.weapons) do
+        result.weapons[k] = v
+    end
+
+    if a.armor == b.armor or a.armor == "None" then
+        result.armor = b.armor
+    elseif b.armor == "None" then
+        result.armor = a.armor
+    else
+        result.armor = string.format("%s/%s", a.armor, b.armor)
+    end
+
     for i=1,#abilities do
         abilities[i] = abilities[i]:MakeTemporaryClone()
         local modificationLog = {}

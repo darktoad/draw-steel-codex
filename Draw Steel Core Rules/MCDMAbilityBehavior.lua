@@ -21,14 +21,59 @@ end
 
 
 function ActivatedAbilityDrawSteelCommandBehavior:Cast(ability, casterToken, targets, options)
-    --ability:CommitToPaying(casterToken, options)
-    for _,target in ipairs(targets) do
-        if target.token ~= nil then
-            local rule = StringInterpolateGoblinScript(self.rule, casterToken.properties)
-            --print("INTERPOLATE::", self.rule, "->", rule)
-            self:ExecuteCommand(ability, casterToken, target.token, options, rule)
+    local promptWhenResolving = self:try_get("promptWhenResolving", false)
+
+    local targetChoices = {}
+    if promptWhenResolving then
+        for _,target in ipairs(targets or {}) do
+            local targetToken = target.token
+            targetChoices[#targetChoices+1] = targetToken
         end
     end
+
+    --ability:CommitToPaying(casterToken, options)
+
+    repeat
+        if promptWhenResolving and #targets > 0 then
+
+            targets = nil
+            GameHud.instance.actionBarPanel:FireEventTree("chooseTargetToken", {
+                sourceToken = casterToken,
+                targets = table.shallow_copy(targetChoices),
+                prompt = self:try_get("promptWhenResolvingText", "Choose Target"),
+                choose = function(targetToken)
+                    targets = {
+                        {
+                            token = targetToken,
+                        }
+                    }
+
+                    for i=1,#targetChoices do
+                        if targetChoices[i].charid == targetToken.charid then
+                            table.remove(targetChoices, i)
+                            break
+                        end
+                    end
+                end,
+                cancel = function()
+                    targets = {}
+                    targetChoices = {}
+                end,
+            })
+
+            while targets == nil do
+                coroutine.yield(0.1)
+            end
+        end
+
+        for _,target in ipairs(targets) do
+            if target.token ~= nil then
+                local rule = StringInterpolateGoblinScript(self.rule, casterToken.properties)
+                --print("INTERPOLATE::", self.rule, "->", rule)
+                self:ExecuteCommand(ability, casterToken, target.token, options, rule)
+            end
+        end
+    until promptWhenResolving == false or targetChoices == nil or #targetChoices == 0
 end
 
 local function InvokeAbilityRemote(standardAbilityName, targetToken, casterToken, abilityAttr, options)
@@ -65,7 +110,10 @@ local function InvokeAbility(ability, abilityClone, targetToken, casterToken, op
     local casting = false
 
     local symbols = { invoker = GenerateSymbols(casterToken.properties), upcast = options.symbols.upcast, charges = options.symbols.charges, cast = options.symbols.cast, spellname = options.symbols.spellname, forcedMovementOrigin = options.symbols.forcedMovementOrigin }
-    ActivatedAbilityInvokeAbilityBehavior.ExecuteInvoke(casterToken, abilityClone, targetToken, "prompt", symbols, options)
+    local haveToPay = ActivatedAbilityInvokeAbilityBehavior.ExecuteInvoke(casterToken, abilityClone, targetToken, "prompt", symbols, options)
+    if haveToPay then
+        ability:CommitToPaying(casterToken, options)
+    end
 end
 
 local function ExecuteDamage(behavior, ability, casterToken, targetToken, options, match)
@@ -272,6 +320,7 @@ local g_rulePatterns = {
                 local abilityBase = MCDMUtils.GetStandardAbility("Too Much Stability")
                 if abilityBase then
                     InvokeAbility(ability, abilityBase, targetToken, targetToken, options)
+                    ability:CommitToPaying(casterToken, options)
                 end
             end
 
@@ -1441,6 +1490,34 @@ function ActivatedAbilityDrawSteelCommandBehavior:EditorItems(parentPanel)
 
         },
     }
+
+    result[#result+1] = gui.Check{
+        text = "Prompt When Resolving",
+        value = self:try_get("promptWhenResolving", false),
+        change = function(element)
+            self.promptWhenResolving = element.value
+            parentPanel:FireEvent("refreshBehavior")
+        end,
+    }
+
+    if self:try_get("promptWhenResolving", false) then
+        result[#result+1] = gui.Panel{
+            classes = {"formPanel"},
+            gui.Label{
+                classes = {"formLabel"},
+                text = "Prompt:",
+            },
+            gui.Input{
+                classes = {"formInput"},
+                text = self:try_get("promptWhenResolvingText", ""),
+                placeholderText = "Choose Target",
+                characterLimit = 240,
+                change = function(element)
+                    self.promptWhenResolvingText = element.text
+                end
+            }
+        }
+    end
 
 	return result
 end

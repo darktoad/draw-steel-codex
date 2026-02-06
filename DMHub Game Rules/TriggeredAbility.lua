@@ -111,6 +111,20 @@ TriggeredAbility.TargetTypes = {
 		end,
 	},
     {
+        id = 'pathmoved',
+        text = 'Path Moved Along',
+        condition = function(ability)
+            return ability.trigger == "finishmove"
+        end,
+    },
+    {
+        id = 'pathmovednodest',
+        text = 'Path Moved Along Excluding Destination',
+        condition = function(ability)
+            return ability.trigger == "finishmove"
+        end,
+    },
+    {
         id = 'subject',
         text = 'Subject',
         condition = function(ability)
@@ -828,6 +842,23 @@ function TriggeredAbility:Trigger(characterModifier, creature, symbols, auraCont
 
         print("AURA:: FOUND", #targets)
         
+    elseif self.targetType == 'pathmoved' or self.targetType == 'pathmovednodest' then
+        local path = symbols.path
+        if path ~= nil and path.path ~= nil then
+            path = path.path
+            print("PATH::", path)
+            targets = {}
+            for i,step in ipairs(path.steps) do
+                targets[#targets+1] = {
+                    loc = step
+                }
+            end
+
+            if self.targetType == 'pathmovednodest' and #targets > 0 then
+                targets[#targets] = nil
+            end
+        end
+
 	elseif self.targetType == 'attacker' or self.targetType == 'target' then
 		if symbols[self.targetType] == nil then
 

@@ -1,5 +1,14 @@
 local mod = dmhub.GetModLoading()
 
+local g_settingTimeline = setting{
+    id = "rolltimeline",
+    description = "Timeline Dialog",
+    default = false,
+    editor = "check",
+    --section = "General",
+    storage = "preference",
+}
+
 local g_animateTiers = setting{
     id = "animate_tiers",
     description = "Animate Power Table During Rolls",
@@ -67,8 +76,24 @@ function ActivatedAbilityPowerRollBehavior.GetRollModFromEdgesAndBanes(edges, ba
     return bonus
 end
 
+local g_tierTextCacheNoValidation = {}
+local g_tierTextCache = {}
+
+dmhub.RegisterEventHandler("refreshTables", function(keys)
+    g_tierTextCache = {}
+    g_tierTextCacheNoValidation = {}
+end)
 
 local function FormatTierText(text, skipValidation)
+    local cache = g_tierTextCache
+    if skipValidation then
+        cache = g_tierTextCacheNoValidation
+    end
+
+    if cache[text] ~= nil then
+        return cache[text]
+    end
+
     if not skipValidation then
         text = ActivatedAbilityDrawSteelCommandBehavior.FormatRuleValidation(text)
     end
@@ -78,6 +103,8 @@ local function FormatTierText(text, skipValidation)
     end
 
     text = MarkdownDocument.FormatRichText(text, {player = not dmhub.isDM})
+
+    cache[text] = text
 
     return text
 end
@@ -438,7 +465,6 @@ ActivatedAbilityPowerRollBehavior.GetPowerTablePopulateCustom = function(rollPro
         for i=1,#g_TierNames do
             local tier = g_TierNames[i]
             local tierText = rollProperties.tiers[i]
-            print("TIER:: tierText =", tierText)
 
             if caster ~= nil then
                 tierText = ActivatedAbilityDrawSteelCommandBehavior.DisplayRuleTextForCreature(caster, tierText, nil, m_fullyImplemented)
@@ -505,7 +531,7 @@ ActivatedAbilityPowerRollBehavior.GetPowerTablePopulateCustom = function(rollPro
                 },
 
                 gui.Panel{
-                    vpad = 4,
+                    vpad = 0,
                     width = "17%",
                     height = "auto",
                     halign = "right",
@@ -522,8 +548,8 @@ ActivatedAbilityPowerRollBehavior.GetPowerTablePopulateCustom = function(rollPro
                         for _,target in ipairs(multitargets or {}) do
                             if target.tier == i then
                                 children[#children+1] = gui.CreateTokenImage(target.token, {
-                                    width = 32,
-                                    height = 32,
+                                    width = 20,
+                                    height = 20,
                                     halign = "right",
                                     valign = "center",
                                     bgcolor = "white",
@@ -1015,8 +1041,21 @@ function ActivatedAbilityPowerRollBehavior:Cast(ability, casterToken, targets, o
 
     local m_rollInfo = nil
 
+    local dialog = GameHud.instance.rollDialog
+
+    print("Timeline::", g_settingTimeline:Get())
+    if g_settingTimeline:Get() then
+        dialog = CharacterPanel.EmbedDialogInAbility()
+
+        --give a few cycles for the dialog to init.
+        for i=1,4 do
+            coroutine.yield(0.01)
+        end
+    end
+
+
     local rollKey
-    rollKey = GameHud.instance.rollDialog.data.ShowDialog{
+    rollKey = dialog.data.ShowDialog{
         description = ability.name .. ": Power Roll",
         title = ability.name,
         type = "ability_power_roll",
@@ -1176,14 +1215,12 @@ function ActivatedAbilityPowerRollBehavior:Cast(ability, casterToken, targets, o
 
         if promptWhenResolving then
 
-            print("ChooseTarget:: prompting...")
             targets = nil
             GameHud.instance.actionBarPanel:FireEventTree("chooseTargetToken", {
                 sourceToken = casterToken,
                 targets = table.shallow_copy(targetChoices),
                 prompt = self:try_get("promptWhenResolvingText", "Choose Target"),
                 choose = function(targetToken)
-                    print("ChooseTarget:: chosen")
                     targets = {
                         {
                             token = targetToken,
@@ -1287,9 +1324,7 @@ function ActivatedAbilityPowerRollBehavior:Cast(ability, casterToken, targets, o
 
                 ability.RecordTokenMessage(targetToken, options, string.format("Tier %d (%s)", tier, command))
 
-                print("Execute::", command)
                 self:ExecuteCommand(ability, casterTokenForCommand, targetToken, options, command)
-                print("Execute:: DONE", command)
 
                 if tier > highestTier and options.powerRollPass == "target" then
                     highestTier = tier
@@ -2497,11 +2532,21 @@ function RollPropertiesPowerTable:CustomPanel(message)
     local m_label = nil
     local m_showingInteraction = false
 
+    local m_complete = false
+
     m_resultPanel = gui.Panel{
         flow = "vertical",
         width = "100%",
         height = "auto",
+        data = {
+            complete = false,
+        },
 		refreshInfo = function(element, info, diceStyle, complete, rollInfo)
+            if m_complete then
+                return
+            end
+
+            m_complete = complete
 
             m_modifiersPanel:FireEvent("refreshInfo", info, diceStyle, complete, rollInfo)
 

@@ -364,7 +364,7 @@ CreateChatPanel = function()
                             if ok then
                                 child = result
                             else
-                                dmhub.CloudError("Error creating chat panel: ", result)
+                                dmhub.CloudError("Error creating chat panel in ChatPanel: ", message.messageType, result)
                                 g_errorPanels[message.key] = true
                             end
                         end

@@ -5412,6 +5412,7 @@ function CharSheet.KitPanel()
                     gui.Label {
                         classes = { "valueLabel" },
                         refreshKit = function(element, info, kit)
+                            print("KIT::", json(kit))
                             local weapons = kit.weapons
                             local weaponItems = {}
                             for w, _ in pairs(weapons) do
