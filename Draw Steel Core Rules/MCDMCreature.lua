@@ -1647,7 +1647,7 @@ end
 function monster:IsDying()
     if self:IsRetainer() then
         local hp = self:CurrentHitpoints()
-        return hp <= 0 and hp > -(self:MaxHitpoints() / 2)
+        return hp <= 0 and hp > -self:BloodiedThreshold()
     end
 
     return false
