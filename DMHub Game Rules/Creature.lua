@@ -442,7 +442,7 @@ end
 --- If the creature has climbing.
 --- @return boolean
 function creature:CanClimb()
-    return self:GetSpeed("climb") > 0
+    return self:GetSpeed("climb") >= self:WalkingSpeed()
 end
 
 
