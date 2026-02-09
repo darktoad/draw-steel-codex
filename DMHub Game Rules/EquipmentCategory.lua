@@ -18,6 +18,8 @@ EquipmentCategory.LeveledTreasureId = "e036b288-416c-4a2e-ac33-95c6a528ed87"
 EquipmentCategory.LightSourceId = "4c9fc2bb-1c17-4072-babe-c2e3a55faa65"
 EquipmentCategory.PacksId = "659f34f2-14d6-4e71-99c1-89d703d5ba48"
 EquipmentCategory.TrinketId = "659f34f2-14d6-4e71-99c1-89d703d5ba48"
+-- EquipmentCategory.ImbuementId = "7843c850-aa83-4a71-ad4a-8ce1ce4aea14"
+EquipmentCategory.ImbuementId = "f8795dac-fda0-48a7-ba63-c2618c812d76"
 
 EquipmentCategory.isUnarmored = false
 EquipmentCategory.isTool = false
@@ -280,6 +282,11 @@ end
 
 function EquipmentCategory.IsLightSource(item)
 	return cond(EquipmentCategory.lightSourceCategories[item:try_get("equipmentCategory", "")], true, false)
+end
+
+function EquipmentCategory.IsImbuement(item)
+    local cat = item:try_get("equipmentCategory", "")
+    return cat == EquipmentCategory.ImbuementId
 end
 
 function EquipmentCategory.IsMagical(item)
