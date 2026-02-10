@@ -3370,7 +3370,7 @@ function CharacterModifier:HasTriggeredEvent(creature, eventName, targetsOther)
         end
 
         local token = dmhub.LookupToken(creature)
-        if token == nil or (self.triggeredAbility:try_get("whenActive", "combat") == "combat" and dmhub.initiativeQueue:HasInitiative(InitiativeQueue.GetInitiativeId(token)) == false) then
+        if token == nil or (self.triggeredAbility:try_get("whenActive", "combat") == "combat" and (dmhub.initiativeQueue == nil or dmhub.initiativeQueue:HasInitiative(InitiativeQueue.GetInitiativeId(token)) == false)) then
             return false
         end
 
