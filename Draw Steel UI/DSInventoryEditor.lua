@@ -690,7 +690,7 @@ function DataTables.tbl_Gear.GenerateEditor(document, options)
                     },
                     events = {
                         refresh = function(element)
-                            element.idChosen = document:try_get("imbueTargetType", "Weapon")
+                            element.idChosen = document:try_get("imbueTargetType", "armor")
                         end,
                         change = function(element)
                             document.imbueTargetType = element.idChosen
