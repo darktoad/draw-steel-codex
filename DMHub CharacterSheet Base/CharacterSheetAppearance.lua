@@ -1305,7 +1305,7 @@ function CharSheet.AvatarSelectionPanel()
             halign = "center",
 
             gui.IconEditor {
-                library = cond(dmhub.GetSettingValue("popoutavatars"), "popoutavatars", "Avatar"),
+                library = "Avatar",
                 restrictImageType = "Avatar",
                 allowPaste = true,
                 borderColor = Styles.textColor,
