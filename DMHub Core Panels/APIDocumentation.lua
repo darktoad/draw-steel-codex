@@ -28,6 +28,9 @@ dmhub.RegisterEventHandler("link", function(url)
                 --merge into the main docs.
                 for _,field in ipairs(baseDocs.fields) do
                     for i=1,#docs.fields do
+                        if docs.fields[i].name == field.name then
+                            break
+                        end
                         if docs.fields[i].name > field.name then
                             table.insert(docs.fields, i, field)
                             break
