@@ -683,34 +683,52 @@ function CBFeatureWrapper:Update(hero)
 
     local options = {}
     local optionsKeyed = {}
-    local featureOptions = self.feature:GetOptions(levelChoices, hero)
-    for _,option in ipairs(featureOptions) do
-        local wrappedOption = CBOptionWrapper.CreateNew(option)
-        options[#options+1] = wrappedOption
-        optionsKeyed[wrappedOption:GetGuid()] = wrappedOption
-    end
-    table.sort(options, function(a,b) return a:GetOrder() < b:GetOrder() end)
-    self.options = options
-    self.optionsKeyed = optionsKeyed
-
     local choices = {}
     local choicesKeyed = {}
-    local featureChoices = self.feature:Choices(1, self.selected, hero) or {}
-    for _,choice in ipairs(featureChoices) do
-        if _safeGet(choice, "hidden", false) == false then
-            local wrappedChoice = CBOptionWrapper.CreateNew(choice)
-            if not self:_excludeChoice(hero, wrappedChoice) then
-                choices[#choices+1] = wrappedChoice
-                choicesKeyed[wrappedChoice:GetGuid()] = wrappedChoice
+    local pointsSpent = 0
+    local selectedNames = {}
+
+    if _hasFn(self.feature, "GetEntries") then
+        local featureEntries = self.feature:GetEntries(hero)
+        for _,entry in ipairs(featureEntries) do
+            local wrappedEntry = CBOptionWrapper.CreateNew(entry)
+            options[#options+1] = wrappedEntry
+            optionsKeyed[wrappedEntry:GetGuid()] = wrappedEntry
+            if _safeGet(entry, "hidden", false) == false then
+                if not self:_excludeChoice(hero, wrappedEntry) then
+                    choices[#choices+1] = wrappedEntry
+                    choicesKeyed[wrappedEntry:GetGuid()] = wrappedEntry
+                end
+            end
+        end
+    else
+        -- TODO: Remove this once we've refactored all choice types
+        local featureOptions = self.feature:GetOptions(levelChoices, hero)
+        for _,option in ipairs(featureOptions) do
+            local wrappedOption = CBOptionWrapper.CreateNew(option)
+            options[#options+1] = wrappedOption
+            optionsKeyed[wrappedOption:GetGuid()] = wrappedOption
+        end
+        local featureChoices = self.feature:Choices(1, self.selected, hero) or {}
+        for _,choice in ipairs(featureChoices) do
+            if _safeGet(choice, "hidden", false) == false then
+                local wrappedChoice = CBOptionWrapper.CreateNew(choice)
+                if not self:_excludeChoice(hero, wrappedChoice) then
+                    choices[#choices+1] = wrappedChoice
+                    choicesKeyed[wrappedChoice:GetGuid()] = wrappedChoice
+                end
             end
         end
     end
+
+    table.sort(options, function(a,b) return a:GetOrder() < b:GetOrder() end)
     table.sort(choices, function(a,b) return a:GetOrder() < b:GetOrder() end)
+
+    self.options = options
+    self.optionsKeyed = optionsKeyed
     self.choices = choices
     self.choicesKeyed = choicesKeyed
 
-    local pointsSpent = 0
-    local selectedNames = {}
     for _,id in ipairs(self.selected) do
         if optionsKeyed[id] then
             pointsSpent = pointsSpent + optionsKeyed[id]:GetPointsCost()
