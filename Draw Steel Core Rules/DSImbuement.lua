@@ -73,8 +73,9 @@ function DSImbuement.ImbueItem(imbueItem, targetItem)
     imbuements.byLevel = imbuements.byLevel or {}
 
     -- If the imbuement has a prereq, validate its presence
-    if imbueItem:try_get("imbuePrereq") then
-        if imbuements[imbueItem.imbuePrereq] == nil then
+    local prereq = imbueItem:try_get("imbuePrereq")
+    if prereq and prereq ~= "none" then
+        if imbuements[prereq] == nil then
             return nil, "Target item does not meet imbuement's prerequisites."
         end
     end
@@ -102,7 +103,7 @@ function DSImbuement.ImbueItem(imbueItem, targetItem)
     -- Apply the imbuement's features
     -- TODO: Remove if we decide we're not merging features
     local targetFeatures = targetItem:try_get("features", {})
-    for _,feature in ipairs(imbueItem.features) do
+    for _,feature in ipairs(imbueItem:try_get("features", {})) do
         targetFeatures[#targetFeatures+1] = feature
     end
     targetItem.features = targetFeatures

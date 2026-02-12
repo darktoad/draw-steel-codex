@@ -4911,6 +4911,7 @@ function CharSheet.NotesInnerPanel()
                 minHeight = 100,
                 textAlignment = "topleft",
                 fontSize = 14,
+                characterLimit = 10000,
                 blockChangesWhenEditing = true,
 
                 placeholderText = "Enter notes...",

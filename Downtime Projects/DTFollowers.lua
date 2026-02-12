@@ -16,7 +16,7 @@ function DTFollowers.CreateNew(followers, token)
     if followers and type(followers) == "table" and next(followers) then
         for followerId,_ in pairs(followers) do
             local follower = dmhub.GetCharacterById(followerId)
-            instance.followers[follower.id] = follower
+            if follower then instance.followers[follower.id] = follower end
         end
     end
 
