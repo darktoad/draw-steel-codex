@@ -202,7 +202,7 @@ function gui.ReminderTextPanel(options)
     local params = {
         width = 400,
         height = "auto",
-        maxHeight = 80,
+        maxHeight = options.maxHeight or 80,
         vscroll = true,
         bgimage = true,
         flow = "vertical",

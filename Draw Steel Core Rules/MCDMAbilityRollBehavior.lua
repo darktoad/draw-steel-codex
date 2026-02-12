@@ -512,7 +512,7 @@ ActivatedAbilityPowerRollBehavior.GetPowerTablePopulateCustom = function(rollPro
                     gui.Label{
                         text = FormatTierText(tierText, m_fullyImplemented),
                         fontSize = 15,
-                        width = 500,
+                        width = 280,
                         height = "auto",
                         vpad = 0,
                         refreshMods = function(element)
