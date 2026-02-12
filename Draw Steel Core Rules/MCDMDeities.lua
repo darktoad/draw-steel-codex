@@ -279,6 +279,39 @@ function CharacterDeityChoice.Create(options)
     return result
 end
 
+local g_deityEntryCache = {}
+dmhub.RegisterEventHandler("refreshTable", function(keys)
+    g_deityEntryCache = {}
+end)
+function CharacterDeityChoice:GetEntries(creature)
+    if #g_deityEntryCache > 0 then return g_deityEntryCache end
+    local options = {}
+    local domainTable = dmhub.GetTableVisible(DeityDomain.tableName)
+    for _,item in pairs(dmhub.GetTableVisible(Deity.tableName)) do
+        local domains = {}
+        local domainList = item:try_get("domainList", {})
+        for _,key in ipairs(domainList) do
+            local domain = domainTable[key]
+            if domain then
+                domains[#domains+1] = domain.name
+            end
+        end
+        local description
+        if #domains > 0 then
+            table.sort(domains)
+            description = string.format("**Domains:** %s", table.concat(domains, ", "))
+        end
+        local option = dmhub.DeepCopy(item)
+        option.lore = option:try_get("description")
+        option.description = description
+        option.unique = true
+        options[#options+1] = option
+    end
+    table.sort(options, function(a,b) return a.name < b.name end)
+    g_deityEntryCache = options
+    return g_deityEntryCache
+end
+
 function CharacterDeityChoice:Choices(numOption, existingChoices, creature)
     return Deity.GetDropdownList()
 end
