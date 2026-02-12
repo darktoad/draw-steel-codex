@@ -1535,6 +1535,15 @@ function CreateTokenHud(token)
 	end
 
 	local rollCheckPanel = nil
+    local objectStyles = nil
+    if token.isObject then
+        objectStyles = {
+            {
+                selectors = {"~targeting"},
+                opacity = 0,
+            }
+        }
+    end
 
 	token.sheet = gui.Panel{
 		bgimage = 'panels/square.png',
@@ -1604,6 +1613,8 @@ function CreateTokenHud(token)
                 transitionTime = 1,
                 opacity = 0,
             },
+
+            objectStyles,
 		},
 
 		data = {
@@ -2166,6 +2177,9 @@ function CreateTokenHud(token)
 			end,
 
 			target = function(element, options)
+                if token.isObject then
+                    token.sheet:SetClassTree("targeting", true)
+                end
 
                 element.data.targetReason = options.reason
 
@@ -2195,7 +2209,10 @@ function CreateTokenHud(token)
 			end,
 
 			untarget = function(element)
-                print("ChooseTarget:: untarget token")
+                if token.isObject then
+                    token.sheet:SetClassTree("targeting", false)
+                end
+
                 element.data.targetReason = nil
 				if targetEffect ~= nil then
                     print("TARGET:: UNTARGET")

@@ -2918,7 +2918,7 @@ function GameHud.CreateInventoryDialog(self, options)
 			gui.Panel{
 				id = 'inventory-main',
 				style = {
-					width = 300,
+					width = 500,
 					height = dialogHeight-14,
 					valign = 'center',
 					flow = 'vertical',

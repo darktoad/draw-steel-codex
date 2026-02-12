@@ -1045,6 +1045,19 @@ function ActivatedAbilityPowerRollBehavior:Cast(ability, casterToken, targets, o
 
     print("Timeline::", g_settingTimeline:Get())
     if g_settingTimeline:Get() then
+
+        local displaying = CharacterPanel.DisplayAbility(casterToken, ability, options.symbols)
+        print("Timeline:: Displaying:", displaying)
+
+        if displaying then
+            print("Timeline:: INSTALL HANDLER")
+            options.OnFinishCastHandlers = options.OnFinishCastHandlers or {}
+            options.OnFinishCastHandlers[#options.OnFinishCastHandlers+1] = function()
+            print("Timeline:: RUN HANDLER")
+                CharacterPanel.HideAbility(ability)
+            end
+        end
+
         dialog = CharacterPanel.EmbedDialogInAbility()
 
         --give a few cycles for the dialog to init.

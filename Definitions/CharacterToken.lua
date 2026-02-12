@@ -19,6 +19,7 @@
 --- @field appearanceChangedFromBestiary boolean 
 --- @field appearanceVariationIndex number Which appearance variation the token is currently using.
 --- @field numAppearanceVariations number The number of appearance variations this token has.
+--- @field alternateAppearanceOverride string 
 --- @field saddlePositions Vector2[] 
 --- @field tokenScale number 
 --- @field saddles number 
@@ -153,8 +154,24 @@ end
 
 --- DisguiseAs: Disguise as another token. The disguise will be uploaded.
 --- @param otherToken any
+--- @param disguiseName any
 --- @return nil
-function CharacterToken:DisguiseAs(otherToken)
+function CharacterToken:DisguiseAs(otherToken, disguiseName)
+	-- dummy implementation for documentation purposes only
+end
+
+--- ClearAlternateAppearance
+--- @param appearanceid string
+--- @return nil
+function CharacterToken:ClearAlternateAppearance(appearanceid)
+	-- dummy implementation for documentation purposes only
+end
+
+--- OverrideAlternateAppearance
+--- @param appearanceid string
+--- @param defaultToken any
+--- @return nil
+function CharacterToken:OverrideAlternateAppearance(appearanceid, defaultToken)
 	-- dummy implementation for documentation purposes only
 end
 
@@ -176,6 +193,13 @@ end
 --- @param index integer The index of the appearance variation to query.
 --- @return {portrait: string, portraitFrame: string, portraitFrameHueShift: number, portraitFrameSaturation: number, portraitFrameBrightness: number, portraitBackground: nil|string, anthem: nil|string, anthemVolume: number}
 function CharacterToken:GetVariationInfo(index)
+	-- dummy implementation for documentation purposes only
+end
+
+--- GetAlternateAppearanceInfo
+--- @param id string The key for the alternative appearance.
+--- @return {portrait: string, portraitFrame: string, portraitFrameHueShift: number, portraitFrameSaturation: number, portraitFrameBrightness: number, portraitBackground: nil|string, anthem: nil|string, anthemVolume: number}
+function CharacterToken:GetAlternateAppearanceInfo(id)
 	-- dummy implementation for documentation purposes only
 end
 

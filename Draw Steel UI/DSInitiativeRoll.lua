@@ -1426,6 +1426,12 @@ local function ShowCombatSetupDialog()
     local m_initiativeResult = "roll"
     local m_initiativeLocked = false
 
+    local m_reminderPanel = gui.ReminderTextPanel{
+        halign = "center",
+        valign = "center",
+        tokens = dmhub.allTokens,
+        domain = "initiative",
+    }
 
     local dialog
     dialog = gui.Panel{
@@ -1463,13 +1469,13 @@ local function ShowCombatSetupDialog()
         },
 
         width = 1024,
-        height = 868,
+        height = 968,
 
         gui.Panel{
             halign = "center",
             valign = "center",
             width = 800,
-            height = 700,
+            height = 800,
             flow = "vertical",
 
             gui.Panel{
@@ -1517,6 +1523,8 @@ local function ShowCombatSetupDialog()
                     pool = monstersAvailablePool,
                 },
             },
+
+            m_reminderPanel,
 
             gui.EnumeratedSliderControl{
                 width = 600,

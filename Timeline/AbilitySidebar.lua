@@ -42,6 +42,7 @@ function GameHud:InitAbilityDisplayPanel(abilityDisplayPanel)
                     needParent = false
                     panel = CreateAbilityTooltip(ability:GetActiveVariation(token),
                         { token = token, symbols = symbols, width = 346, bgcolor = "#222222e9", })
+                    panel:MakeNonInteractiveRecursive()
                 end
             end
 

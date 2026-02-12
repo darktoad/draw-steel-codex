@@ -2461,7 +2461,7 @@ local showShareModuleDialog = function(options)
 			{
 				selectors = {"framedPanel"},
 				width = 1024,
-				height = 900,
+				height = 980,
 			},
 
 			{

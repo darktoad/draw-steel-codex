@@ -2778,10 +2778,12 @@ function PDFFragment:Render(options)
 
     if doc ~= nil and doc.canView then
         local document = doc.doc
-        local pagelabel = document.summary.pageLabels[self.page+1]
+        local pagelabel = nil
+
+        local text = nil
+        
         --if we have access to this document give a link to the source.
         link = gui.Label {
-            text = string.format("%s Page %s", doc.description, pagelabel),
             classes = { "link" },
             halign = "center",
             fontSize = 14,
@@ -2791,8 +2793,19 @@ function PDFFragment:Render(options)
             hoverCursor = "hand",
             swallowPress = true,
             click = function(element)
+                if pagelabel == nil then
+                    return
+                end
                 local link = string.format("pdf:%s&page=%s", self.refid, pagelabel)
                 dmhub.OpenDocument(link)
+            end,
+            create = function(element)
+                if document.summary ~= nil then
+                    pagelabel = document.summary.pageLabels[self.page+1]
+                    element.text = string.format("%s Page %s", doc.description, pagelabel)
+                else
+                    element:ScheduleEvent("create", 0.1)
+                end
             end,
         }
 
