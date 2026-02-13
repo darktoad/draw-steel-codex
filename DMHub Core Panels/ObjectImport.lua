@@ -322,9 +322,7 @@ local function ImportObjectsDialog(filePaths, progressPanel)
 			click = function(element)
 
 				dmhub.Debug("IMPORT OBJECTS!!!")
-				if gui.GetModal() == g_modalDialog then
-					gui.CloseModal()
-				end
+				gui.CloseModal()
 
 				g_modalDialog = nil
 

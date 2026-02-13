@@ -766,6 +766,7 @@ local function CreateObjectEntry(nodeid, parentElement, options)
 			focus = function(element)
 			end,
 
+            --make it so when you mouse over an object in the palette, instances on the map highlight.
 			hover = function(element)
 				ShowObjectTooltip(element)
                 local nhighlights = 0
