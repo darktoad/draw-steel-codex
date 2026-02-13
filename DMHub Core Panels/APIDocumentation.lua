@@ -27,14 +27,23 @@ dmhub.RegisterEventHandler("link", function(url)
 
                 --merge into the main docs.
                 for _,field in ipairs(baseDocs.fields) do
+                    local added = false
                     for i=1,#docs.fields do
-                        if docs.fields[i].name == field.name then
-                            break
+                        if docs.fields[i].type == field.type then
+                            if docs.fields[i].name == field.name then
+                                added = true
+                                break
+                            end
+                            if docs.fields[i].name > field.name then
+                                table.insert(docs.fields, i, field)
+                                added = true
+                                break
+                            end
                         end
-                        if docs.fields[i].name > field.name then
-                            table.insert(docs.fields, i, field)
-                            break
-                        end
+                    end
+
+                    if not added then
+                        docs.fields[#docs.fields+1] = field
                     end
                 end
             end

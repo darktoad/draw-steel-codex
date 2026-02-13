@@ -367,7 +367,7 @@ local g_rulePatterns = {
             end
 
             local stability = targetToken.properties:Stability()
-            if stability ~= 0 and match.ignorestability then
+            if stability ~= 0 and (match.ignorestability or casterToken.properties:CalculateNamedCustomAttribute("Ignore Stability") > 0) then
                 stability = 0
                 adjustments[#adjustments+1] = "Ignoring Stability"
             end
@@ -395,6 +395,7 @@ local g_rulePatterns = {
             if range <= 0 then
                 --don't execute forced movement of 0?
                 if stability > 0 then
+                    print("STABILITY:: XXX")
                     ShowFailSpeech("Too Much Stability")
                 else
                     ShowFailMessage("Cannot Be Force Moved")
