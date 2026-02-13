@@ -2074,23 +2074,30 @@ local CreateObjectEditor = function(nodes, options)
 
 
 				--add command buttons.
-				if #componentInfo.componentsAndPreviews == 1 then
-					for i,componentInfo in ipairs(componentInfo.componentsAndPreviews) do
-						for j,cmd in ipairs(componentInfo.component.commands) do
-							children[#children+1] = gui.Button{
-								text = cmd,
-								fontSize = 12,
-								width = 120,
-								height = 20,
-								vmargin = 8,
-								halign = "right",
-								hmargin = 40,
-								cornerRadius = 0,
-								click = function(element)
-									componentInfo.component:Execute(cmd)
-								end,
-							}
-						end
+                local commandsAdded = {}
+				for i,componentInfo in ipairs(componentInfo.componentsAndPreviews) do
+					for j,cmd in ipairs(componentInfo.component.commands) do
+						children[#children+1] = gui.Button{
+							text = cmd,
+							fontSize = 12,
+							width = 120,
+							height = 20,
+							vmargin = 8,
+							halign = "right",
+							hmargin = 40,
+							cornerRadius = 0,
+							click = function(element)
+                                local commands = commandsAdded[cmd]
+                                for _,fn in ipairs(commands) do
+                                    fn()
+                                end
+							end,
+						}
+
+                        commandsAdded[cmd] = commandsAdded[cmd] or {}
+                        commandsAdded[cmd][#commandsAdded[cmd]+1] = function()
+                            componentInfo.component:Execute(cmd)
+                        end
 					end
 				end
 
