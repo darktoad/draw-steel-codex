@@ -201,11 +201,11 @@ local SetFeat = function(tableName, featPanel, featid)
                 text = feat:try_get(entry.field, ""),
                 fontSize = 14,
                 multiline = true,
-                minHeight = 50,
                 height = 'auto',
                 width = 800,
                 minHeight = 140,
                 textAlignment = "topleft",
+                characterLimit = 4096,
                 change = function(element)
                     feat[entry.field] = element.text
                     UploadFeat()
