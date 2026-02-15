@@ -85,6 +85,7 @@ local SetDeity = function(tableName, deityPanel, deityId)
             height = 'auto',
             width = 400,
             textAlignment = "topleft",
+            characterLimit = 4096,
             change = function(element)
                 deity.description = element.text
                 UploadDeity()
