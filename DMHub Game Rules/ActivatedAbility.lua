@@ -2760,12 +2760,12 @@ function ActivatedAbilityBehavior:IsFiltered(ability, casterToken, options)
         end
     end
 
---[[     if options and options.symbols and options.symbols.cast and options.symbols.cast.tier ~= 0 and #self:try_get("tiersSelected", {}) > 0 then
+	if options and options.symbols and options.symbols.cast and options.symbols.cast.tier ~= 0 and #self:try_get("tiersSelected", {}) > 0 then
         --see if the tier filter filters it out.
         if not table.contains(self.tiersSelected, options.symbols.cast.tier) then
             return true
         end
-    end ]]
+    end
 
     return false
 end
