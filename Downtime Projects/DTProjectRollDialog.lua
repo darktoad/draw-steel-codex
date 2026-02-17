@@ -729,7 +729,7 @@ end
 
 
 RollCheck.RegisterCustom{
-    id = "power_roll_project",
+    id = "project_power_roll",
     rollType = "power_roll_custom",
 	Describe = function(check, isplayer)
         return check.info.explanation
@@ -796,6 +796,13 @@ RollCheck.RegisterCustom{
 
         return result
     end,
+    ShowDialog = function(check, dialogOptions)
+        dialogOptions.rollProperties = RollProperties.new{
+            type = "project_power_roll",
+        }
+        --dialogOptions.PopulateCustom = ActivatedAbilityPowerRollBehavior.GetPowerTablePopulateCustom(dialogOptions.rollProperties, dialogOptions.creature)
+        return GameHud.instance.rollDialog.data.ShowDialog(dialogOptions)
+    end,
 }
 
 -- @param casterToken - The token making the roll
@@ -816,10 +823,10 @@ function creature:RequestProjectRoll(casterToken, options)
     local explanation = options.explanation or "Project Roll"
     explanation = explanation..string.format(" (%s)", attrid)
     local title = options.title or explanation
-    
+
     local check = RollCheck.new{
-        type = "custom",
-        id = "power_roll_project",
+        type = "project_power_roll",
+        id = "project_power_roll",
         text = title,
         explanation = explanation,
         skills = options.skills or {},
