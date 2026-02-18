@@ -501,6 +501,7 @@ local TEST_DETAIL = [[
 
 * Builder is a little more informative for domain features, showing more information about what you get when you select them.
 * Builder is a little more informative for skill selections, showing explicitly which groups and / or individual skills have been configured into the selection.
+* Styling update in the left 3 columns.
 
 **Previous Releases**
 

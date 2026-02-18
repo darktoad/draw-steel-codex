@@ -1,10 +1,13 @@
 local mod = dmhub.GetModLoading()
 
-local COLOR_BLACK02 = "#10110F"
+local COLOR_BLACK = "#000000"
+local COLOR_BLACK02 = "#040807"
 local COLOR_BLACK03 = "#191A18"
 local COLOR_CREAM04 = "#BC9B7B"
 local COLOR_GOLD = "#966D4B"
+local COLOR_GOLD02 = "#49362C"
 local COLOR_GOLD03 = "#F1D3A5"
+local COLOR_GOLD04 = "#E9B86F"
 local COLOR_GREY02 = "#666663"
 
 local ACTION_BUTTON_WIDTH = 225
@@ -43,8 +46,20 @@ local actionButtonStyles = {
     },
     {
         selectors = {"action-button-base"},
-        bgcolor = COLOR_BLACK02,
+        valign = "bottom",
+        bgimage = true,
+        border = 1,
+        borderWidth = 1,
+        bgcolor = COLOR_BLACK,
         borderColor = COLOR_CREAM04,
+    },
+    {
+        selectors = {"action-button-base", "selected"},
+        borderColor = COLOR_GOLD03,
+    },
+    {
+        selectors = {"action-button-base", "hover"},
+        bgcolor = COLOR_GOLD04,
     },
     {
         selectors = {"action-button-label"},
@@ -52,21 +67,25 @@ local actionButtonStyles = {
     },
     {
         selectors = {"action-button-label", "selected"},
-        color = COLOR_CREAM04,
+        color = COLOR_GOLD03,
+    },
+    {
+        selectors = {"action-button-label", "hover"},
+        color = COLOR_GOLD02,
     },
     {
         selectors = {"action-button-hover"},
-        bgcolor = "clear",
+        bgcolor = COLOR_GOLD04, --"clear",
     },
     {
         selectors = {"action-button-hover", "parent:hover"},
-        bgcolor = "#ffffff",
-        gradient = gui.Gradient{
-            type = "radial",
-            point_a = {x = 0.5, y = -0.2},
-            point_b = {x = 0.5, y = 0.4},
-            stops = gradientStops,
-        },
+        bgcolor = COLOR_GOLD04, --"#ffffff",
+        -- gradient = gui.Gradient{
+        --     type = "radial",
+        --     point_a = {x = 0.5, y = -0.2},
+        --     point_b = {x = 0.5, y = 0.4},
+        --     stops = gradientStops,
+        -- },
     },
     {
         selectors = {"unavailable"},
@@ -167,14 +186,10 @@ function gui.ActionButton(options)
 
     opts.children = {
 
-        gui.Panel{ -- Button Base
+        gui.Panel{ -- Button Base / bevel outline
             classes = {"action-button-base"},
             width = "100%",
             height = BUTTON_BASE_HEIGHT,
-            valign = "bottom",
-            bgimage = true,
-            border = 1,
-            borderWidth = 1,
             cornerRadius = ACTION_BUTTON_CORNER_RADIUS,
             beveledcorners = true,
             interactable = true,
@@ -182,6 +197,10 @@ function gui.ActionButton(options)
             _setAvailable = function(element, available)
                 element.interactable = available
                 element:SetClass("unavailable", not available)
+            end,
+
+            _setSelected = function(element, selected)
+                element:SetClass("selected", selected)
             end,
 
             gui.Panel{
@@ -212,44 +231,44 @@ function gui.ActionButton(options)
             },
         },
 
-        gui.Panel{ -- Selected Overlay
-            width = "100%",
-            height = GRADIENT_OVERLAY_HEIGHT,
-            halign = "center",
-            valign = "bottom",
-            bgimage = true,
-            bgcolor = "#ffffff",
-            cornerRadius = ACTION_BUTTON_CORNER_RADIUS,
-            beveledcorners = true,
-            interactable = false,
+        -- gui.Panel{ -- Selected Overlay
+        --     width = "100%",
+        --     height = GRADIENT_OVERLAY_HEIGHT,
+        --     halign = "center",
+        --     valign = "bottom",
+        --     bgimage = true,
+        --     -- bgcolor = "#ffffff",
+        --     cornerRadius = ACTION_BUTTON_CORNER_RADIUS,
+        --     beveledcorners = true,
+        --     interactable = false,
 
-            _setSelected = function(element, selected)
-                selected = selected or false
-                element:SetClass("collapsed", not selected)
-            end,
+        --     _setSelected = function(element, selected)
+        --         selected = selected or false
+        --         element:SetClass("collapsed", not selected)
+        --     end,
 
-            gradient = gui.Gradient{
-                type = "radial",
-                point_a = {x = 0.5, y = -0.2},
-                point_b = {x = 0.5, y = 0.4},
-                stops = gradientStops,
-            },
-        },
+        --     gradient = gui.Gradient{
+        --         type = "radial",
+        --         point_a = {x = 0.5, y = -0.2},
+        --         point_b = {x = 0.5, y = 0.4},
+        --         stops = gradientStops,
+        --     },
+        -- },
 
-        gui.Panel{ -- Hover Overlay
-            classes = {"action-button-hover"},
-            width = "50%",
-            height = GRADIENT_OVERLAY_HEIGHT,
-            halign = "center",
-            valign = "bottom",
-            bgimage = true,
-            interactable = false,
+        -- gui.Panel{ -- Hover Overlay
+        --     classes = {"action-button-hover"},
+        --     width = "50%",
+        --     height = GRADIENT_OVERLAY_HEIGHT,
+        --     halign = "center",
+        --     valign = "bottom",
+        --     bgimage = true,
+        --     interactable = false,
 
-            _setSelected = function(element, selected)
-                selected = selected or false
-                element:SetClass("collapsed", selected)
-            end,
-        },
+        --     _setSelected = function(element, selected)
+        --         selected = selected or false
+        --         element:SetClass("collapsed", selected)
+        --     end,
+        -- },
 
         gui.Panel{ -- Available Overlay
             width = "100%",
@@ -328,7 +347,7 @@ local SELECTOR_LABEL_FONT_SIZE = LABEL_FONT_SIZE + 4
 local selectorButtonStyles = {
     {
         selectors = {"selector-button"},
-        bgcolor = COLOR_BLACK03,
+        bgcolor = COLOR_BLACK02,
     },
     {
         selectors = {"selector-button", "press"},
@@ -336,7 +355,7 @@ local selectorButtonStyles = {
     },
     {
         selectors = {"selector-button-base"},
-        bgcolor = COLOR_BLACK03,
+        bgcolor = COLOR_BLACK02,
         borderColor = COLOR_GOLD,
     },
     {
@@ -350,7 +369,9 @@ local selectorButtonStyles = {
     },
     {
         selectors = {"hover"},
-        brightness = 1.5,
+        color = COLOR_GOLD02,
+        bgcolor = COLOR_GOLD04,
+        -- brightness = 1.5,
     },
     {
         selectors = {"unavailable"},

@@ -427,6 +427,12 @@ function CBFeatureSelector.SelectionPanel(selector, feature)
                     --     border = 0,
                     -- })
                 end
+                element:SetClass("hovering", true)
+                element:FireEventTree("hovering", true)
+            end,
+            dehover = function(element)
+                element:SetClass("hovering", false)
+                element:FireEventTree("hovering", false)
             end,
             press = function(element)
                 if element.data.option == nil then return end
@@ -477,6 +483,10 @@ function CBFeatureSelector.SelectionPanel(selector, feature)
                 height = "auto",
                 width = "98%",
                 halign = "center",
+                interactable = false,
+                hovering = function(element, inHover)
+                    element:SetClass("hovering", inHover)
+                end,
                 refreshBuilderState = function(element, state)
                     element:SetClass("selected", element.parent:HasClass("selected"))
                 end,
@@ -499,6 +509,7 @@ function CBFeatureSelector.SelectionPanel(selector, feature)
                 textAlignment = "left",
                 text = "",
                 markdown = true,
+                interactable = false,
                 updateDesc = function(element, text)
                     if element.text ~= text then element.text = text end
                     element:SetClass("collapsed", #element.text == 0)

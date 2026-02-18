@@ -821,6 +821,8 @@ function CBOptionWrapper:GetUnique()
     return _safeGet(self.option, "unique", true)
 end
 
+--- Calculate a custom panel for the option. Typically used when
+--- the option has an ability or other key descriptive text.
 --- @return function|nil
 function CBOptionWrapper:Panel()
     -- if self:GetName() == "Harsh Critic" then print("THC:: PANEL::", json(self.option)) end
