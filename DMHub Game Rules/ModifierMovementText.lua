@@ -17,6 +17,10 @@ local g_textTypeDomains = {
         id = "montage",
         text = "Montage",
     },
+    {
+        id = "respite",
+        text = "Respite",
+    },
 }
 
 --controls text showing up when a player is moving.

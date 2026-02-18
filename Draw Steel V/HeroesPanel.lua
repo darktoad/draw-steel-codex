@@ -1020,7 +1020,6 @@ CreateHeroesPanel = function()
 
         thinkTime = 1,
         think = function(element)
-
             local richStatus = nil
             if dmhub.initiativeQueue ~= nil and not dmhub.initiativeQueue.hidden then
                 richStatus = string.format("Fighting in %s", game.currentMap.description)

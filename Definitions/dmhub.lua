@@ -128,6 +128,12 @@
 --- @field debugPropertyOutput string Engine debugging and performance information.
 dmhub = {}
 
+--- TestFunction
+--- @return number
+function dmhub.TestFunction()
+	-- dummy implementation for documentation purposes only
+end
+
 --- RecreateTitlescreen
 --- @return nil
 function dmhub.RecreateTitlescreen()

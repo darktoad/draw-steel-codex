@@ -2173,6 +2173,7 @@ function ActivatedAbility:Cast(casterToken, targets, options)
 		options.symbols.cast = ActivatedAbilityCast.new{
 			ability = self,
 			targets = targets,
+            mode = options.symbols.mode or 1,
 		}
 	end
 

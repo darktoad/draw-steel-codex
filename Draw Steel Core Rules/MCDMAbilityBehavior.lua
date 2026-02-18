@@ -110,7 +110,7 @@ local function InvokeAbility(ability, abilityClone, targetToken, casterToken, op
     local casting = false
 
     local symbols = { invoker = GenerateSymbols(casterToken.properties), upcast = options.symbols.upcast, charges = options.symbols.charges, cast = options.symbols.cast, spellname = options.symbols.spellname, forcedMovementOrigin = options.symbols.forcedMovementOrigin }
-    local haveToPay = ActivatedAbilityInvokeAbilityBehavior.ExecuteInvoke(casterToken, abilityClone, targetToken, "prompt", symbols, options)
+    local haveToPay = ActivatedAbilityInvokeAbilityBehavior.ExecuteInvoke(casterToken, abilityClone, targetToken, (options.targetArgs and "args") or "prompt", symbols, options)
     if haveToPay then
         ability:CommitToPaying(casterToken, options)
     end
@@ -301,7 +301,7 @@ local g_rulePatterns = {
     },
 
     {
-        pattern = "^(?<vertical>vertical )?(?<movement>pull|push|slide) +(?<distance>[0-9]+)(?<ignorestability>[,;]? (ignoring stability|this (push|pull|slide) ignores the target.s stability))?",
+        pattern = "^(?<vertical>vertical )?(?<movement>pull|push|slide) +(?<straightup>straight up +)?(?<distance>[0-9]+)(?<ignorestability>[,;]? (ignoring stability|this (push|pull|slide) ignores the target.s stability))?",
         execute = function(behavior, ability, casterToken, targetToken, options, match)
 
             print("INVOKE:: EXECUTE FORCE MOVE", match.movement, match.distance)
@@ -433,8 +433,17 @@ local g_rulePatterns = {
                 for k,v in pairs(abilityAttr) do
                     abilityClone[k] = v
                 end
+
+                if match.straightup then
+                    options.targetArgs = {
+                        {
+                            loc = targetToken.loc:WithAltitude(targetToken.loc.altitude + range),
+                        }
+                    }
+                end
                 
                 InvokeAbility(ability, abilityClone, targetToken, casterToken, options)
+                options.targetArgs = nil
             end
         end,
     },

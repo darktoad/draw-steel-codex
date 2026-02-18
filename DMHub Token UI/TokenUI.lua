@@ -1389,6 +1389,10 @@ function CreateTokenHud(token)
 			}
 
             resultPanel = gui.Panel(resultPanel)
+            
+            if effectsPanel:HasClass("targeting") then
+                resultPanel:SetClassTree("targeting", true)
+            end
 
             if effect.duration then
                 resultPanel:ScheduleEvent("destroy", effect.duration)
@@ -2177,6 +2181,7 @@ function CreateTokenHud(token)
 			end,
 
 			target = function(element, options)
+                print("TARGET:: TARGETING", token.isObject)
                 if token.isObject then
                     token.sheet:SetClassTree("targeting", true)
                 end

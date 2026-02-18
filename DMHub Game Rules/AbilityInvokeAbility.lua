@@ -373,6 +373,8 @@ function ActivatedAbilityInvokeAbilityBehavior.ExecuteInvoke(invokerToken, abili
                 targets = { { token = casterToken } }
             elseif targeting == "inherit" then
                 targets = options.targets or {}
+            elseif targeting == "args" then
+                targets = options.targetArgs or {}
             elseif targeting == "formula" then
                 targets = {}
                 local allTokens = dmhub.allTokens

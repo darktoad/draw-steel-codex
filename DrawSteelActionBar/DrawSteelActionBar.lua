@@ -1306,6 +1306,7 @@ local function AbilityHeading(args)
                 print("MENU:: HIGHLIGHT")
             CharacterPanel.HighlightAbilitySection{
                 ability = m_ability,
+                caster = g_token,
                 section = "target",
             }
 
@@ -4332,6 +4333,7 @@ CreateAbilityController = function()
 
                 CharacterPanel.HighlightAbilitySection{
                     ability = g_currentAbility,
+                    caster = g_token,
                     section = "main",
                 }
 
@@ -4411,7 +4413,7 @@ local function CalculateSpellTargetFocusing(symbols)
         elseif g_currentAbility.targetAllegiance == "none" then
             allTokens = dmhub.allObjectTokens
         else
-            if targeting == "all" then
+            if targeting == "all" or g_currentAbility.objectTarget == "conditional" then
                 allTokens = dmhub.allTokensIncludingObjects
             elseif targeting == false then
                 allTokens = dmhub.allTokens
@@ -4589,6 +4591,7 @@ CalculateSpellTargeting = function(forceCast, initialSetup)
 
             CharacterPanel.HighlightAbilitySection{
                 ability = g_currentAbility,
+                caster = g_token,
                 section = "main",
             }
 

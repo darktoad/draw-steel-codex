@@ -1523,6 +1523,7 @@ function ActivatedAbility:Render(options, params)
                 },
             },
 
+            --attack creatures vs objects panel
             gui.Panel {
                 width = "auto",
                 height = "auto",
@@ -1547,6 +1548,56 @@ function ActivatedAbility:Render(options, params)
                                     {
                                         selectors = { "enumSliderOption" },
                                         fontSize = 10,
+                                    },
+                                }
+                            },
+                        }
+                    else
+                        element.children = {}
+                    end
+                end,
+
+            },
+
+            --modes panel
+            gui.Panel {
+                width = "auto",
+                height = "auto",
+                showAbilitySection = function(element, options)
+                    if self.objectTarget and self.targetAllegiance ~= "none" and options.ability.name == self.name and options.section == "target" and
+                       self ~= nil and self.multipleModes and self:try_get("modeList") and options.caster ~= nil then
+                        local modeOptions = {}
+                        for i, mode in ipairs(self.modeList) do
+                            local available = true
+                            if mode.condition ~= nil and mode.condition ~= "" then
+                                available = ExecuteGoblinScript(mode.condition, options.caster.properties:LookupSymbol(), 1, "Mode condition")
+                                available = type(available) == "number" and available > 0
+                            end
+
+                            if available then
+                                modeOptions[#modeOptions + 1] = {
+                                    id = i,
+                                    text = mode.text,
+                                }
+                            end
+                        end
+
+
+                        element.children = {
+                            gui.EnumeratedSliderControl {
+                                options = modeOptions,
+                                value = 1,
+                                height = "auto",
+                                wrap = true,
+                                optionWidth = "33.3333%",
+                                tmargin = 4,
+                                change = function(element)
+                                end,
+                                styles = {
+                                    {
+                                        selectors = { "enumSliderOption" },
+                                        fontSize = 10,
+                                        height = 18,
                                     },
                                 }
                             },

@@ -357,6 +357,7 @@ CharacterModifier.TypeInfo.power = {
                 ability = GenerateSymbols(options.ability),
                 target = GenerateSymbols(options.target),
                 caster = GenerateSymbols(options.caster),
+                cast = options.symbols and GenerateSymbols(options.symbols.cast),
                 title = options.title or "",
             })
 
@@ -1188,6 +1189,11 @@ CharacterModifier.TypeInfo.power = {
                 end
 
                 helpSymbols = DeepCopy(helpSymbols)
+                helpSymbols.cast = {
+                    name = "Cast",
+                    type = "spellcast",
+                    desc = "The cast info for this ability",
+                }
                 helpSymbols.title = {
                     name = "Title",
                     type = "text",

@@ -2,7 +2,6 @@ local mod = dmhub.GetModLoading()
 
 RegisterGameType("Hud")
 
-
 function Hud.HasFocus(self)
 	return gui.HasFocus()
 end
@@ -71,10 +70,11 @@ function Hud.GetScreenHudAreaWorldPanel(self)
 	local right = 0
     
 	if gamehud ~= nil then
-		if gamehud:has_key("leftDock") and (not gamehud.leftDock:HasClass("offscreen")) and #gamehud.leftDock.data.GetChildren() > 0 then
+        --the GetChildren() calls are expensive. Try to work out a more efficient way to do them if we need to have them.
+		if gamehud:has_key("leftDock") and (not gamehud.leftDock:HasClass("offscreen")) then --and #gamehud.leftDock.data.GetChildren() > 0 then
 			left = (DockablePanel.DockWidth/1920) * (1920/1080) / (self.dialog.width/self.dialog.height)
 		end
-		if gamehud:has_key("rightDock") and (not gamehud.rightDock:HasClass("offscreen")) and #gamehud.rightDock.data.GetChildren() > 0 then
+		if gamehud:has_key("rightDock") and (not gamehud.rightDock:HasClass("offscreen")) then --and #gamehud.rightDock.data.GetChildren() > 0 then
 			right = DockablePanel.DockWidth/1920 * (1920/1080) / (self.dialog.width/self.dialog.height)
 		end
 	end

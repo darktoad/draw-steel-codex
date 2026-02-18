@@ -701,3 +701,33 @@ Commands.updateimplementationvalues = function(str)
         end
     end
 end
+
+local function DeepCopyInternal(t)
+    if type(t) ~= "table" then
+        return t
+    end
+
+    local copy = {}
+    for k, v in next, t do
+	    if type(k) ~= "string" or string.sub(k,1,5) ~= "_tmp_" then
+            copy[k] = DeepCopyInternal(v)
+        else
+            copy[k] = v
+        end
+    end
+
+    local mt = getmetatable(t)
+    if mt ~= nil then
+        setmetatable(copy, mt)
+    end
+
+    return copy
+end
+
+local g_profileDeepCopy = dmhub.ProfileMarker("LuaDeepCopy")
+function DeepCopy(t)
+    local _ = g_profileDeepCopy.Begin
+    local result = DeepCopyInternal(t)
+    local _ = g_profileDeepCopy.End
+    return t
+end

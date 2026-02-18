@@ -1320,11 +1320,6 @@ Commands.awardherotokens = function(str)
 end
 
 
---for testing
-Commands.print = function(str)
-
-    print("v", token.properties)
-end
 
 Commands.languagesknown = function(str)
     local languagesTable = dmhub.GetTable(Language.tableName)
@@ -1337,4 +1332,21 @@ Commands.languagesknown = function(str)
             print("Language:", langid, lang.name)
         end
     end
+end
+
+
+--for testing
+Commands.print = function(str)
+    local tokens = dmhub.allTokens
+
+    local sw = dmhub.Stopwatch()
+    sw:Init()
+    for i=1,100 do
+        for k,v in ipairs(tokens) do
+            local copy = DeepCopy(v.properties)
+        end
+    end
+    sw:Stop()
+    print("Time:", sw.milliseconds, #tokens)
+
 end

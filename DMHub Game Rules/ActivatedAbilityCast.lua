@@ -26,6 +26,7 @@ local mod = dmhub.GetModLoading()
 --- @field auraObject false|table
 ActivatedAbilityCast = RegisterGameType("ActivatedAbilityCast")
 
+ActivatedAbilityCast.mode = 1
 ActivatedAbilityCast.damagedealt = 0
 ActivatedAbilityCast.damageraw = 0
 ActivatedAbilityCast.tier = 0
@@ -49,6 +50,12 @@ ActivatedAbilityCast.memory = false
 ActivatedAbilityCast.helpSymbols = {
 	__name = "spellcast",
 	__sampleFields = {"damagedealt"},
+
+    mode = {
+        name = "Mode",
+        type = "number",
+        desc = "The mode the ability was cast with.",
+    },
 
     memory = {
         name = "Memory",
@@ -201,6 +208,10 @@ ActivatedAbilityCast.lookupSymbols = {
 	datatype = function(c)
 		return "cast"
 	end,
+
+    mode = function(c)
+        return c.mode
+    end,
 
     memory = function(c)
         return function(str)

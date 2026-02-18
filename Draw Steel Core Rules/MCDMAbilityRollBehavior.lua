@@ -837,7 +837,7 @@ function ActivatedAbilityPowerRollBehavior:Cast(ability, casterToken, targets, o
 
             --the attacker's modifiers.
             for _,mod in ipairs(modifiersOnCaster) do
-                local m = mod.mod:DescribeModifyPowerRoll(mod, caster, rollType, {ability = ability, caster = caster, target = targetCreature, attribute = self:try_get("attrid"), skills = {self:try_get("skillid")}})
+                local m = mod.mod:DescribeModifyPowerRoll(mod, caster, rollType, {ability = ability, caster = caster, target = targetCreature, symbols = options.symbols, attribute = self:try_get("attrid"), skills = {self:try_get("skillid")}})
                 if m ~= nil then
                     if options.symbols ~= nil then
                         m.modifier:InstallSymbolsFromContext(options.symbols)
@@ -858,7 +858,7 @@ function ActivatedAbilityPowerRollBehavior:Cast(ability, casterToken, targets, o
             --the defender's modifiers.
             for _,mod in ipairs(modifiersOnTarget) do
                 --this is run from the defender's perspective.
-                local m = mod.mod:DescribeModifyPowerRoll(mod, targetCreature, "enemy_ability_power_roll", {ability = ability, caster = caster, target = targetCreature})
+                local m = mod.mod:DescribeModifyPowerRoll(mod, targetCreature, "enemy_ability_power_roll", {ability = ability, caster = caster, target = targetCreature, symbols = options.symbols})
                 if m ~= nil then
                     if options.symbols ~= nil then
                         m.modifier:InstallSymbolsFromContext(options.symbols)

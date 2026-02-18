@@ -113,6 +113,7 @@ function ActivatedAbilityRelocateCreatureBehavior:Cast(ability, casterToken, tar
         end
     end
 
+    print("RELOCATE:: TARGETS ==", targets)
     if #targets > 0 then
         local movementType = self.movementType
         if options.symbols.shiftingOverride == false then
@@ -224,8 +225,8 @@ function ActivatedAbilityRelocateCreatureBehavior:Cast(ability, casterToken, tar
                 end
             end
 
+
 			local path = casterToken:Move(targets[#targets].loc, { waypoints = waypoints, straightline = (ability.targeting == "straightline" or ability.targeting == "straightpath" or ability.targeting == "straightpathignorecreatures" or ability.targetType == "line"), moveThroughFriends = (ability.targeting ~= "straightline"), ignorecreatures = (ability.targeting == "straightpathignorecreatures" or ability.targetType == "line"), maxCost = 30000, movementType = movementType })
-            print("Relocate:: Move token:", path)
 
             --make forced movement happen after the movement so they are in the new location.
             if forcemoveEvent ~= nil then

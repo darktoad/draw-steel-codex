@@ -1,6 +1,13 @@
 --- @class TileGameRules 
 TileGameRules = {}
 
+--- CloneInto
+--- @param other any
+--- @return any
+function TileGameRules:CloneInto(other)
+	-- dummy implementation for documentation purposes only
+end
+
 --- Clone
 --- @return any
 function TileGameRules:Clone()
@@ -9,7 +16,8 @@ end
 
 --- AppendGameRulesFromAura
 --- @param aura any
+--- @param scratchRules any
 --- @return any
-function TileGameRules:AppendGameRulesFromAura(aura)
+function TileGameRules:AppendGameRulesFromAura(aura, scratchRules)
 	-- dummy implementation for documentation purposes only
 end
