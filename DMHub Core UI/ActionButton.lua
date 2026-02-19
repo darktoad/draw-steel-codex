@@ -17,8 +17,10 @@ local ACTION_BUTTON_CORNER_RADIUS = 10
 local GRADIENT_OVERLAY_HEIGHT = BUTTON_BASE_HEIGHT - 2
 
 local AVAILABLE_DIAMOND_SIZE = 12
-local AVAILABLE_LINE_HEIGHT = 11
+local AVAILABLE_LINE_HEIGHT = 10
+local AVAILABLE_LINE_WIDTH = 196
 local AVAILABLE_LINE_TMARGIN = 10
+local AVAILBALE_LINE_HMARGIN = 15
 
 local LABEL_FONT_FACE = "Berling"
 local LABEL_FONT_SIZE = 18
@@ -62,6 +64,25 @@ local actionButtonStyles = {
         bgcolor = COLOR_GOLD04,
     },
     {
+        selectors = {"v-line"},
+        height = 14,
+        width = AVAILABLE_LINE_WIDTH,
+        valign = "top",
+        halign = "left",
+        tmargin = AVAILABLE_LINE_TMARGIN,
+        hmargin = AVAILBALE_LINE_HMARGIN,
+        pad = 0,
+        bgcolor = COLOR_CREAM04,
+    },
+    {
+        selectors = {"v-line", "parent:selected"},
+        bgcolor = COLOR_GOLD03,
+    },
+    {
+        selectors = {"v-line", "parent:hover"},
+        bgcolor = COLOR_GOLD04,
+    },
+    {
         selectors = {"action-button-label"},
         color = COLOR_GOLD,
     },
@@ -75,17 +96,11 @@ local actionButtonStyles = {
     },
     {
         selectors = {"action-button-hover"},
-        bgcolor = COLOR_GOLD04, --"clear",
+        bgcolor = COLOR_GOLD04,
     },
     {
         selectors = {"action-button-hover", "parent:hover"},
-        bgcolor = COLOR_GOLD04, --"#ffffff",
-        -- gradient = gui.Gradient{
-        --     type = "radial",
-        --     point_a = {x = 0.5, y = -0.2},
-        --     point_b = {x = 0.5, y = 0.4},
-        --     stops = gradientStops,
-        -- },
+        bgcolor = COLOR_GOLD04,
     },
     {
         selectors = {"unavailable"},
@@ -231,45 +246,6 @@ function gui.ActionButton(options)
             },
         },
 
-        -- gui.Panel{ -- Selected Overlay
-        --     width = "100%",
-        --     height = GRADIENT_OVERLAY_HEIGHT,
-        --     halign = "center",
-        --     valign = "bottom",
-        --     bgimage = true,
-        --     -- bgcolor = "#ffffff",
-        --     cornerRadius = ACTION_BUTTON_CORNER_RADIUS,
-        --     beveledcorners = true,
-        --     interactable = false,
-
-        --     _setSelected = function(element, selected)
-        --         selected = selected or false
-        --         element:SetClass("collapsed", not selected)
-        --     end,
-
-        --     gradient = gui.Gradient{
-        --         type = "radial",
-        --         point_a = {x = 0.5, y = -0.2},
-        --         point_b = {x = 0.5, y = 0.4},
-        --         stops = gradientStops,
-        --     },
-        -- },
-
-        -- gui.Panel{ -- Hover Overlay
-        --     classes = {"action-button-hover"},
-        --     width = "50%",
-        --     height = GRADIENT_OVERLAY_HEIGHT,
-        --     halign = "center",
-        --     valign = "bottom",
-        --     bgimage = true,
-        --     interactable = false,
-
-        --     _setSelected = function(element, selected)
-        --         selected = selected or false
-        --         element:SetClass("collapsed", selected)
-        --     end,
-        -- },
-
         gui.Panel{ -- Available Overlay
             width = "100%",
             height = "auto",
@@ -294,45 +270,11 @@ function gui.ActionButton(options)
 
             },
 
-            gui.Panel { -- Line
-                height = AVAILABLE_LINE_HEIGHT,
-                width = "auto",
-                halign = "center",
-                valign = "top",
-                tmargin = AVAILABLE_LINE_TMARGIN,
-                pad = 0,
-                flow = "horizontal",
+            gui.Panel{ -- V-Line
+                classes = {"v-line"},
+                bgimage = mod.images.actionButtonVLine,
                 interactable = false,
-                gui.Panel{
-                    width = "35%",
-                    height = AVAILABLE_LINE_HEIGHT,
-                    halign = "right",
-                    valign = "top",
-                    hmargin = 0,
-                    bgimage = mod.images.actionButtonLine,
-                    bgcolor = "#ffffff",
-                    interactable = false,
-                },
-                gui.Panel{
-                    width = 24,
-                    height = AVAILABLE_LINE_HEIGHT,
-                    halign = "center",
-                    valign = "top",
-                    hmargin = 0,
-                    bgimage = mod.images.actionButtonV,
-                    bgcolor = "#ffffff",
-                    interactable = false,
-                },
-                gui.Panel{
-                    width = "35%",
-                    height = AVAILABLE_LINE_HEIGHT,
-                    halign = "left",
-                    valign = "top",
-                    bgimage = mod.images.actionButtonLine,
-                    bgcolor = "#ffffff",
-                    interactable = false,
-                },
-            }
+            },
         },
     }
 
