@@ -62,9 +62,8 @@ function game.ChangeMap(map, floor)
 end
 
 --- FloorIsAboveGround
---- @param floor any
---- @return boolean
-function game.FloorIsAboveGround(floor)
+--- @return number
+function game.FloorIsAboveGround()
 	-- dummy implementation for documentation purposes only
 end
 

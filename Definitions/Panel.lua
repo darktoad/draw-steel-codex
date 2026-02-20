@@ -110,7 +110,7 @@ end
 --- FindParentWithClass: If the parent of this panel is of the 'classid' class it is returned, otherwise if its parent is of that class it is returned, and so forth. If no ancestor is found with the given class, nil will be returned.
 --- @param classid string
 --- @return Panel|nil
-function Panel:FindParentWithClass(classid)
+function Panel.FindParentWithClass()
 	-- dummy implementation for documentation purposes only
 end
 
@@ -142,7 +142,7 @@ end
 --- @param eventName string The name of the event to fire.
 --- @param delay number The time in seconds to delay the event being fired.
 --- @vararg args any The arguments to pass to the event.
-function Panel:ScheduleEvent(eventName, delay, args)
+function Panel.ScheduleEvent()
 	-- dummy implementation for documentation purposes only
 end
 
@@ -196,7 +196,7 @@ end
 --- GetChild: Gets the nth child of the panel
 --- @param n number
 --- @return Panel|nil
-function Panel:GetChild(n)
+function Panel.GetChild()
 	-- dummy implementation for documentation purposes only
 end
 
@@ -217,7 +217,7 @@ end
 --- FireEvent: Fires the named event on this panel. This can be a built-in event such as click, or any name you choose. If it exists, the corresponding event handler (@see events) will be called on this panel. The panel itself is always passed as the first argument and then any arguments you passed are called.
 --- @param eventName string The name of the event to fire.
 --- @vararg args any Additional arguments to pass to the event.
-function Panel:FireEvent(eventName, args)
+function Panel.FireEvent()
 	-- dummy implementation for documentation purposes only
 end
 
@@ -231,7 +231,7 @@ end
 --- FireEventTree: Fires the named event on this panel, and all children, grand-children, etc, recursively down the hierarchy. @see FireEvent
 --- @param eventName string The name of the event to fire.
 --- @vararg args any Additional arguments to pass to the event.
-function Panel:FireEventTree(key, args)
+function Panel.FireEventTree()
 	-- dummy implementation for documentation purposes only
 end
 
@@ -281,16 +281,15 @@ end
 
 --- HasClass: This returns true if this panel has the given class applied to it.
 --- @param classid string
---- @return boolean
-function Panel:HasClass(classid)
+--- @return bool
+function Panel.HasClass()
 	-- dummy implementation for documentation purposes only
 end
 
 --- SetClass: Adds or removes the given class to this panel. If value is true, the class is added, otherwise it is removed.
 --- @param classid string
---- @param value boolean
---- @return nil
-function Panel:SetClass(classid, value)
+--- @param value bool
+function Panel.SetClass()
 	-- dummy implementation for documentation purposes only
 end
 

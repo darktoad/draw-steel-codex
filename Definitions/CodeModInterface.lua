@@ -26,9 +26,8 @@ function CodeModInterface:GetDocumentPath(id)
 end
 
 --- GetDocumentSnapshot
---- @param id string
---- @return any
-function CodeModInterface:GetDocumentSnapshot(id)
+--- @return number
+function CodeModInterface.GetDocumentSnapshot()
 	-- dummy implementation for documentation purposes only
 end
 

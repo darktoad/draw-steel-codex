@@ -386,7 +386,7 @@ end
 --- GetTable: Get the specified data table. Returns nil if the table does not exist or is empty. Note that the return table includes items that are 'hidden' -- have been deleted by the user.
 --- @param tableName string
 --- @return table<string, table>
-function dmhub.GetTable(tableName)
+function dmhub.GetTable()
 	-- dummy implementation for documentation purposes only
 end
 
@@ -990,7 +990,7 @@ end
 --- GetSessionInfo
 --- @param userid The userid of the user to get session info concerning.
 --- @return LuaGameSession
-function dmhub.GetSessionInfo(userid)
+function dmhub.GetSessionInfo()
 	-- dummy implementation for documentation purposes only
 end
 
@@ -1019,14 +1019,14 @@ end
 --- LookupToken: Given a token's Lua properties (the CharacterToken.properties member, which is most often a Creature) returns the CharacterToken if found.
 --- @param properties table
 --- @return nil|CharacterToken
-function dmhub.LookupToken(properties)
+function dmhub.LookupToken()
 	-- dummy implementation for documentation purposes only
 end
 
 --- LookupTokenId: Given a token's Lua properties (the CharacterToken.properties member, which is most often a Creature) returns the tokenid of the token if found.
 --- @param properties table
 --- @return nil|string
-function dmhub.LookupTokenId(properties)
+function dmhub.LookupTokenId()
 	-- dummy implementation for documentation purposes only
 end
 
@@ -1084,9 +1084,8 @@ function dmhub.HasSetting(settingid)
 end
 
 --- GetSettingValue: Get the value of a game setting.
---- @param settingid string
---- @return any
-function dmhub.GetSettingValue(settingid)
+--- @return number
+function dmhub.GetSettingValue()
 	-- dummy implementation for documentation purposes only
 end
 

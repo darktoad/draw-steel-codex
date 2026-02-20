@@ -2,11 +2,11 @@
 regex = {}
 
 --- MatchGroups
---- @param str any
---- @param pattern any
---- @param options any
---- @return any
-function regex.MatchGroups(str, pattern, options)
+--- @param str string
+--- @param pattern string
+--- @param options table|nil
+--- @return table
+function regex.MatchGroups()
 	-- dummy implementation for documentation purposes only
 end
 
