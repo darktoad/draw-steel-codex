@@ -2418,9 +2418,7 @@ function ActivatedAbility.CastCoroutine(self, casterToken, targets, options)
                 }
             end
 
-            print("Cast:: Casting behavior:", behavior.typeName, "with caster", casterToken.charid, "apply to targets:", #behavior:ApplyToTargets(self, casterToken, targets, options))
 			behavior:Cast(self, casterToken, behavior:ApplyToTargets(self, casterToken, targets, options), options)
-            print("Cast:: Finished casting behavior:", behavior.typeName)
             if options.abort and (not options.pay) then
                 break
             end
