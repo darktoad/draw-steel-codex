@@ -45,17 +45,6 @@ function CharacterBuilder.CreatePanel()
             detailPanels = {},
         },
 
-        applyBaseCharacteristics = function(element, hero, classItem)
-            if hero == nil or classItem == nil then return end
-            local baseChars = classItem:try_get("baseCharacteristics")
-            local heroAttrs = hero:try_get("attributes")
-            if baseChars and heroAttrs then
-                for k,attr in pairs(heroAttrs) do
-                    attr.baseValue = baseChars[k] or 0
-                end
-            end
-        end,
-
         applyCurrentAncestry = function(element)
             local ancestryId = element.data.state:Get(SEL.ANCESTRY .. ".selectedId")
             if ancestryId then
@@ -97,7 +86,13 @@ function CharacterBuilder.CreatePanel()
 
                     local classItem = state:Get(SEL.CLASS .. ".selectedItem")
                     if classItem then
-                        element:FireEvent("applyBaseCharacteristics", hero, classItem)
+                        local baseChars = classItem:try_get("baseCharacteristics")
+                        local heroAttrs = hero:try_get("attributes")
+                        if baseChars and heroAttrs then
+                            for k,attr in pairs(heroAttrs) do
+                                attr.baseValue = baseChars[k] or 0
+                            end
+                        end
                     end
 
                     element:FireEvent("tokenDataChanged")
@@ -518,8 +513,6 @@ function CharacterBuilder.CreatePanel()
                 -- Cache isn't changing. Calculate always.
                 if true or classChanged or levelChanged or subclassesChanged or levelChoicesChanged then
                     local classFill = {}
-
-                    element:FireEvent("applyBaseCharacteristics", hero, classItem)
 
                     -- Special case: Adapt baseCharacteristics to behave like a feature choice
                     local feature = CharacterCharacteristicChoice.CreateNew(classItem)
