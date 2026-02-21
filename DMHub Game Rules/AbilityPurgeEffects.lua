@@ -244,6 +244,19 @@ function ActivatedAbilityPurgeEffectsBehavior:CastOnTarget(casterToken, targetTo
 
     local result = {}
 
+    local limitToCaster
+    if self:try_get("fromCaster", "") ~= "" then
+        if options.symbols == nil then
+            options.symbols = {}
+        end
+        options.symbols.target = targetToken.properties
+        local effectCaster = dmhub.EvalGoblinScriptToObject(self.fromCaster, casterToken.properties:LookupSymbol(options.symbols), "Determine source of purge")
+        --make sure effectCaster is a valid creature type
+        if type(effectCaster) == "table" and (effectCaster.typeName == "creature" or effectCaster.typeName == "character" or effectCaster.typeName == "monster" or effectCaster.typeName == "follower") then
+            limitToCaster = dmhub.LookupToken(effectCaster)
+        end
+    end
+
     if self.mode == "conditions" and targetCreature:has_key("inflictedConditions") then
         local conditions = {}
         local targetDuration = self:try_get("targetDuration", "all")
@@ -252,8 +265,19 @@ function ActivatedAbilityPurgeEffectsBehavior:CastOnTarget(casterToken, targetTo
             if #self.conditions == 0 or table.contains(self.conditions, key) then
                 for _,durationEntry in ipairs(durationTable) do
                     if durationEntry == "all" or string.lower(durationEntry) == string.lower(conditionInfo.duration) then
-                        conditions[#conditions+1] = key
-                        break
+                        local shouldAdd = true
+                        
+                        -- Check caster filter if specified
+                        if limitToCaster ~= nil and conditionInfo.casterInfo ~= nil then
+                            if limitToCaster.id ~= conditionInfo.casterInfo.tokenid then
+                                shouldAdd = false
+                            end
+                        end
+                        
+                        if shouldAdd then
+                            conditions[#conditions+1] = key
+                            break
+                        end
                     end
                 end
             end
@@ -806,6 +830,56 @@ function ActivatedAbilityPurgeEffectsBehavior:EditorItems(parentPanel)
                 self.targetDuration = element.idChosen
             end,
         },
+    }
+
+    result[#result+1] = gui.Panel{
+        classes = {"formPanel"},
+        gui.Label{
+            classes = {"formLabel"},
+            text = "Limit to Caster:",
+        },
+        gui.GoblinScriptInput{
+            value = self:try_get("fromCaster", ""),
+            events = {
+                change = function(element)
+                    self.fromCaster = element.value
+                end,
+            },
+
+			documentation = {
+				help = string.format("When given a creature, the purged effects are limited to conditions or effects inflicted by the creature."),
+				output = "creature",
+                subject = creature.helpSymbols,
+                subjectDescription = "The creature that is casting the spell.",
+				examples = {
+					{
+						script = "Caster",
+						text = "Purged effects are limited to those inflicted by the caster of this ability.",
+					},
+					{
+						script = "Target",
+						text = "Purged effects are limited to those inflicted by the target of this ability.",
+					},
+				},
+				symbols = ActivatedAbility.CatHelpSymbols(ActivatedAbility.helpCasting, {
+                    caster = {
+                        name = "Caster",
+                        type = "creature",
+                        desc = "The creature that is casting the ability.",
+                    },
+                    target = {
+                        name = "Target",
+                        type = "creature",
+                        desc = "The target creature of the ability.",
+                    },
+                    subject = {
+						name = "Subject",
+						type = "creature",
+						desc = "The subject of the triggered ability. Only valid within a triggered ability.",
+					},
+                })
+			},
+        }
     }
 
     result[#result+1] = gui.Panel{

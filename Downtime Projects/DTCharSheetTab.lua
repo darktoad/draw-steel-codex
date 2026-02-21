@@ -19,9 +19,30 @@ local CanEditProjectRolls = function()
 	return dmhub.isDM or playersEditProjectRols:Get()
 end
 
+function DTCharSheetTab.GetToken()
+    if CharacterSheet.instance and CharacterSheet.instance.data and CharacterSheet.instance.data.info then
+        return CharacterSheet.instance.data.info.token
+    end
+    return nil
+end
+local getToken = DTCharSheetTab.GetToken
+
+function DTCharSheetTab.ModifyTokenProps(info)
+    local token = DTCharSheetTab.GetToken()
+    if token then
+        token:ModifyProperties{
+            description = info.description or "Update Character Downtime Info",
+            undoable = false,
+            execute = info.execute,
+        }
+    end
+end
+local modifyTokenProps = DTCharSheetTab.ModifyTokenProps
+
 --- Creates the main downtime panel for the character sheet
 --- @return table|nil panel The GUI panel containing downtime content
 function DTCharSheetTab.CreateDowntimePanel()
+
     local downtimePanel = gui.Panel {
         id = "downtimeController",
         classes = {"downtimeController", "DTPanel"},
@@ -36,17 +57,17 @@ function DTCharSheetTab.CreateDowntimePanel()
         styles = DTHelpers.GetDialogStyles(),
         data = {
             getDowntimeFollowers = function()
-                local token = CharacterSheet.instance.data.info.token
-                return token.properties:GetDowntimeFollowers()
+                local token = getToken()
+                return token and token.properties:GetDowntimeFollowers()
             end,
             getDowntimeInfo = function()
-                local token = CharacterSheet.instance.data.info.token
-                return token.properties:GetDowntimeInfo()
+                local token = getToken()
+                return token and token.properties:GetDowntimeInfo()
             end,
         },
 
         refreshToken = function(element)
-            local token = CharacterSheet.instance.data.info.token
+            local token = getToken()
             if token and token.properties and token.properties:IsHero() then
                 local downtimeInfo = token.properties:GetDowntimeInfo()
                 if not downtimeInfo:IsMigrated() then
@@ -65,7 +86,11 @@ function DTCharSheetTab.CreateDowntimePanel()
                         end
                     end
 
-                    downtimeInfo.followerRolls = migratedRolls
+                    modifyTokenProps{
+                        execute = function()
+                            downtimeInfo.followerRolls = migratedRolls
+                        end
+                    }
                 end
             end
         end,
@@ -74,7 +99,11 @@ function DTCharSheetTab.CreateDowntimePanel()
             if projectId and type(projectId) == "string" and #projectId then
                 local downtimeInfo = element.data.getDowntimeInfo()
                 if downtimeInfo then
-                    downtimeInfo:RemoveProject(projectId)
+                    modifyTokenProps{
+                        execute = function()
+                            downtimeInfo:RemoveProject(projectId)
+                        end,
+                    }
                     DTSettings.Touch()
                     element:FireEventTree("refreshToken")
                 end
@@ -82,14 +111,12 @@ function DTCharSheetTab.CreateDowntimePanel()
         end,
 
         adjustRolls = function(element, amount, roller)
-            local token = CharacterSheet.instance.data.info.token
+            local token = getToken()
             local tokenId = token.id
             local rollerTokenId = roller:GetTokenID()
             local dtInfo = token.properties:GetDowntimeInfo()
             if dtInfo then
-                token:ModifyProperties{
-                    description = "Downtime Roll",
-                    undoable = false,
+                modifyTokenProps{
                     execute = function()
                         if rollerTokenId == tokenId then
                             dtInfo:GrantRolls(amount)
@@ -300,19 +327,15 @@ function DTCharSheetTab._createHeaderPanel()
                     element:SetClass("DTStatusPaused", availableRolls <= 0)
                 end,
                 change = function(element)
-                    if CharacterSheet.instance.data.info then
-                        local token = CharacterSheet.instance.data.info.token
-                        if token and token.properties and token.properties:IsHero() then
-                            local downtimeInfo = token.properties:GetDowntimeInfo()
-                            token:ModifyProperties{
-                                description = "Grant Downtime Rolls",
+                    if tonumber(element.text) then
+                        local token = getToken()
+                        local downtimeInfo = token and token.properties:GetDowntimeInfo()
+                        if downtimeInfo then
+                            modifyTokenProps{
                                 execute = function ()
-                                    if tonumber(element.text) then
-                                        downtimeInfo.availableRolls = tonumber(element.text)
-                                    end
+                                    downtimeInfo.availableRolls = tonumber(element.text)
                                 end,
                             }
-
                             element:FireEventTree("refreshToken")
                         end
                     end
@@ -406,17 +429,19 @@ function DTCharSheetTab._createHeaderPanel()
             gui.Tooltip("Add a new project")(element)
         end,
         click = function(element)
-            if CharacterSheet.instance.data.info then
-                local token = CharacterSheet.instance.data.info.token
-                if token and token.properties and token.properties:IsHero() then
-                    local downtimeInfo = token.properties:GetDowntimeInfo()
-                    if downtimeInfo then
-                        downtimeInfo:AddProject(token.charid)
-                        DTSettings.Touch()
-                        local scrollArea = CharacterSheet.instance:Get("projectScrollArea")
-                        if scrollArea then
-                            scrollArea:FireEventTree("refreshToken")
+            local token = getToken()
+            if token and token.properties and token.properties:IsHero() then
+                local downtimeInfo = token.properties:GetDowntimeInfo()
+                if downtimeInfo then
+                    modifyTokenProps{
+                        execute = function()
+                            downtimeInfo:AddProject(token.charid)
                         end
+                    }
+                    DTSettings.Touch()
+                    local scrollArea = CharacterSheet.instance:Get("projectScrollArea")
+                    if scrollArea then
+                        scrollArea:FireEventTree("refreshToken")
                     end
                 end
             end
@@ -536,7 +561,7 @@ end
 --- @param element table The projects list container element
 function DTCharSheetTab._refreshProjectsList(element)
     if CharacterSheet.instance.data.info == nil then return end
-    local token = CharacterSheet.instance.data.info.token
+    local token = getToken()
     if not token or not token.properties or not token.properties:IsHero() then
         element.children = {}
         return
@@ -622,6 +647,7 @@ function DTCharSheetTab._refreshProjectsList(element)
         local foundPanel = false
         for _, panel in ipairs(panels) do
             if panel.id == project:GetID() and not panel:HasClass("sharedProject") then
+                panel:FireEvent("setProject", project)
                 foundPanel = true
                 break
             end
@@ -632,10 +658,8 @@ function DTCharSheetTab._refreshProjectsList(element)
     end
 
     -- Add panels for shared projects
-    if false then
     for _, entry in ipairs(sharedProjects) do
         if entry.project then
-            print("THC:: project", json(entry.project))
             local foundPanel = false
             for _, panel in ipairs(panels) do
                 if panel.id == entry.project:GetID() and panel:HasClass("sharedProject") then
@@ -647,7 +671,6 @@ function DTCharSheetTab._refreshProjectsList(element)
                 panels[#panels + 1] = DTProjectEditor.new{project = entry.project}:CreateSharedProjectPanel(entry.ownerName, entry.ownerId, entry.ownerColor)
             end
         end
-    end
     end
 
     -- Step 3: Sort panels - owned projects first (by sort order), then shared projects (by sort order)

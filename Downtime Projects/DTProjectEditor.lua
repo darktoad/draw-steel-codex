@@ -6,9 +6,35 @@ DTProjectEditor = RegisterGameType("DTProjectEditor")
 
 local mod = dmhub.GetModLoading()
 
+local function getToken()
+    if CharacterSheet.instance and CharacterSheet.instance.data and CharacterSheet.instance.data.info then
+        return CharacterSheet.instance.data.info.token
+    end
+    return nil
+end
+local function modifyTokenProps(info)
+    local token = DTCharSheetTab.GetToken()
+    if token then
+        token:ModifyProperties{
+            description = info.description or "Update Character Downtime Info",
+            undoable = false,
+            execute = info.execute,
+        }
+    end
+end
+
 --- Gets the fresh project data from the character sheet
 --- @return DTProject|nil project The current project or nil if not found
 function DTProjectEditor:GetProject()
+    -- if self.project == nil then return end
+    -- local projectId = self.project:GetID()
+    -- local token = getToken()
+    -- if token and token.properties and token.properties:IsHero() then
+    --     local downtimeInfo = token.properties:GetDowntimeInfo()
+    --     if downtimeInfo then
+    --         return downtimeInfo:GetProject(projectId)
+    --     end
+    -- end
     return self.project
 end
 
@@ -76,15 +102,19 @@ function DTProjectEditor:_createProjectForm()
                     if itemId and #itemId > 0 then
                         local project, controller = element.data.getProject(element)
                         if project then
-                            item = dmhub.GetTable(equipment.tableName)[itemId]
+                            local item = dmhub.GetTable(equipment.tableName)[itemId]
                             if item then
-                                project:SetTitle(item.name)
-                                    :SetItemID(itemId)
-                                    :SetItemPrerequisite(item.itemPrerequisite)
-                                    :SetProjectSource(item.projectSource)
-                                    :SetProjectGoal(tonumber(item.projectGoal:match("^%d+")))
-                                    :SetTestCharacteristics(DTHelpers.FlagListToList(item.projectRollCharacteristic))
-                                    :SetProjectSourceLanguages(DTBusinessRules.ExtractLanguagesToIds(item.projectSource))
+                                modifyTokenProps{
+                                    execute = function()
+                                        project:SetTitle(item.name)
+                                            :SetItemID(itemId)
+                                            :SetItemPrerequisite(item.itemPrerequisite)
+                                            :SetProjectSource(item.projectSource)
+                                            :SetProjectGoal(tonumber(item.projectGoal:match("^%d+")))
+                                            :SetTestCharacteristics(DTHelpers.FlagListToList(item.projectRollCharacteristic))
+                                            :SetProjectSourceLanguages(DTBusinessRules.ExtractLanguagesToIds(item.projectSource))
+                                    end,
+                                }
                                 controller:FireEventTree("refreshToken")
                                 dmhub.Schedule(0.1, function()
                                     DTSettings.Touch()
@@ -137,7 +167,13 @@ function DTProjectEditor:_createProjectForm()
                 change = function(element)
                     local project = element.data.getProject(element)
                     if project and element.text ~= project:GetTitle() then
-                        project:SetTitle(element.text)
+                        modifyTokenProps{
+                            description = "Change Downtime project title",
+                            undoable = false,
+                            execute = function()
+                                project:SetTitle(element.text)
+                            end,
+                        }
                         dmhub.Schedule(0.1, function()
                             DTSettings.Touch()
                             DTShares.Touch()
@@ -225,7 +261,11 @@ function DTProjectEditor:_createProjectForm()
                 change = function(element)
                     local project = element.data.getProject(element)
                     if project and element.text ~= project:GetItemPrerequisite() then
-                        project:SetItemPrerequisite(element.text)
+                        modifyTokenProps{
+                            execute = function()
+                                project:SetItemPrerequisite(element.text)
+                            end,
+                        }
                         dmhub.Schedule(0.1, function()
                             DTSettings.Touch()
                             DTShares.Touch()
@@ -274,7 +314,11 @@ function DTProjectEditor:_createProjectForm()
                 change = function(element)
                     local project = element.data.getProject(element)
                     if project and element.text ~= project:GetProjectSource() then
-                        project:SetProjectSource(element.text)
+                        modifyTokenProps{
+                            execute = function()
+                                project:SetProjectSource(element.text)
+                            end,
+                        }
                         dmhub.Schedule(0.1, function()
                             DTSettings.Touch()
                             DTShares.Touch()
@@ -399,7 +443,11 @@ function DTProjectEditor:_createProjectForm()
                         end
                         local storageArray = project:GetTestCharacteristics()
                         if not dmhub.DeepEqual(uiArray, storageArray) then
-                            project:SetTestCharacteristics(uiArray)
+                            modifyTokenProps{
+                                execute = function()
+                                    project:SetTestCharacteristics(uiArray)
+                                end
+                            }
                             local projectController = element:FindParentWithClass("projectController")
                             if projectController then
                                 projectController:FireEventTree("refreshToken")
@@ -497,7 +545,13 @@ function DTProjectEditor:_createProjectForm()
                         end
                         local storageArray = project:GetProjectSourceLanguages()
                         if not dmhub.DeepEqual(uiArray, storageArray) then
-                            project:SetProjectSourceLanguages(uiArray)
+                            modifyTokenProps{
+                                description = "Change Downtime Project Languages",
+                                editable = false,
+                                execute = function()
+                                    project:SetProjectSourceLanguages(uiArray)
+                                end,
+                            }
                             local projectController = element:FindParentWithClass("projectController")
                             if projectController then
                                 projectController:FireEventTree("refreshToken")
@@ -552,7 +606,11 @@ function DTProjectEditor:_createProjectForm()
                     local project = element.data.getProject(element)
                     if project and tonumber(element.text) ~= project:GetProjectGoal() then
                         local value = tonumber(element.text) or 1
-                        project:SetProjectGoal(math.max(1, math.floor(value)))
+                        modifyTokenProps{
+                            execute = function()
+                                project:SetProjectGoal(math.max(1, math.floor(value)))
+                            end,
+                        }
                         dmhub.Schedule(0.1, function()
                             DTSettings.Touch()
                             DTShares.Touch()
@@ -595,9 +653,13 @@ function DTProjectEditor:_createProjectForm()
                     end
                 end,
                 change = function(element)
-                    local project =element.parent.data.getProject(element)
+                    local project = element.parent.data.getProject(element)
                     if project and element.idChosen ~= project:GetStatus() then
-                        project:SetStatus(element.idChosen)
+                        modifyTokenProps{
+                            execute = function()
+                                project:SetStatus(element.idChosen)
+                            end,
+                        }
                         dmhub.Schedule(0.1, function()
                             DTSettings.Touch()
                             DTShares.Touch()
@@ -687,7 +749,13 @@ function DTProjectEditor:_createProjectForm()
                 change = function(element)
                     local project = element.data.getProject(element)
                     if project and element.text ~= project:GetStatusReason() then
-                        project:SetStatusReason(element.text)
+                        modifyTokenProps{
+                            description = "Change Downtime Project Status Reason",
+                            undoable = false,
+                            execute = function()
+                                project:SetStatusReason(element.text)
+                            end,
+                        }
                         dmhub.Schedule(0.1, function()
                             DTSettings.Touch()
                             DTShares.Touch()
@@ -760,20 +828,20 @@ function DTProjectEditor:_createProjectForm()
                 change = function(element)
                     local project = element.data.getProject(element)
                     if project and element.text ~= tostring(project:GetMilestoneThreshold()) then
-                        if element.text == "" then
-                            project:SetMilestoneThreshold(nil)
-                            dmhub.Schedule(0.1, function()
-                                DTSettings.Touch()
-                                DTShares.Touch()
-                            end)
-                        else
-                            local value = tonumber(element.text) or 0
-                            project:SetMilestoneThreshold(math.max(0, math.floor(value)))
-                            dmhub.Schedule(0.1, function()
-                                DTSettings.Touch()
-                                DTShares.Touch()
-                            end)
-                        end
+                        modifyTokenProps{
+                            execute = function()
+                                if element.text == "" then
+                                    project:SetMilestoneThreshold(nil)
+                                else
+                                    local value = tonumber(element.text) or 0
+                                    project:SetMilestoneThreshold(math.max(0, math.floor(value)))
+                                end
+                            end,
+                        }
+                        dmhub.Schedule(0.1, function()
+                            DTSettings.Touch()
+                            DTShares.Touch()
+                        end)
                     end
                 end
             }
@@ -1674,7 +1742,7 @@ function DTProjectEditor:_createOwnedProjectButtons()
             if project and controller and shareData then
 
                 -- Build the list of characters to show
-                local me = CharacterSheet.instance.data.info.token
+                local me = getToken()
                 local function inPartyAndNotMe(t)
                     return t.id ~= me.id and t.partyId == me.partyId
                 end
@@ -1684,7 +1752,7 @@ function DTProjectEditor:_createOwnedProjectButtons()
                 local sharedWith = shareData:GetProjectSharedWith(me.id, project:GetID())
                 local initialSelectionIds = {}
                 for _, tokenId in ipairs(sharedWith) do
-                    initialSelectionIds[#initialSelectionIds + 1] = {id = tokenId, selected = true}
+                    initialSelectionIds[tokenId] = {id = tokenId, selected = true}
                 end
 
                 local options = {
@@ -1902,7 +1970,11 @@ function DTProjectEditor:CreateEditorPanel()
     -- Event handlers for owned projects
     local eventHandlers = {
         addAdjustment = function(element, newAdjustment)
-            element.data.project:AddAdjustment(newAdjustment)
+            modifyTokenProps{
+                execute = function()
+                    element.data.project:AddAdjustment(newAdjustment)
+                end,
+            }
             element:FireEvent("refreshProject")
             dmhub.Schedule(0.1, function()
                 DTSettings.Touch()
@@ -1911,7 +1983,11 @@ function DTProjectEditor:CreateEditorPanel()
         end,
 
         deleteAdjustment = function(element, adjustmentId)
-            element.data.project:RemoveAdjustment(adjustmentId)
+            modifyTokenProps{
+                execute = function()
+                    element.data.project:RemoveAdjustment(adjustmentId)
+                end,
+            }
             element:FireEvent("refreshProject")
             dmhub.Schedule(0.1, function()
                 DTSettings.Touch()
@@ -1922,7 +1998,11 @@ function DTProjectEditor:CreateEditorPanel()
         addRolls = function(element, rolls, roller)
             local downtimeController = element:FindParentWithClass("downtimeController")
             if downtimeController then
-                element.data.project:AddRolls(rolls)
+                modifyTokenProps{
+                    execute = function()
+                        element.data.project:AddRolls(rolls)
+                    end,
+                }
                 downtimeController:FireEvent("adjustRolls", -1, roller)
                 dmhub.Schedule(0.2, function()
                     DTSettings.Touch()
@@ -1938,7 +2018,11 @@ function DTProjectEditor:CreateEditorPanel()
                 if roll then
                     local roller = DTRoller.CreateNew(roll)
                     if roller then
-                        element.data.project:RemoveRoll(rollId)
+                        modifyTokenProps{
+                            execute = function()
+                                element.data.project:RemoveRoll(rollId)
+                            end,
+                        }
                         downtimeController:FireEvent("adjustRolls", 1, roller)
                         dmhub.Schedule(0.1, function()
                             DTSettings.Touch()
@@ -1951,6 +2035,10 @@ function DTProjectEditor:CreateEditorPanel()
 
         refreshProject = function(element)
             element:FireEventTree("refreshToken")
+        end,
+
+        setProject = function(element, project)
+            element.data.project = project
         end,
     }
 
