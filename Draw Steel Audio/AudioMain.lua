@@ -1009,6 +1009,17 @@ audio.SoundEvent{
     ignoreDuplicates = 0.2,
 }
 
+audio.SoundEvent{
+    name = "Foot.Float_Generic",
+    mixgroup = "footsteps",
+    sounds = {"foot/FS_Float_Gnrc_v1_01.wav","foot/FS_Float_Gnrc_v1_02.wav","foot/FS_Float_Gnrc_v1_03.wav","foot/FS_Float_Gnrc_v1_04.wav","foot/FS_Float_Gnrc_v1_05.wav","foot/FS_Float_Gnrc_v1_06.wav"},
+    volume = 0.08,
+    pitchRand = 0.0,
+    ignoreDuplicates = 0.5,
+}
+
+
+
 
 
 audio.SoundEvent{
