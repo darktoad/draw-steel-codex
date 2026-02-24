@@ -120,6 +120,7 @@ function CBFeatureSelector.BuildSelectorPanel(overrides)
         valign = "top",
         flow = "vertical",
         vscroll = true,
+        debugLogging = true,
         gui.Panel{
             classes = {"builder-base", "panel-base", "feature-choice-container"},
             optionsContainer,
@@ -697,11 +698,12 @@ function CBFeatureSelector.SelectionPanel(selector, feature)
         local injectedBeforeOptions = injections.beforeOptions
         injections.beforeOptions = function()
             if injectedBeforeOptions ~= nil then _functionOrValue(injectedBeforeOptions) end
-            return gui.Input{
+            return gui.SearchInput{
                 classes = {"builder-base", "input", "primary"},
-                width = "95%",
+                width = "95%-30",
+                height = 20,
                 halign = "left",
-                placeholderText = "Start typing to filter; Start with > for starts with...",
+                placeholderText = "Search complications...",
                 editlag = 0.5,
                 data = {
                     featureId = feature:GetGuid()

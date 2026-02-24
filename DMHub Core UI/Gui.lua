@@ -3825,6 +3825,7 @@ function gui.SearchInput(options)
 	local args = {
 		classes = {"searchInput"},
 		placeholderText = "Search...",
+        hpad = 24,
 		editlag = 0.25,
 
 		edit = function(element)
@@ -3837,10 +3838,11 @@ function gui.SearchInput(options)
 		gui.Panel{
 			bgimage = "icons/icon_tool/icon_tool_42.png",
 			floating = true,
+            x = -20,
 			vmargin = 0,
-			halign = "right",
-			valign = "top",
-			height = "100%",
+			halign = "left",
+			valign = "center",
+			height = "90%",
 			width = "100% height",
             bgcolor = cond(dmhub.whiteLabel == "mcdm", "white", "black"),
 		},
