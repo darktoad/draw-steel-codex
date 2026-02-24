@@ -857,7 +857,7 @@ local CreateEditorPanel = function(fieldInfo, displayInfo, options, valueIndex, 
 
 		local fieldOptions = fieldInfo.fieldList[1].options
 
-		local sliderWidth = options.sliderWidth or 160
+		local sliderWidth = options.sliderWidth or 240
 		local labelWidth = options.labelWidth or 40
 		editorPanel = gui.Slider{
 			value = fieldInfo.fieldList[1]:GetValue(valueIndex),
@@ -927,13 +927,15 @@ local CreateEditorPanel = function(fieldInfo, displayInfo, options, valueIndex, 
 				valign = 'center',
 				width = "auto",
 				height = "auto",
-				flow = "vertical",
 				slider,
 				gui.Panel{
 					width = "auto",
 					height = "auto",
 					flow = "horizontal",
-					halign = "left",
+					halign = "right",
+                    rmargin = 8,
+                    y = -40,
+                    floating = true,
 
 					gui.Panel{
 						bgimage = "panels/hud/anticlockwise-rotation.png",
@@ -1117,10 +1119,9 @@ local CreateEditorPanel = function(fieldInfo, displayInfo, options, valueIndex, 
 			id = 'EnumDropdown',
 			options = displayInfo.enum,
 			idChosen = fieldInfo.fieldList[1]:GetValue(valueIndex),
-			x = -10,
-			width = 120,
+			width = 180,
 			height = 24,
-			halign = 'right',
+			halign = 'left',
 			valign = 'center',
 			fontSize = 12,
 
@@ -1146,11 +1147,10 @@ local CreateEditorPanel = function(fieldInfo, displayInfo, options, valueIndex, 
 			id = 'BoolDropdown',
 			options = {'Yes', 'No'},
 			optionChosen = cond(fieldInfo.fieldList[1]:GetValue(valueIndex), 'Yes', 'No'),
-			x = -10,
-			width = 60,
-			fontSize = 16,
+			width = 180,
 			height = 24,
-			halign = 'right',
+            fontSize = 12,
+			halign = 'left',
 			valign = 'center',
 			events = {
 				change = function(element)
@@ -1220,7 +1220,7 @@ local CreateFieldEditor = function(fieldInfo, options)
 		editorPanel = gui.Panel{
 			width = "auto",
 			height = "auto",
-			halign = "right",
+			halign = "left",
 			flow = "vertical",
 
 			create = function(element)
@@ -1257,20 +1257,39 @@ local CreateFieldEditor = function(fieldInfo, options)
 					}
 				end
 
-				children[#children+1] = gui.AddButton{
-					cornerRadius = 0,
-					click = function(element)
-						local groupid = dmhub.GenerateGuid()
-						for i,fieldInstance in ipairs(fieldInfo.fieldList) do
-							fieldInstance:Append()
-							if options.objectInstances then
-								fieldInstance:Upload(groupid)
-							end
-						end
+                local emptyLabel = nil
+                if fieldInfo.fieldList[1].count == 0 then
+                    emptyLabel = gui.Label{
+                        fontSize = 10,
+                        valign = "center",
+                        hmargin = 4,
+                        text = string.format("%s empty", fieldInfo.prettyName),
+                        width = "auto",
+                        height = "auto",
+                    }
+                end
 
-						element:FireEventOnParents("refreshObjects")
-					end
-				}
+				children[#children+1] =
+                gui.Panel{
+                    flow = "horizontal",
+                    width = "auto",
+                    height = "auto",
+                    gui.AddButton{
+                        cornerRadius = 0,
+                        click = function(element)
+                            local groupid = dmhub.GenerateGuid()
+                            for i,fieldInstance in ipairs(fieldInfo.fieldList) do
+                                fieldInstance:Append()
+                                if options.objectInstances then
+                                    fieldInstance:Upload(groupid)
+                                end
+                            end
+
+                            element:FireEventOnParents("refreshObjects")
+                        end
+                    },
+                    emptyLabel,
+                }
 
 				element.children = children
 			end,
@@ -1286,6 +1305,8 @@ local CreateFieldEditor = function(fieldInfo, options)
 	local resultPanel = gui.Panel{
 		bgimage = 'panels/square.png',
 		classes = {'field-editor-panel', cond(displayInfo ~= nil and displayInfo.hidden, 'collapsed')},
+        flow = "vertical",
+        height = "auto",
 		refreshObjects = function(element)
 			displayInfo = fieldInfo.component:GetFieldDisplayInfo(fieldInfo.object, fieldInfo.id)
 			element:SetClass('collapsed', displayInfo ~= nil and displayInfo.hidden)
@@ -1296,10 +1317,17 @@ local CreateFieldEditor = function(fieldInfo, options)
 				classes = {'field-description-label', cond(resultOptions.showLabel, nil, 'collapsed')},
 				selfStyle = {
 					hmargin = 4,
+                    bmargin = 4,
 				},
 			},
 
-			editorPanel,
+            gui.Panel{
+			    editorPanel,
+                hmargin = 4,
+                width = "auto",
+                height = "auto",
+                halign = "left",
+            },
 		},
 	}
 
@@ -2154,6 +2182,7 @@ local CreateObjectEditor = function(nodes, options)
 			halign = "right",
 			valign = "right",
 			vmargin = 12,
+            hmargin = 8,
 			press = function(element)
 				objectLocked = not objectLocked
 				element.bgimage = cond(objectLocked, "icons/icon_tool/icon_tool_30.png", "icons/icon_tool/icon_tool_30_unlocked.png")
@@ -2415,36 +2444,45 @@ local CreateObjectEditor = function(nodes, options)
 		},
 
 		children = {
-			gui.Label{
-				text = 'Name:',
-				classes = {'field-description-label'},
-				styles = {
-					{
-						hmargin = 4,
-						halign = 'left',
-						valign = 'center',
-					}
-				}
-			},
+            gui.Panel{
+                flow = "vertical",
+                width = "auto",
+                height = "auto",
+                halign = "left",
+                valign = "center",
+                gui.Label{
+                    text = 'Name:',
+                    classes = {'field-description-label'},
+                    styles = {
+                        {
+                            hmargin = 4,
+                            halign = 'left',
+                            valign = 'center',
+                        }
+                    }
+                },
 
-			gui.Label{
-				text = nodes[1].description,
-				editable = not options.objectInstances,
-				classes = {'field-description-label', 'field-name-label'},
-				bgimage = 'panels/square.png',
-				selfStyle = {
-					halign = 'center',
-					valign = 'center',
-					textAlignment = 'center',
-				},
-				events = {
-					change = function(element)
-						for i,node in ipairs(nodes) do
-							node.description = element.text
-						end
-					end,
-				},
-			},
+                gui.Label{
+                    text = nodes[1].description,
+                    editable = not options.objectInstances,
+                    classes = {'field-description-label', 'field-name-label'},
+                    bgimage = 'panels/square.png',
+                    selfStyle = {
+                        halign = 'left',
+                        valign = 'center',
+                        hmargin = 4,
+                        fontSize = 14,
+                        bold = true,
+                    },
+                    events = {
+                        change = function(element)
+                            for i,node in ipairs(nodes) do
+                                node.description = element.text
+                            end
+                        end,
+                    },
+                },
+            },
 
 			lockIcon,
 		}
@@ -2822,7 +2860,7 @@ local function CreateObjectEditorPanel()
 				borderWidth = 0,
 				pad = 4,
 				margin = 4,
-				flow = 'none',
+				flow = 'vertical',
 			},
 			{
 				selectors = {"field-description-label"},
@@ -2839,7 +2877,7 @@ local function CreateObjectEditorPanel()
 			{
 				selectors = {"field-name-label"},
 				priority = 5,
-				maxWidth = 160,
+				maxWidth = 240,
 			},
 			{
 				selectors = {'property-label'},
@@ -2917,7 +2955,7 @@ local function CreateObjectEditorPanel()
 				local createEditorFunction
 				createEditorFunction = function()
 					return CreateObjectEditor(objects, {
-						sliderWidth = 80,
+						sliderWidth = 160,
 						labelWidth = 30,
 						addPropertyText = 'Add...', --the text to use to add properties. This is the short version for a smaller area.
 						objectInstances = true, --this signals that we are editing actual object instances, not blueprints.
