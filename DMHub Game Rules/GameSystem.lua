@@ -1,7 +1,43 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("GameSystem")
-RegisterGameType("RollRules")
+--- @class GameSystem
+--- @field rollTypes table[] Registered roll type descriptors for this game system.
+--- @field leveledProficiencyTypes table[] Proficiency types that scale with level.
+--- @field HitpointsName string Localized term for hit points.
+--- @field AttributeName string Localized term for a single attribute.
+--- @field AttributeNamePlural string Localized plural for attributes.
+--- @field SkillName string Localized term for a single skill.
+--- @field SkillNamePlural string Localized plural for skills.
+--- @field SavingThrowName string Localized term for a saving throw.
+--- @field SavingThrowRollName string Localized name used in roll dialogs.
+--- @field SavingThrowNamePlural string Localized plural for saving throws.
+--- @field BackgroundName string Localized term for a background.
+--- @field BackgroundNamePlural string Localized plural for backgrounds.
+--- @field RaceName string Localized term for a race/ancestry.
+--- @field RaceNamePlural string Localized plural for races.
+--- @field RacesHaveHeights boolean If true, race entries include height fields.
+--- @field CRName string Abbreviation for challenge rating.
+--- @field ChallengeName string Localized term for challenge.
+--- @field ChallengeRatingName string Full localized term for challenge rating.
+--- @field UseAttackRolls boolean If false, attacks always hit (no roll needed).
+--- @field BaseAttackRoll string Dice expression for a base attack roll.
+--- @field BaseSkillRoll string Dice expression for a base skill check.
+--- @field BaseInitiativeRoll string Dice expression for a base initiative roll.
+--- @field BaseSavingThrowRoll string Dice expression for a base saving throw.
+--- @field FlatRoll string Dice expression used for a flat (unmodified) roll.
+--- @field UseBoons boolean If true, the game uses boon/bane advantage system.
+--- @field CombineNegativesForRolls boolean If true, negative dice in a roll expression are normalized.
+--- @field CriticalHitsModifyDamage boolean If true, critical hits add extra damage dice.
+--- @field LowerInitiativeIsFaster boolean If true, lower initiative values act first.
+--- @field CalculateDeathSavingThrowRoll fun(creature: creature): string Returns the dice expression for death saves.
+--- @field CalculateAttributeModifier fun(attributeInfo: table, attributeValue: number): number Converts a raw attribute score to its modifier.
+--- @field CalculateInitiativeModifier fun(creature: creature): number Returns the initiative modifier for a creature.
+--- @field AllowBoonsForRoll fun(options: table): boolean Returns true if boons/banes apply to the given roll.
+GameSystem = RegisterGameType("GameSystem")
+
+--- @class RollRules
+--- Settings and overrides for how a specific roll type is executed.
+RollRules = RegisterGameType("RollRules")
 
 GameSystem.rollTypes = {}
 GameSystem.leveledProficiencyTypes = {}

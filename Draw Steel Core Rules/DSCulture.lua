@@ -1,6 +1,14 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("Culture")
+--- @class Culture
+--- @field name string Display name of the culture.
+--- @field description string Descriptive text.
+--- @field tableName string Data table name ("cultures").
+--- @field group string Group label for UI display (e.g. "Custom").
+--- @field languageid string Language id associated with this culture.
+--- @field init boolean Whether this culture has been initialized (false for the default template).
+--- @field aspects table<string, string> Map from aspect category id to chosen CultureAspect id.
+Culture = RegisterGameType("Culture")
 
 Culture.tableName = "cultures"
 
@@ -11,6 +19,7 @@ Culture.group = "Custom"
 Culture.languageid = ""
 Culture.init = true
 
+--- @return Culture
 function Culture.CreateNew()
     local aspects = {}
     for i,cat in ipairs(CultureAspect.categories) do
@@ -23,6 +32,7 @@ function Culture.CreateNew()
     return result
 end
 
+--- @return string
 function Culture:Describe()
     return "Culture"
 end
@@ -43,6 +53,9 @@ dmhub.RegisterEventHandler("refreshTables", function(keys)
     end
 end)
 
+--- Fills result with feature detail entries for this culture's language choice, lore benefit, and aspects.
+--- @param choices table<string, string[]>
+--- @param result {culture: Culture, feature: CharacterFeature|CharacterChoice}[]
 function Culture:FillFeatureDetails(choices, result)
     local langFeatures = {}
     cultureLanguageChoice:FillFeaturesRecursive(choices, langFeatures)
@@ -71,6 +84,8 @@ function Culture:FillFeatureDetails(choices, result)
     end
 end
 
+--- @param choices table<string, string[]>
+--- @param result CharacterFeature[]
 function Culture:FillClassFeatures(choices, result)
     cultureLanguageChoice:FillChoice(choices, result)
     if cultureLoreBenefit ~= nil then
@@ -91,6 +106,7 @@ creature.culture = Culture.CreateNew()
 creature.culture.init = false
 
 
+--- @return Culture
 function creature:GetCulture()
     return self.culture
 end

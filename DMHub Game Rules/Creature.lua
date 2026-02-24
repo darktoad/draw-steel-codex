@@ -3,7 +3,7 @@ local mod = dmhub.GetModLoading()
 
 --This file implements the important Creature type, which is a base type for both characters and monsters.
 
-RegisterGameType("GameSystem")
+GameSystem = RegisterGameType("GameSystem")
 
 --- @class StatHistoryEntry
 --- @field note string
@@ -16,7 +16,7 @@ RegisterGameType("GameSystem")
 
 --- @class StatHistory Keeps history of a stat.
 --- @field entries StatHistoryEntry[] The list of entries the stat history has.
-RegisterGameType("StatHistory")
+StatHistory = RegisterGameType("StatHistory")
 
 function StatHistory.Create()
 	return StatHistory.new{
@@ -111,9 +111,10 @@ function StatHistory:MostRecentTimestamp(attackerid, disposition)
 end
 
 --- @class CharacterAttribute
---- @field baseValue number
-
-RegisterGameType("CharacterAttribute")
+--- @field baseValue number Base (unmodified) value of this attribute.
+--- @field id string Attribute id (e.g. "str", "dex", "int").
+--- @field name string Display name (e.g. "Strength").
+CharacterAttribute = RegisterGameType("CharacterAttribute")
 
 
 --- Given a number of a modifier returns it as a string, with a + or - on the front as appropriate.
@@ -154,21 +155,41 @@ function CharacterAttribute.ModifierStr(self)
 end
 
 --- @class creature
---- @field max_hitpoints number
---- @field sizes string[] @This is populated by the game system to have available creature sizes.
---- @field sizeToNumber table<string,number>
---- @field proficientWithAllWeapons boolean
---- @field movementTypeInfo {id: string, name: string, tense: string, verb: string, icon:string}[]
---- @field movementTypeById table<string, {id: string, name: string, tense: string, verb: string, icon:string}>
---- @field movementTypes string[]
---- @field movementTypesTable table<string, boolean>
---- @field damage_taken number
---- @field selectedLoadout integer
---- @field numLoadouts integer
---- @field creatureSize nil|string
+--- @field max_hitpoints number The creature's maximum hitpoints (stamina in Draw Steel).
+--- @field temporary_hitpoints number Current temporary hitpoints.
+--- @field damage_taken number Total damage taken so far.
+--- @field currentMoveType string The creature's active movement mode (e.g. "walk", "fly", "swim").
+--- @field creatureSize nil|string The creature's size override, or nil to use default.
+--- @field selectedLoadout integer The currently active loadout index.
+--- @field numLoadouts integer Total number of available loadouts.
+--- @field walkingSpeed nil|number Optional explicit walking speed override.
+--- @field movementSpeeds table<string, number> Map of movement type id to speed (for non-walk modes).
+--- @field attributes table<string, CharacterAttribute> The creature's attribute objects keyed by attribute id.
+--- @field innateActivatedAbilities ActivatedAbility[] Abilities this creature always has.
+--- @field innateLegendaryActions any[] Legendary actions this creature always has.
+--- @field innateLanguages table<string, boolean> Languages this creature innately knows, keyed by language id.
+--- @field innateEquipmentProficiencies table<string, {proficiency: string}> Innate equipment proficiencies.
+--- @field innateAttacks AttackDefinition[] Innate attack definitions for this creature.
+--- @field monster_category nil|string|string[] The monster category or categories for this creature.
+--- @field nameGenerator string The name generator table id to use for this creature.
+--- @field sizes string[] Available creature sizes, populated by the game system.
+--- @field sizeToNumber table<string, number> Maps size id to a numeric size index.
+--- @field proficientWithAllWeapons boolean If true the creature is proficient with all weapons.
+--- @field movementTypeInfo {id: string, name: string, tense: string, verb: string, icon: string}[] Ordered list of movement type descriptors.
+--- @field movementTypeById table<string, {id: string, name: string, tense: string, verb: string, icon: string}> Movement type descriptors keyed by id.
+--- @field movementTypes string[] Ordered list of movement type ids.
+--- @field movementTypesTable table<string, boolean> Set of valid movement type ids.
+--- @field attributesInfo table<string, {id: string, description: string, order: number}> Registered attribute metadata keyed by attribute id.
+--- @field attributeIds string[] Ordered list of registered attribute ids.
+--- @field attributeDropdownOptions {id: string, text: string}[] Attribute options for use in dropdowns.
+--- @field attributeDropdownOptionsWithNone {id: string, text: string}[] Attribute options including a leading "None" entry.
+--- @field savingThrowInfo table<string, {id: string, description: string, order: number}> Registered saving throw metadata keyed by id.
+--- @field savingThrowIds string[] Ordered list of registered saving throw ids.
+--- @field savingThrowDropdownOptions {id: string, text: string, order: number}[] Saving throw options for use in dropdowns.
 creature = RegisterGameType("creature")
 
 --- @class monster:creature
+--- @field description string Display name for the monster type (e.g. "Monster").
 monster = RegisterGameType("monster", "creature")
 
 --- @alias Creature creature
@@ -323,7 +344,7 @@ function creature:CurrentMoveTypeInfo()
 end
 
 --- The creature's movement type.
---- return string
+--- @return string
 function creature:CurrentMoveType()
     local groundMoveType = rawget(self, "_tmp_groundMoveType")
     if groundMoveType == nil then
@@ -446,6 +467,9 @@ function creature:CanClimb()
 end
 
 
+--- Calculates the movement cost to climb a height difference.
+--- @param heightDifference number
+--- @return number
 function creature:CostToClimb(heightDifference)
     heightDifference = heightDifference - 1
     if heightDifference <= 0 then
@@ -522,6 +546,9 @@ end
 
 
 --- Get a list of modifications to our speed.
+--- Returns a list of descriptions of active speed modifications for the given movement type.
+--- @param movementType string
+--- @return {key: string, value: string}[]
 function creature.DescribeSpeedModifications(self, movementType)
 	if movementType == 'walk' or movementType == nil then
 		movementType = 'speed'
@@ -529,13 +556,15 @@ function creature.DescribeSpeedModifications(self, movementType)
 	return self:DescribeModifications(movementType, self:GetBaseSpeed(movementType))
 end
 
---this tells us if there are any difficulties to movement that require every step
---costing extra movement. The default value of 0 means no difficulties.
+--- Returns movement difficulty level. 0 means no difficulties; positive values indicate extra cost per step.
+--- @return number
 function creature:MovementDifficulty()
 	return self:CalculateAttribute("movementDifficulty", 0)
 end
 
---gets an attribute with all modifications applied.
+--- Gets a CharacterAttribute with all active modifications applied.
+--- @param attrid string
+--- @return CharacterAttribute
 function creature:GetAttribute(attrid)
 	local baseValue = self:GetBaseAttribute(attrid).baseValue
 
@@ -597,6 +626,8 @@ end
 
 --- this function is called by dmhub when the creature is created from the bestiary.
 --- It is an opportunity to randomize things like hitpoints, name, etc.
+--- Called by the engine when the creature is created from the bestiary.
+--- Use to randomize hitpoints, name, etc.
 function creature:OnCreateFromBestiary()
 	self.damage_taken = 0
 	self:ValidateAndRepair(true)
@@ -605,6 +636,7 @@ end
 
 --- Clears all registered attributes. Use on the startup of your module if you want to
 --- overwrite the creature attributes with your own set.
+--- Clears all registered attributes. Call at module startup to define a fresh attribute set.
 function creature.ClearAttributes()
 	creature.attributesInfo = {
 	}
@@ -921,7 +953,9 @@ function creature.ClearProficiencyLevels()
 	InstallProficiencyMetatables()
 end
 
---'inflict' a condition directly on a creature -- doesn't use an ongoing effect.
+--- Inflicts a condition directly on the creature (without an ongoing effect wrapper).
+--- @param conditionid string
+--- @param args {stacks: nil|number, casterInfo: nil|table}
 function creature:InflictCondition(conditionid, args)
     local conditionsTable = GetTableCached(CharacterCondition.tableName)
 	local conditionInfo = conditionsTable[conditionid]
@@ -1077,6 +1111,8 @@ function creature:FillCalculatedStatusIcons(result)
 end
 
 --returns a {string -> true} of languages the creature knows.
+--- Returns the set of language ids this creature knows.
+--- @return table<string, boolean>
 function creature:LanguagesKnown()
     if self:has_key("_tmp_languagesKnown") then
         return self._tmp_languagesKnown
@@ -1100,8 +1136,8 @@ function creature:LanguagesKnown()
 	return result
 end
 
---returns a table of equipment or equipment categories the creature is proficient in.
---is a map of equipment id -> { proficiency = proficiency level ('proficient' or 'expertise') }
+--- Returns a map of equipment/category id to proficiency info for all proficiencies this creature has.
+--- @return table<string, {proficiency: string}>
 function creature:EquipmentProficienciesKnown()
 	local mods = self:GetActiveModifiers()
 	local result = DeepCopy(self:try_get("innateEquipmentProficiencies", {}))
@@ -1115,10 +1151,16 @@ function creature:EquipmentProficienciesKnown()
 	return result
 end
 
+--- Returns true if the creature is proficient with the given item.
+--- @param item string|Equipment Item id or equipment object.
+--- @return boolean
 function creature:ProficientWithItem(item)
 	return self:ProficiencyLevelWithItem(item).multiplier > 0
 end
 
+--- Returns the proficiency level info for the given item.
+--- @param item string|Equipment Item id or equipment object.
+--- @return {multiplier: number, id: string, text: string}
 function creature:ProficiencyLevelWithItem(item)
 	if type(item) == "string" then
 		item = GetTableCached(equipment.tableName)[item]
@@ -1176,6 +1218,8 @@ end
 -----------------
 --INNATE ACTIVATED ABILITIES
 -----------------
+--- Adds an innate activated ability to the creature.
+--- @param ability ActivatedAbility
 function creature:AddInnateActivatedAbility(ability)
 	if #self.innateActivatedAbilities == 0 then
 		self.innateActivatedAbilities = {}
@@ -1184,6 +1228,8 @@ function creature:AddInnateActivatedAbility(ability)
 	self.innateActivatedAbilities[#self.innateActivatedAbilities+1] = ability
 end
 
+--- Removes an innate activated ability from the creature.
+--- @param ability ActivatedAbility
 function creature:RemoveInnateActivatedAbility(ability)
 	local newValue = {}
 	for i,a in ipairs(self.innateActivatedAbilities) do
@@ -1435,6 +1481,8 @@ function creature:EquipmentPrevented()
 	return false
 end
 
+--- The creature's initiative bonus after all modifiers.
+--- @return number
 function creature.InitiativeBonus(self)
 	local override = self:InitiativeOverride()
 	if override ~= nil then
@@ -1445,6 +1493,8 @@ function creature.InitiativeBonus(self)
 	return self:CalculateAttribute('initiativeBonus', baseValue)
 end
 
+--- The creature's initiative bonus formatted as a string (e.g. "+3").
+--- @return string
 function creature.InitiativeBonusStr(self)
 	return ModifierStr(self:InitiativeBonus())
 end
@@ -1473,16 +1523,23 @@ function creature:InitiativeDetails()
 	return result
 end
 
+--- The creature's base walking speed before modifiers. Override in subclasses.
+--- @return number
 function creature:BaseWalkingSpeed()
 	return 5
 end
 
+--- The creature's walking speed after all active speed modifiers are applied.
+--- @return number
 function creature.WalkingSpeed(self)
 	local result = self:BaseWalkingSpeed()
 	result = self:CalculateAttribute('speed', result) * self:MovementMultiplier()
 	return result
 end
 
+--- Gets the stat history tracker for the given stat id (e.g. "stamina", "max_stamina").
+--- @param id string
+--- @return StatHistory
 function creature:GetStatHistory(id)
 	local key = id .. '_history'
 	local result = self:try_get(key)
@@ -1493,11 +1550,16 @@ function creature:GetStatHistory(id)
 	return result
 end
 
+--- The creature's base maximum hitpoints before modifiers.
+--- @return number
 function creature:BaseHitpoints()
 	local result = toint(self.max_hitpoints)
 	return result
 end
 
+--- The creature's maximum hitpoints after all active modifiers are applied.
+--- @param modifiers nil|CharacterModifier[] Optional modifier list override.
+--- @return number
 function creature:MaxHitpoints(modifiers)
 	local result = self:BaseHitpoints()
     local basehp = result
@@ -1506,6 +1568,9 @@ function creature:MaxHitpoints(modifiers)
 	return result
 end
 
+--- Sets the creature's maximum hitpoints and records the change in stat history.
+--- @param amount number
+--- @param note nil|string
 function creature.SetMaxHitpoints(self, amount, note)
 	if type(amount) == 'string' then
 		amount = tonumber(amount)
@@ -1523,6 +1588,8 @@ function creature.SetMaxHitpoints(self, amount, note)
 	}
 end
 
+--- The creature's current hitpoints (max minus damage taken).
+--- @return number
 function creature.CurrentHitpoints(self)
     local maxHitpoints = self:MaxHitpoints()
 	local result = maxHitpoints - self.damage_taken
@@ -1533,6 +1600,9 @@ function creature.CurrentHitpoints(self)
 	return math.tointeger(result)
 end
 
+--- Sets the creature's current hitpoints and records the change in stat history.
+--- @param amount number
+--- @param note nil|string
 function creature.SetCurrentHitpoints(self, amount, note)
 	if type(amount) == 'string' then
 		amount = tonumber(amount)
@@ -1563,6 +1633,10 @@ function creature.SetCurrentHitpoints(self, amount, note)
 	end
 end
 
+--- Sets the creature's temporary hitpoints.
+--- @param amount number
+--- @param note nil|string
+--- @param options nil|table
 function creature.SetTemporaryHitpoints(self, amount, note, options)
 	options = options or {}
 
@@ -2436,7 +2510,14 @@ function creature:RollDeathSavingThrow(args)
 end
 
 --Lua properties that we attach to a dice roll.
-RegisterGameType("RollProperties")
+--- @class RollProperties
+--- @field displayType string How the roll result is displayed: "none", "attack", "damage", etc.
+--- @field criticalHitDamage boolean If true, this roll contributes to critical hit extra damage.
+--- @field lowerIsBetter boolean If true, lower roll values are treated as better outcomes.
+--- @field changeOutcomeOnCriticalRoll number Outcome index adjustment applied on a natural critical.
+--- @field changeOutcomeOnFumbleRoll number Outcome index adjustment applied on a natural fumble.
+--- Properties attached to a dice roll result to control outcome display and resolution.
+RollProperties = RegisterGameType("RollProperties")
 
 RollProperties.displayType = "none"
 RollProperties.criticalHitDamage = false
@@ -9021,6 +9102,8 @@ function creature:DefaultBaseArmorClass()
 	return baseArmorClass + dexModifier
 end
 
+--- Sets the creature's base armor class override.
+--- @param val number
 function creature:SetBaseArmorClass(val)
 	local n = tonumber(val)
 	self.armorClass = n
@@ -9029,6 +9112,8 @@ end
 --protection against recursion in calculating base armor class.
 local g_calculatingBaseArmorClass = false
 
+--- The creature's base armor class before modifiers.
+--- @return number
 function creature:BaseArmorClass()
 
 	local baseArmorClass = self:DefaultBaseArmorClass()
@@ -9055,6 +9140,8 @@ function creature:BaseArmorClass()
 end
 
 
+--- The creature's effective armor class after all modifiers.
+--- @return number
 function creature:ArmorClass()
 	local result
 	local override = self:ArmorClassOverride()
@@ -9068,6 +9155,8 @@ function creature:ArmorClass()
 	return toint(result)
 end
 
+--- Returns the manual armor class override, or nil if none is set.
+--- @return nil|number
 function creature:ArmorClassOverride()
 	if self:has_key('armorClassOverride') then
 		return self.armorClassOverride
@@ -10065,6 +10154,9 @@ function creature:CalculateCustomVision(visionInfo)
 	return result
 end
 
+--- Returns true if the creature has a condition matching the given display name (case-insensitive).
+--- @param conditionName string
+--- @return boolean
 function creature:HasNamedCondition(conditionName)
     conditionName = string.lower(conditionName)
     local conditionsTable = GetTableCached(CharacterCondition.tableName) or {}
@@ -10171,10 +10263,13 @@ function creature.GetSeniorToken(tokens)
     return senior
 end
 
+--- Returns false for base creatures (characters); overridden to true for monsters.
+--- @return boolean
 function creature:IsMonster()
     return false
 end
 
+--- @return boolean
 function monster:IsMonster()
     return true
 end

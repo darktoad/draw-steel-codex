@@ -1802,9 +1802,14 @@ function RollProperties:GetSymbols(rollInfo, targetCreature)
     return nil
 end
 
-RegisterGameType("RollPropertiesPowerTable", "RollProperties")
+--- @class RollPropertiesPowerTable:RollProperties
+--- Draw Steel variant of RollProperties that resolves outcomes against a power roll table.
+RollPropertiesPowerTable = RegisterGameType("RollPropertiesPowerTable", "RollProperties")
 
-RegisterGameType("TierSymbols")
+--- @class TierSymbols
+--- @field tier string The tier result text (e.g. "Tier 1", "Tier 2", "Tier 3") exposed to GoblinScript.
+--- GoblinScript symbol object representing the outcome tier of a power roll.
+TierSymbols = RegisterGameType("TierSymbols")
 
 TierSymbols.tier = ""
 

@@ -1,7 +1,7 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("Skill")
-RegisterGameType("SkillSpecialization")
+Skill = RegisterGameType("Skill")
+SkillSpecialization = RegisterGameType("SkillSpecialization")
 
 Skill.tableName = "Skills"
 Skill.hasPassive = false

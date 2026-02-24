@@ -1,6 +1,8 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("ActivatedAbilityResetRollStatusBehavior", "ActivatedAbilityBehavior")
+--- @class ActivatedAbilityResetRollStatusBehavior:ActivatedAbilityBehavior
+--- @field summary string Short label shown in behavior lists.
+ActivatedAbilityResetRollStatusBehavior = RegisterGameType("ActivatedAbilityResetRollStatusBehavior", "ActivatedAbilityBehavior")
 
 ActivatedAbilityResetRollStatusBehavior.summary = 'Reset Roll Status'
 

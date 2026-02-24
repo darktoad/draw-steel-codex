@@ -1,6 +1,9 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("ActivatedAbilityDelayBehavior", "ActivatedAbilityBehavior")
+--- @class ActivatedAbilityDelayBehavior:ActivatedAbilityBehavior
+--- @field summary string Short label shown in behavior lists.
+--- @field delay number Delay in seconds before the next behavior fires.
+ActivatedAbilityDelayBehavior = RegisterGameType("ActivatedAbilityDelayBehavior", "ActivatedAbilityBehavior")
 
 ActivatedAbilityDelayBehavior.summary = 'Delay'
 ActivatedAbilityDelayBehavior.delay = 1

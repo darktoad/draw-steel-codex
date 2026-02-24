@@ -1,6 +1,11 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("ActivatedAbilitySaveBehavior", "ActivatedAbilityBehavior")
+--- @class ActivatedAbilitySaveBehavior:ActivatedAbilityBehavior
+--- @field summary string Short label shown in behavior lists.
+--- @field conditionsMode string Which conditions to attempt to save against: "all" or a specific condition id.
+--- @field rollMode string How the save is resolved: "roll" (make a die roll) or "purge" (auto-succeed without rolling).
+--- Draw Steel end-of-turn save behavior: rolls to remove conditions from the target creature.
+ActivatedAbilitySaveBehavior = RegisterGameType("ActivatedAbilitySaveBehavior", "ActivatedAbilityBehavior")
 
 ActivatedAbilitySaveBehavior.summary = 'Draw Steel Save'
 ActivatedAbilitySaveBehavior.conditionsMode = 'all'

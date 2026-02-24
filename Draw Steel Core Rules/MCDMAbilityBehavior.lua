@@ -1,6 +1,10 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("ActivatedAbilityDrawSteelCommandBehavior", "ActivatedAbilityBehavior")
+--- @class ActivatedAbilityDrawSteelCommandBehavior:ActivatedAbilityBehavior
+--- @field summary string Short label shown in behavior lists.
+--- @field rule string GoblinScript rule expression executed when this behavior fires.
+--- Executes a GoblinScript "rule" as part of the ability's power table effect resolution.
+ActivatedAbilityDrawSteelCommandBehavior = RegisterGameType("ActivatedAbilityDrawSteelCommandBehavior", "ActivatedAbilityBehavior")
 
 ActivatedAbilityDrawSteelCommandBehavior.summary = 'Power Roll Effect'
 ActivatedAbilityDrawSteelCommandBehavior.rule = ''

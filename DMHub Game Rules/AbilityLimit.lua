@@ -2,7 +2,9 @@ local mod = dmhub.GetModLoading()
 
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("ActivatedAbilityLimitBehavior", "ActivatedAbilityBehavior")
+--- @class ActivatedAbilityLimitBehavior:ActivatedAbilityBehavior
+--- @field summary string Short label shown in behavior lists.
+ActivatedAbilityLimitBehavior = RegisterGameType("ActivatedAbilityLimitBehavior", "ActivatedAbilityBehavior")
 
 ActivatedAbilityLimitBehavior.summary = 'Limit Ability Uses'
 

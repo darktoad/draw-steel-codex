@@ -1,6 +1,18 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("Race")
+--- @class Race
+--- @field name string Display name (e.g. "Elf", "Human").
+--- @field tableName string Data table name ("races").
+--- @field height number Default height in feet.
+--- @field weight string Weight description string.
+--- @field lifeSpan string Life span description string.
+--- @field size string Default creature size (e.g. "Medium").
+--- @field moveSpeeds table<string, number> Default movement speeds (e.g. {walk = 30}).
+--- @field portraitid string Asset id for the race portrait image.
+--- @field subrace boolean If true, this is a subrace rather than a base race.
+--- @field details string Short lore summary.
+--- @field lore string Long-form lore text.
+Race = RegisterGameType("Race")
 
 local defaultRace = nil
 
@@ -23,15 +35,18 @@ Race.lore = ""
 
 Race._tmp_domains = false
 
+--- @return Race
 function Race.CreateNew()
 	return Race.new{
 	}
 end
 
+--- @return string
 function Race:Describe()
 	return self.name
 end
 
+--- @return string
 function Race:Domain()
 	return string.format("race:%s", self.id)
 end
@@ -50,6 +65,8 @@ function Race:EnsureDomain()
 	end
 end
 
+--- Returns the CharacterAncestryInheritanceChoice feature if this race uses the Former Life mechanic, or false.
+--- @return false|CharacterFeature
 function Race:IsInherited()
     local formerLifeFeature = self and self:GetClassLevel() and self:GetClassLevel().features[1]
     if formerLifeFeature == nil or formerLifeFeature.typeName ~= 'CharacterAncestryInheritanceChoice' then
@@ -63,6 +80,10 @@ function Race:ForceDomains(domains)
 	return
 end
 
+--- Fills result with features from this race up to characterLevel.
+--- @param characterLevel nil|integer
+--- @param choices table<string, string[]>
+--- @param result CharacterFeature[]
 function Race:FillClassFeatures(characterLevel, choices, result)
 	if result == nil then
 		printf("ERROR:: %s", traceback())
@@ -91,6 +112,10 @@ function Race:FillClassFeatures(characterLevel, choices, result)
 	end
 end
 
+--- Fills result with feature detail entries wrapping each feature with its source race.
+--- @param characterLevel nil|integer
+--- @param choices table<string, string[]>
+--- @param result {race: Race, feature: CharacterFeature|CharacterChoice}[]
 --result is filled with a list of { race = Race object, feature = CharacterFeature or CharacterChoice }
 function Race:FillFeatureDetails(characterLevel, choices, result)
 	self:EnsureDomain()
@@ -126,10 +151,13 @@ function Race:FillFeatureDetails(characterLevel, choices, result)
 	end
 end
 
+--- @return string
 function Race:FeatureSourceName()
 	return string.format("%s Race Feature", self.name)
 end
 
+--- Returns the ClassLevel object that stores this race's base modifiers and features.
+--- @return ClassLevel
 --this is where a race stores its modifiers etc, which are very similar to what a class gets.
 function Race:GetClassLevel()
 	if self:try_get("modifierInfo") == nil then
@@ -139,6 +167,8 @@ function Race:GetClassLevel()
 	return self.modifierInfo
 end
 
+--- Returns the id of the default race (Human if available, else the first found).
+--- @return nil|string
 function Race.DefaultRace()
 	if defaultRace == nil then
 
@@ -152,6 +182,7 @@ function Race.DefaultRace()
 	return defaultRace
 end
 
+--- @return DropdownOption[]
 function Race.GetDropdownList()
 	local result = {}
 	local racesTable = dmhub.GetTable('races')
@@ -165,6 +196,9 @@ function Race.GetDropdownList()
 	return result
 end
 
+--- Returns (or creates) the ClassLevel entry for the given level number.
+--- @param levelNum integer
+--- @return ClassLevel
 function Race:GetLevel(levelNum)
 
     local key = string.format("level-%d", levelNum)

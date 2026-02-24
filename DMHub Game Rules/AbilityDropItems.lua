@@ -1,6 +1,10 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("ActivatedAbilityDropItemsBehavior", "ActivatedAbilityBehavior")
+--- @class ActivatedAbilityDropItemsBehavior:ActivatedAbilityBehavior
+--- @field summary string Short label shown in behavior lists.
+--- @field slotTarget string Equipment slot to drop items from (e.g. "hands").
+--- @field number string|number Number of items to drop, or "all".
+ActivatedAbilityDropItemsBehavior = RegisterGameType("ActivatedAbilityDropItemsBehavior", "ActivatedAbilityBehavior")
 
 
 ActivatedAbility.RegisterType

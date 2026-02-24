@@ -4,13 +4,25 @@ local mod = dmhub.GetModLoading()
 --by a Character Feature or an Ongoing Effect and modifies the character's rules in some way.
 
 --- @class CharacterModifier
---- @field name string
---- @field description string
---- @field StandardModifiers CharacterModifier[]
---- @field resourceCost string
---- @field valueTypes {id: string, text: string, get: (fun(c:Creature): number)}
-
-RegisterGameType("CharacterModifier")
+--- @field name string Display name of the modifier.
+--- @field description string Human-readable description of what this modifier does.
+--- @field guid string Unique identifier for this modifier instance.
+--- @field sourceguid string GUID of the source object (e.g. a feature) that created this modifier.
+--- @field source string Human-readable source name (e.g. "Fighter", "Magic Item").
+--- @field behavior string The type of modifier behavior (registered via RegisterType).
+--- @field numCharges string GoblinScript formula for the number of charges/uses.
+--- @field resourceRefreshType string When resources provided by this modifier refresh ("none", "shortrest", "longrest", etc.).
+--- @field resourceCostId string The resource id used for tracking charges; defaults to guid.
+--- @field resourceCost string The resource cost string for activating this modifier ("none" or a resource id).
+--- @field deletable boolean If true the modifier can be deleted by the user in the UI.
+--- @field domains table<string, boolean> Domain strings this modifier belongs to.
+--- @field activatedAbility nil|ActivatedAbility For "activated" behavior modifiers, the ability to cast.
+--- @field resourceCostUpcastable boolean If true the resource cost can be upcasted.
+--- @field StandardModifiers CharacterModifier[] Class-level default modifiers applied to all creatures.
+--- @field valueTypes {id: string, text: string, get: fun(c: creature): number}[] Available value type descriptors.
+--- @field Types {id: string, text: string}[] Ordered list of all registered modifier types.
+--- @field TypesById table<string, {id: string, text: string}> Registered modifier types keyed by id.
+CharacterModifier = RegisterGameType("CharacterModifier")
 
 CharacterModifier.name = "UNKNOWN"
 CharacterModifier.description = ""
@@ -89,22 +101,34 @@ function CharacterModifier.DeregisterType(id)
 	CharacterModifier.TypesById[id] = nil
 end
 
+--- Evaluates the numCharges GoblinScript formula against the given creature.
+--- @param creature creature
+--- @return number
 function CharacterModifier:GetNumberOfCharges(creature)
 	return ExecuteGoblinScript(self:try_get("numCharges", "1"), creature:LookupSymbol(self:try_get("_tmp_symbols", {})), 0, string.format("Number of charges for %s", self.name))
 end
 
+--- Returns when this modifier's resource refreshes ("none", "shortrest", "longrest", etc.).
+--- @return string
 function CharacterModifier:GetResourceRefreshType()
 	return self:try_get('resourceRefreshType', 'none')
 end
 
+--- Returns the resource id used to track this modifier's charges.
+--- @return string
 function CharacterModifier:GetResourceRefreshId()
     return self:try_get("resourceCostId", self.guid)
 end
 
+--- Sets the symbol table used when evaluating GoblinScript formulas on this modifier.
+--- @param symbols table
 function CharacterModifier:SetSymbols(symbols)
 	self._tmp_symbols = symbols
 end
 
+--- Merges this modifier's symbols into result, adding only keys not already present.
+--- @param result table
+--- @return table
 function CharacterModifier:AppendSymbols(result)
 	for k,sym in pairs(self:try_get("_tmp_symbols", {})) do
 		if result[k] == nil then
@@ -115,6 +139,10 @@ function CharacterModifier:AppendSymbols(result)
 	return result
 end
 
+--- Duplicates a modifier and installs the given symbol context into it. Returns nil if modifier is nil.
+--- @param modifier nil|CharacterModifier
+--- @param context table Symbol context to install.
+--- @return nil|CharacterModifier
 function CharacterModifier.DuplicateAndAddContext(modifier, context)
 	if modifier == nil then
 		return nil
@@ -125,6 +153,8 @@ function CharacterModifier.DuplicateAndAddContext(modifier, context)
 	return result
 end
 
+--- Installs symbol values from a modifier context into this modifier's temporary symbols table.
+--- @param context nil|table
 function CharacterModifier:InstallSymbolsFromContext(context)
 	if context == nil then
 		return
@@ -138,6 +168,9 @@ function CharacterModifier:InstallSymbolsFromContext(context)
 	end
 end
 
+--- Creates a UI panel for editing the resource cost on this modifier.
+--- @param options nil|table
+--- @return Panel
 function CharacterModifier:ResourceCostEditor(options)
 	options = options or {}
 
@@ -206,6 +239,9 @@ function CharacterModifier:ResourceCostEditor(options)
 	return resultPanel
 end
 
+--- Creates a UI panel for editing usage limits (charges and refresh type) on this modifier.
+--- @param options nil|table
+--- @return Panel
 function CharacterModifier:UsageLimitEditor(options)
 
 	local resultPanel
@@ -2827,10 +2863,14 @@ function CharacterModifier:CreateEditorDialog()
 	}
 end
 
+--- Returns this modifier's domain set.
+--- @return table<string, boolean>
 function CharacterModifier:Domains()
 	return self:try_get("domains", {})
 end
 
+--- Adds a domain to this modifier, notifying the type's UpdateDomains handler if present.
+--- @param domainid string
 function CharacterModifier:SetDomain(domainid)
 	self:get_or_add("domains", {})[domainid] = true
 	local typeInfo = CharacterModifier.TypeInfo[self.behavior] or {}
@@ -2840,6 +2880,8 @@ function CharacterModifier:SetDomain(domainid)
 	end
 end
 
+--- Overwrites this modifier's domains with a copy of the given table, notifying UpdateDomains.
+--- @param domains table<string, boolean>
 function CharacterModifier:ForceDomains(domains)
 	self.domains = DeepCopy(domains)
 	local typeInfo = CharacterModifier.TypeInfo[self.behavior] or {}
@@ -2849,6 +2891,8 @@ function CharacterModifier:ForceDomains(domains)
 	end
 end
 
+--- Returns a bold-name summary string for this modifier.
+--- @return string
 function CharacterModifier:GetSummaryText()
 	return string.format("<b>%s</b>--%s", self.name, self.description)
 end
@@ -2857,12 +2901,12 @@ end
 --how it behaves in various circumstances.
 
 
---Have the character modifier modify a creature's attribute.
---   - creature: the creature whose attribute is being modified.
---   - attribute (string): name of the attribute being modified
---   - currentValue (number): current value.
---
---returns a number representing the new value.
+--- Applies this modifier to the given attribute on the creature, returning the new value.
+--- @param modContext table The modifier context (includes bound symbol values).
+--- @param creature creature
+--- @param attribute string The attribute id being modified.
+--- @param currentValue number The attribute's current value before this modifier.
+--- @return number
 function CharacterModifier:Modify(modContext, creature, attribute, currentValue)
 	local typeInfo = CharacterModifier.TypeInfo[self.behavior]
 	if typeInfo == nil then
@@ -2878,7 +2922,11 @@ function CharacterModifier:Modify(modContext, creature, attribute, currentValue)
 	return currentValue
 end
 
---Describe a modification. Returns e.g. { key = "Ring of Strength", value = "+1" }
+--- Returns a human-readable description of this modification (e.g. {key="Ring of Strength", value="+1"}), or nil.
+--- @param creature creature
+--- @param attribute string
+--- @param currentValue number
+--- @return nil|{key: string, value: string}
 function CharacterModifier:DescribeModification(creature, attribute, currentValue)
 	local typeInfo = CharacterModifier.TypeInfo[self.behavior]
 	local describe = typeInfo.describe

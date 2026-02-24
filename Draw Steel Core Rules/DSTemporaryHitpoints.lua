@@ -140,7 +140,10 @@ end
 
 
 
-RegisterGameType("ActivatedAbilityGrantTemporaryStaminaBehavior", "ActivatedAbilityBehavior")
+--- @class ActivatedAbilityGrantTemporaryStaminaBehavior:ActivatedAbilityBehavior
+--- @field amount nil|string GoblinScript expression for the temporary stamina amount to grant.
+--- Behavior that grants temporary stamina (temporary hit points) to the target.
+ActivatedAbilityGrantTemporaryStaminaBehavior = RegisterGameType("ActivatedAbilityGrantTemporaryStaminaBehavior", "ActivatedAbilityBehavior")
 
 ActivatedAbility.RegisterType
 {

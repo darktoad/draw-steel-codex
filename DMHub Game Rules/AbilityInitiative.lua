@@ -1,6 +1,8 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("ActivatedAbilityInitiativeBehavior", "ActivatedAbilityBehavior")
+--- @class ActivatedAbilityInitiativeBehavior:ActivatedAbilityBehavior
+--- @field summary string Short label shown in behavior lists.
+ActivatedAbilityInitiativeBehavior = RegisterGameType("ActivatedAbilityInitiativeBehavior", "ActivatedAbilityBehavior")
 
 
 ActivatedAbility.RegisterType

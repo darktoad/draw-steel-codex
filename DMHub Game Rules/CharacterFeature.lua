@@ -5,20 +5,26 @@ local mod = dmhub.GetModLoading()
 --modifiers that are applied to the creature that has the feature. It is most typical for a CharacterFeature
 --to contain just one modifier.
 
---CharacterFeature:
---  guid: string
---  name: string
---  source: string
---  canHavePrerequisites: bool 
---  prerequisites: {CharacterPrerequisite}|nil
---  description: string
---  modifiers: {CharacterModifier}
---  domains: {key -> true} map of domains which this feature knows about. e.g. Class:Ranger
-RegisterGameType("CharacterFeature")
+--- @class CharacterFeature
+--- @field guid string Unique identifier for this feature instance.
+--- @field name string Display name of the feature.
+--- @field source string Human-readable source description (e.g. "Fighter", "Race Trait").
+--- @field description string Flavor/rules description shown to the player.
+--- @field modifiers CharacterModifier[] The modifiers that this feature applies to the creature.
+--- @field domains table<string, boolean> Set of domain strings this feature belongs to (e.g. "Class:Ranger").
+--- @field canHavePrerequisites boolean If true, the feature UI allows adding prerequisites.
+--- @field prerequisites nil|table[] Optional list of CharacterPrerequisite objects.
+--- @field implementation number Choice implementation index (1-based enum).
+--- @field options nil|table[] Optional list of sub-options for multi-option features.
+--- @field costsPoints boolean If true, selecting this feature costs character build points.
+CharacterFeature = RegisterGameType("CharacterFeature")
 
 CharacterFeature.canHavePrerequisites = false
 CharacterFeature.modifiers = {}
 
+--- Creates a new CharacterFeature with default fields and optional overrides.
+--- @param options nil|table Field overrides to apply after defaults.
+--- @return CharacterFeature
 function CharacterFeature.Create(options)
 	local args = {
 		guid = dmhub.GenerateGuid(),
@@ -52,6 +58,10 @@ function CharacterFeature.OnDeserialize(self)
 	end
 end
 
+--- Appends this feature's active modifiers to the result list.
+--- @param creature creature
+--- @param result table[] The accumulator list to append modifier entries to.
+--- @param params nil|table Extra key-value pairs to merge into each modifier entry.
 function CharacterFeature:FillModifiers(creature, result, params)
     for _,mod in ipairs(self.modifiers) do
         local t = { mod = mod }
@@ -70,6 +80,9 @@ function CharacterFeature:FillModifiers(creature, result, params)
     end
 end
 
+--- Returns true if the feature and all its modifiers are valid game objects.
+--- @param feature any
+--- @return boolean
 function CharacterFeature.IsValid(feature)
 	if getmetatable(feature) == nil then
 		return false
@@ -84,10 +97,14 @@ function CharacterFeature.IsValid(feature)
 	return true
 end
 
+--- Returns a short description of the feature (defaults to its name).
+--- @return string
 function CharacterFeature:Describe()
 	return self.name
 end
 
+--- Returns the domain string for this feature (e.g. "CharacterFeature:guid").
+--- @return string
 function CharacterFeature:Domain()
 	return string.format("%s:%s", self.typeName, self:try_get("id", self.guid))
 end
@@ -103,6 +120,8 @@ function CharacterFeature.EnsureDomains(self)
 	self:SetDomain(self:Domain())
 end
 
+--- Adds a domain string to this feature and propagates it to all its modifiers.
+--- @param domainid string
 function CharacterFeature.SetDomain(self, domainid)
 	local domains = self:get_or_add("domains", {})
 	if not domains[domainid] then
@@ -114,6 +133,9 @@ function CharacterFeature.SetDomain(self, domainid)
 	end
 end
 
+--- Given a domain map, attempts to find a human-readable source description by looking up type entries.
+--- @param domains nil|table<string, boolean>
+--- @return nil|string
 function CharacterFeature.FindDescriptionFromDomainMap(domains)
 	if domains == nil then
 		return nil
@@ -151,6 +173,8 @@ function CharacterFeature.FindDescriptionFromDomainMap(domains)
 	return nil
 end
 
+--- Overwrites this feature's domains with a copy of the given domains table, propagating to modifiers.
+--- @param domains table<string, boolean>
 function CharacterFeature:ForceDomains(domains)
 	self.domains = DeepCopy(domains)
 	for _,mod in ipairs(self.modifiers) do
@@ -158,6 +182,8 @@ function CharacterFeature:ForceDomains(domains)
 	end
 end
 
+--- Returns the feature's description text. If empty, auto-generates from modifier descriptions.
+--- @return string
 function CharacterFeature:GetDescription()
 	if self.description == "" then
 		local result = ""
@@ -178,10 +204,14 @@ function CharacterFeature:GetDescription()
 	return self.description
 end
 
+--- Returns the rules text for this feature (defaults to GetDescription).
+--- @return string
 function CharacterFeature:GetRulesText()
 	return self:GetDescription()
 end
 
+--- Returns a bold-name summary string suitable for inline display.
+--- @return string
 function CharacterFeature:GetSummaryText()
 	return string.format("<b>%s.</b>  %s", self.name, self:GetRulesText())
 end
@@ -309,6 +339,9 @@ CharacterFeature.ModifierStyles = {
 	},
 }
 
+--- Creates the full editor UI panel for this feature.
+--- @param editorPanelOptions nil|table Options controlling panel behaviour (e.g. noscroll).
+--- @return Panel
 function CharacterFeature:EditorPanel(editorPanelOptions)
 	editorPanelOptions = editorPanelOptions or {}
 
@@ -1004,30 +1037,49 @@ function CharacterFeature.ListEditor(document, fieldName, options)
 	
 end
 
+--- Returns available choices for the given option slot, or nil if no choice is needed.
+--- @param numOption number 1-based index of the option.
+--- @param existingChoices table Current choices already made.
+--- @return nil|table
 function CharacterFeature:Choices(numOption, existingChoices)
 	return nil
 end
 
+--- Returns how many choices this feature requires from the given creature.
+--- @param creature creature
+--- @return number
 function CharacterFeature:NumChoices(creature)
 	return 0
 end
 
+--- Appends this feature to the result list of available choices.
+--- @param choices table Current choices context.
+--- @param result CharacterFeature[]
 function CharacterFeature:FillChoice(choices, result)
 	result[#result+1] = self
 end
 
+--- Recursively appends all features (including sub-features) to result.
+--- @param choices table
+--- @param result CharacterFeature[]
 function CharacterFeature:FillFeaturesRecursive(choices, result)
 	result[#result+1] = self
 end
 
+--- Calls fn on this feature and all nested features recursively.
+--- @param fn fun(feature: CharacterFeature): nil
 function CharacterFeature:VisitRecursive(fn)
 	fn(self)
 end
 
+--- Creates a custom dropdown panel for this feature, or returns nil for the default.
+--- @return nil|Panel
 function CharacterFeature:CreateDropdownPanel()
     return nil
 end
 
+--- Returns true if this feature type provides a custom dropdown panel.
+--- @return boolean
 function CharacterFeature:HasCustomDropdownPanel()
     return false
 end

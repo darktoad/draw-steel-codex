@@ -1,6 +1,9 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("ActivatedAbilityOrderTargetsBehavior", "ActivatedAbilityBehavior")
+--- @class ActivatedAbilityOrderTargetsBehavior:ActivatedAbilityBehavior
+--- @field summary string Short label shown in behavior lists.
+--- @field orderFormula string GoblinScript formula returning a sort key for each target.
+ActivatedAbilityOrderTargetsBehavior = RegisterGameType("ActivatedAbilityOrderTargetsBehavior", "ActivatedAbilityBehavior")
 
 ActivatedAbilityOrderTargetsBehavior.summary = 'Order Targets'
 ActivatedAbilityOrderTargetsBehavior.orderFormula = ""

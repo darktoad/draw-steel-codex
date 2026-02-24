@@ -1,17 +1,38 @@
 local mod = dmhub.GetModLoading()
 
 
----@class equipment
----@field isWeapon boolean
----@field isArmor boolean
----@field isShield boolean
+--- @class equipment
+--- @field isWeapon boolean
+--- @field isArmor boolean
+--- @field isShield boolean
+--- @field tableName string Name of the data table for all gear ("tbl_Gear").
+--- @field unique boolean If true, only one copy can exist in an inventory.
+--- @field flavor string Flavor/lore text.
+--- @field weight number Item weight.
+--- @field costInGold number Base cost in gold pieces.
+--- @field description string Rules text/description.
+--- @field consumableChargesConsumed number Number of charges spent so far.
+
+--- @class weapon:equipment
+--- @field hands string How many hands required: "One-handed", "Two-handed", or "Versatile".
+--- @field category string Weapon category: "Simple" or "Martial".
+--- @field damage number Base damage die value.
+--- @field damageType string Damage type (e.g. "slashing", "piercing", "bludgeoning").
+
+--- @class armor:equipment
+--- @field category string Armor category: "Light", "Medium", or "Heavy".
+--- @field armorClass number Base armor class provided.
+--- @field stealth string Stealth penalty: "None" or "Disadvantage".
+
+--- @class shield:equipment
+--- @field armorClassModifier number Armor class bonus from equipping this shield.
 
 --Types defined as core types by DMHub.
-RegisterGameType("equipment")
+equipment = RegisterGameType("equipment")
 
-RegisterGameType("weapon", "equipment")
-RegisterGameType("armor", "equipment")
-RegisterGameType("shield", "equipment")
+weapon = RegisterGameType("weapon", "equipment")
+armor = RegisterGameType("armor", "equipment")
+shield = RegisterGameType("shield", "equipment")
 
 equipment.tableName = "tbl_Gear"
 equipment.equipmentTypes = {"Weapon", "Armor", "Shield", "Gear"}
@@ -52,34 +73,43 @@ armor.possibleStealth = {'None', 'Disadvantage'}
 
 shield.armorClassModifier = 2
 
+--- @return string
 function equipment:CategoryId()
     return self:try_get("equipmentCategory", "")
 end
 
+--- @return boolean
 function equipment:IsEquippable()
 	return self.isWeapon or self.isArmor or self.isShield or self:try_get("canWield", false) or self:try_get("equipOnBelt", false) or self:try_get("emitLight", false)
 end
 
+--- @return boolean
 function equipment:HasCharges()
 	return self:try_get("consumable") and self:try_get("consumableCharges", 1) > 1
 end
 
+--- @return number
 function equipment:MaxCharges()
 	return self:try_get("consumableCharges", 1)
 end
 
+--- @param n number
 function equipment:ConsumeCharges(n)
 	self.consumableChargesConsumed = self.consumableChargesConsumed + n
 end
 
+--- @return number
 function equipment:RemainingCharges()
 	return self:try_get("consumableCharges", 1) - self.consumableChargesConsumed
 end
 
+--- @return boolean
 function equipment:MustBeUniqueInInventory()
 	return self:HasCharges()
 end
 
+--- Returns a map of currency id to quantity cost.
+--- @return table<string, number>
 --gives a {currencyid -> quantity cost}.
 function equipment:GetCurrencyCost()
 	if self:has_key("costInCurrency") then
@@ -89,10 +119,12 @@ function equipment:GetCurrencyCost()
 	return Currency.CalculateSpend(nil, self.costInGold)
 end
 
+--- @param costmap table<string, number>
 function equipment:SetCurrencyCost(costmap)
 	self.costInCurrency = costmap
 end
 
+--- @return number
 function equipment:GetCostInGold()
 	if self:has_key("costInCurrency") then
 
@@ -102,10 +134,12 @@ function equipment:GetCostInGold()
 	return self.costInGold
 end
 
+--- @return boolean
 function equipment:CanWield()
 	return self.isWeapon or self.isShield or self:try_get("emitLight") ~= nil or self:try_get("canWield")
 end
 
+--- @return boolean
 function equipment:Magic()
 	return self:try_get("magicalItem")
 end
@@ -219,23 +253,28 @@ function equipment:TranslationStrings()
 	}
 end
 
+--- @return boolean
 function equipment:DisplayOnToken()
 	return self:try_get("displayOnToken", true) and self.iconid ~= ""
 
 end
 
+--- @return string Color string for this item's rarity.
 function equipment:RarityColor()
 	return equipment.rarityColors[self:Rarity()] or "white"
 end
 
+--- @return string Rarity string (e.g. "common", "uncommon", "rare").
 function equipment:Rarity()
 	return self:try_get("rarity", "common")
 end
 
+--- @return integer
 function equipment:RarityOrd()
 	return equipment.rarityToIndex[self:try_get("rarity", "common")]
 end
 
+--- @return number Probability (0-1) that ammo is destroyed on use.
 function equipment:AmmoDestroyChance()
 	if self:has_key("destroyChance") then
 		return self.destroyChance/100
@@ -249,6 +288,7 @@ function equipment:AmmoDestroyChance()
 	return 0.5
 end
 
+--- @return string
 function equipment:Domain()
 	return string.format("item:%s", self.id)
 end
@@ -305,6 +345,7 @@ function weapon.OnDeserialize(self)
 	end
 end
 
+--- @return table
 function equipment:Properties()
 	local result = self:try_get("properties")
 	if result == nil then
@@ -315,10 +356,14 @@ function equipment:Properties()
 	return result
 end
 
+--- @param propid string
+--- @param val any
 function equipment:SetProperty(propid, val)
 	self:Properties()[propid] = val
 end
 
+--- @param propid string
+--- @return boolean
 function equipment:HasProperty(propid)
 	local properties = self:try_get("properties")
 	if properties == nil then
@@ -399,10 +444,14 @@ function equipment:MatchesSearch(self, str)
 	return false
 end
 
+--- When worn, fills result with the modifiers this item applies to a creature.
+--- @param creature creature
+--- @param result CharacterModifier[]
 --when worn, this fills in the modifiers it applies to a creature.
 function equipment:FillWornArmorModifiers(creature, result)
 end
 
+--- @return string
 function weapon.DescribeDamageType(self)
 	if self:try_get('damageMagical') then
 		return 'magical ' .. self.damageType
@@ -411,6 +460,7 @@ function weapon.DescribeDamageType(self)
 	return self.damageType
 end
 
+--- @return string
 function weapon.DescribeDamage(self)
 	if self:has_key('versatileDamage') then
 		return '<b>' .. self.damage .. '/' .. self.versatileDamage .. '</b> ' .. self:DescribeDamageType() .. ' damage'
@@ -419,19 +469,22 @@ function weapon.DescribeDamage(self)
 	end
 end
 
+--- @return boolean
 function equipment:Versatile()
 	return self:try_get("hands") == "Versatile"
 end
 
-
+--- @return boolean
 function equipment:TwoHanded()
 	return self:try_get("hands") == "Two-handed"
 end
 
+--- @return string
 function weapon.GetHands(self)
 	return self.hands
 end
 
+--- @return string
 function weapon.InfoSummary(self)
 	local result = ''
 
@@ -452,10 +505,12 @@ function weapon.InfoSummary(self)
 	return result
 end
 
+--- @return boolean
 function weapon.IsRanged(self)
 	return self:HasProperty("range") or self:HasProperty("thrown")
 end
 
+--- @return nil|string
 function weapon.Range(self)
 	if self:has_key('range') and self.range ~= false then
 		return self.range

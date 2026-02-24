@@ -1,10 +1,10 @@
 local mod = dmhub.GetModLoading()
 
---CharacterPrerequisite:
--- guid: string
--- type: string ('skillProficiency', 'equipmentProficiency')
--- skill: string
-RegisterGameType("CharacterPrerequisite")
+--- @class CharacterPrerequisite
+--- @field guid string Unique identifier.
+--- @field type string Prerequisite type id (e.g. "skillProficiency", "equipmentProficiency").
+--- @field skill string Id of the skill or equipment category required.
+CharacterPrerequisite = RegisterGameType("CharacterPrerequisite")
 
 CharacterPrerequisite.skill = 'none'
 

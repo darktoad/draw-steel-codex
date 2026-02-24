@@ -1,6 +1,28 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("SpellcastingFeature")
+--- @class SpellcastingFeature
+--- @field id string Unique identifier (default "Custom").
+--- @field name string Display name.
+--- @field attr string Spellcasting ability score id (e.g. "int", "wis", "cha").
+--- @field level number Minimum character level to access this feature.
+--- @field refreshType string How spells refresh: "prepared" or "known".
+--- @field spellbook boolean If true, this class uses a spellbook.
+--- @field spellbookSize number Number of spells the spellbook can hold.
+--- @field spellbookSpells table[] List of spells in the spellbook.
+--- @field spellLists table[] Spell lists available to this feature.
+--- @field dc number Spell save DC base value.
+--- @field attackBonus number Spell attack bonus base value.
+--- @field maxSpellLevel number Maximum spell slot level available.
+--- @field numKnownCantrips number Number of cantrips known.
+--- @field numKnownSpells number Number of spells known.
+--- @field knownCantrips string[] Ids of known cantrips.
+--- @field knownSpells string[] Ids of known spells.
+--- @field memorizedSpells string[] Ids of memorized (prepared) spells.
+--- @field grantedSpells string[] Ids of spells automatically granted by this feature.
+--- @field upcastingType string When upcasting is allowed: "cast", "prepared", or "none".
+--- @field canUseSpellSlots boolean If true, the caster can spend spell slots.
+--- @field ritualCasting boolean If true, the caster can cast rituals without expending a slot.
+SpellcastingFeature = RegisterGameType("SpellcastingFeature")
 
 SpellcastingFeature.id = "Custom"
 SpellcastingFeature.name = "Spellcasting"

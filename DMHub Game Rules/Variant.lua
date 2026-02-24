@@ -3,8 +3,12 @@ local mod = dmhub.GetModLoading()
 --A Variant can currently be text, a currency, an item, or a roll on a table.
 --In the future we can add more possibilities.
 
---value of a variant, typically in gold. Has min/max/avg
-RegisterGameType("VariantValue")
+--- @class VariantValue
+--- @field min number Minimum possible value.
+--- @field max number Maximum possible value.
+--- @field avg number Average (expected) value.
+--- Represents a monetary value range (typically in gold) for a loot variant.
+VariantValue = RegisterGameType("VariantValue")
 
 VariantValue.min = 0
 VariantValue.max = 0
@@ -44,7 +48,12 @@ function VariantValue:Mult(num)
 end
 
 
-RegisterGameType("Variant")
+--- @class Variant
+--- @field type string Variant content type: "text", "currency", "item", "tableRoll", "resource", "monster".
+--- @field quantity number|string Quantity of the item/roll granted (can be a dice expression).
+--- @field key nil|string Key into the relevant data table (e.g. item id, monster key).
+--- A single entry in a loot table or reward list; represents one possible reward of a given type.
+Variant = RegisterGameType("Variant")
 
 Variant.quantity = 1
 
@@ -497,7 +506,10 @@ function Variant:CreateEditor(options)
 	return resultPanel
 end
 
-RegisterGameType("VariantCollection")
+--- @class VariantCollection
+--- @field items Variant[] Ordered list of Variant entries in this collection.
+--- An ordered list of Variant entries, typically representing a loot table or reward set.
+VariantCollection = RegisterGameType("VariantCollection")
 
 function VariantCollection.Create()
 	return VariantCollection.new{

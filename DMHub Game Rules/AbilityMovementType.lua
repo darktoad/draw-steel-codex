@@ -1,6 +1,9 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("ActivatedAbilityChangeMovementTypeBehavior", "ActivatedAbilityBehavior")
+--- @class ActivatedAbilityChangeMovementTypeBehavior:ActivatedAbilityBehavior
+--- @field summary string Short label shown in behavior lists.
+--- @field movementType string Movement type to grant: "fly", "swim", "burrow", etc.
+ActivatedAbilityChangeMovementTypeBehavior = RegisterGameType("ActivatedAbilityChangeMovementTypeBehavior", "ActivatedAbilityBehavior")
 
 
 ActivatedAbility.RegisterType

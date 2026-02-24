@@ -3,7 +3,13 @@ local mod = dmhub.GetModLoading()
 --This file implements Triggered Abilities. They build heavily on Activated Abilities, just that they occur
 --in response to some trigger rather than when the player decides.
 
-RegisterGameType("TriggeredAbility", "ActivatedAbility")
+--- @class TriggeredAbility:ActivatedAbility
+--- @field categorization string Always "Triggered Ability".
+--- @field despawnBehavior string What to do when a targeted token despawns: "remove" or "corpse".
+--- @field mandatory boolean|string If true, fires automatically; if false, prompts the player; if a string, uses that setting id.
+--- @field trigger string The event id that triggers this ability.
+--- @field triggerFilter nil|string GoblinScript formula that must be truthy for the trigger to fire.
+TriggeredAbility = RegisterGameType("TriggeredAbility", "ActivatedAbility")
 
 TriggeredAbility.categorization = "Triggered Ability"
 TriggeredAbility.despawnBehavior = "remove"
@@ -43,6 +49,8 @@ TriggeredAbility.mandatoryTriggerSettings = {
     }
 }
 
+--- Returns true if this triggered ability should fire automatically without prompting the player.
+--- @return boolean
 function TriggeredAbility:IsMandatory()
     if self.mandatory == true then
         return true
@@ -55,6 +63,7 @@ function TriggeredAbility:IsMandatory()
     return mandatory
 end
 
+--- @return boolean
 function TriggeredAbility:MayBePrompted()
     if self.mandatory == true then
         return false

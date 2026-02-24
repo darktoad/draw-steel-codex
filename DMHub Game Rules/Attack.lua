@@ -5,6 +5,23 @@ local mod = dmhub.GetModLoading()
 --attacks are fairly constrained in what they do, just implementing core rules for attacking. Most flexibility
 --is performed inside of the activated ability which will modify what exactly happens when the attack is used.
 
+--- @class Attack
+--- @field name string Display name of the attack.
+--- @field iconid string Asset id for the attack icon.
+--- @field range nil|string Range string (e.g. "5", "20/60", "touch").
+--- @field damageInstances {damage: string, damageType: string, damageMagical: nil|boolean, flags: table<string, boolean>}[] List of damage rolls.
+--- @field hit number Hit bonus applied to the attack roll.
+--- @field isSpell boolean If true, this is a spell attack rather than a weapon attack.
+--- @field hands integer Number of hands required (1 or 2).
+--- @field offhand nil|boolean If true, this is an offhand attack.
+--- @field weapon nil|weapon Underlying weapon object, if any.
+--- @field modifiers nil|CharacterModifier[] Modifiers that apply during this attack.
+--- @field melee nil|boolean Explicit override for melee vs. ranged (inferred from range if absent).
+--- @field meleeRange nil|number If set, the attack is melee when within this range (for thrown weapons).
+--- @field attrid nil|string Attribute id used for this attack (e.g. "str", "dex").
+--- @field consumeAmmo nil|table<string, number> Map of item id to quantity consumed as ammo.
+--- @field outOfAmmo nil|boolean If true, there is no available ammo for this attack.
+--- @field properties nil|table Weapon property objects keyed by property id.
 -- name: name of attack
 -- iconid: string
 -- range: string
@@ -21,11 +38,12 @@ local mod = dmhub.GetModLoading()
 -- consumeAmmo: (optional) map of {itemid -> quantity} to consume
 -- outOfAmmo: (optional) no available ammo.
 -- properties: (optional) table of WeaponProperty objects
-RegisterGameType("Attack")
+Attack = RegisterGameType("Attack")
 
 Attack.isSpell = false
 Attack.hands = 1
 
+--- @return string
 function Attack.DescribeDamage(self)
 	local result = ''
 	for i,damageInstance in ipairs(self.damageInstances) do
@@ -38,6 +56,7 @@ function Attack.DescribeDamage(self)
 	return result
 end
 
+--- @return string
 function Attack.DescribeDamageRoll(self)
 	local result = ''
 	for i,damageInstance in ipairs(self.damageInstances) do
@@ -46,6 +65,7 @@ function Attack.DescribeDamageRoll(self)
 	return result
 end
 
+--- @return string
 function Attack.DescribeHitRoll(self)
 	if self.hit > 0 then
 		return GameSystem.BaseAttackRoll .. '+' .. self.hit
@@ -56,6 +76,8 @@ function Attack.DescribeHitRoll(self)
 	end
 end
 
+--- Returns the normal attack range in world units.
+--- @return number
 function Attack.RangeNormal(self)
 	if self.range == nil then
 		return 5
@@ -72,6 +94,8 @@ function Attack.RangeNormal(self)
 	return tonumber(result) or 5
 end
 
+--- Returns the disadvantage range in world units, or nil if there is no disadvantage range.
+--- @return nil|number
 function Attack.RangeDisadvantage(self)
 	if self.range == nil then
 		return nil
@@ -88,10 +112,16 @@ function Attack.RangeDisadvantage(self)
 	return tonumber(result)
 end
 
+--- Returns true if this attack can be either ranged or melee depending on distance (thrown weapon).
+--- @return boolean
 function Attack:IsRangedOrMelee()
 	return self:has_key("melee") and self:has_key("meleeRange")
 end
 
+--- Returns true if this attack is currently being made as a ranged attack.
+--- @param attackerToken nil|CharacterToken
+--- @param defenderToken nil|CharacterToken
+--- @return boolean
 function Attack:IsRanged(attackerToken, defenderToken)
 	if self:has_key("melee") then
 		if self:has_key("meleeRange") and attackerToken ~= nil and defenderToken ~= nil and attackerToken:DistanceInFeet(defenderToken) > self.meleeRange then
@@ -107,6 +137,7 @@ function Attack:IsRanged(attackerToken, defenderToken)
 	return rangeNormal > 30 or (rangeDisadvantage ~= nil and rangeDisadvantage > rangeNormal)
 end
 
+--- @return StringSet
 function Attack:GetDamageTypesSet()
 	local result = {}
 	for k,d in pairs(self.damageInstances) do

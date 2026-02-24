@@ -1,6 +1,12 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("CharacterFeat")
+--- @class CharacterFeat
+--- @field name string Display name of the feat.
+--- @field description string Rules text.
+--- @field tableName string Data table name ("feats").
+--- @field prerequisite string Text description of prerequisites.
+--- @field tag string Comma-separated tags (e.g. "feat", "general").
+CharacterFeat = RegisterGameType("CharacterFeat")
 
 CharacterFeat.name = "New Feat"
 CharacterFeat.description = ""
@@ -15,16 +21,19 @@ CharacterFeat.descriptionEntries = {
     }
 }
 
+--- @return string[]
 function CharacterFeat:Tags()
 	local tags = string.split(self.tag, ",")
 	local result = {}
 	for _,tag in ipairs(tags) do
 		result[#result+1] = trim(tag)
 	end
-	
+
 	return result
 end
 
+--- @param tag string
+--- @return boolean
 function CharacterFeat:HasTag(tag)
 	tag = string.lower(tag)
 	for _,t in ipairs(self:Tags()) do
@@ -36,6 +45,8 @@ function CharacterFeat:HasTag(tag)
 	return false
 end
 
+--- @param options DropdownOption[]
+--- @param tableName nil|string
 function CharacterFeat.FillDropdownOptions(options, tableName)
     tableName = tableName or CharacterFeat.tableName
 	local result = {}
@@ -55,16 +66,20 @@ end
 
 local g_cachedTag = nil
 
+--- @return CharacterFeat
 function CharacterFeat.CreateNew()
 	return CharacterFeat.new{
         tag = g_cachedTag,
 	}
 end
 
+--- @return string
 function CharacterFeat:Describe()
 	return "Feat"
 end
 
+--- Returns the ClassLevel object that stores this feat's modifiers and features.
+--- @return ClassLevel
 --this is where a feat stores its modifiers etc, which are very similar to what a class gets.
 function CharacterFeat:GetClassLevel()
 	if self:try_get("modifierInfo") == nil then
@@ -275,7 +290,11 @@ function CharacterFeat.CreateEditor()
 	return featPanel
 end
 
-RegisterGameType("CharacterFeatChoice", "CharacterChoice")
+--- @class CharacterFeatChoice:CharacterChoice
+--- @field name string Display name ("Feat").
+--- @field description string Prompt shown to the player.
+--- @field tag string Comma-separated tags filtering which feats are available.
+CharacterFeatChoice = RegisterGameType("CharacterFeatChoice", "CharacterChoice")
 
 CharacterFeatChoice.name = "Feat"
 CharacterFeatChoice.description = "Choose a Feat"
@@ -451,8 +470,10 @@ function CharacterFeatChoice:VisitRecursive(fn)
 end
 
 
+--- @class CharacterTemplate:CharacterFeat
+--- Variant of CharacterFeat used for creature templates (e.g. "Half-Dragon").
 --variant of feats for creature templates.
-RegisterGameType("CharacterTemplate", "CharacterFeat")
+CharacterTemplate = RegisterGameType("CharacterTemplate", "CharacterFeat")
 CharacterTemplate.name = "New Template"
 function CharacterTemplate.CreateNew()
 	return CharacterTemplate.new{
@@ -467,8 +488,12 @@ function CharacterTemplate:FeatureSourceName()
 	return "Creature Template"
 end
 
+--- @class CharacterSingleFeat
+--- @field featid string Id of the specific feat granted (or "none").
+--- @field name string Display name ("Single Feat").
+--- A CharacterFeature-like wrapper that grants exactly one specific feat.
 --a single feat granted in a class editor.
-RegisterGameType("CharacterSingleFeat")
+CharacterSingleFeat = RegisterGameType("CharacterSingleFeat")
 
 CharacterSingleFeat.featid = "none"
 CharacterSingleFeat.name = "Single Feat"

@@ -1,6 +1,8 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("AttackTriggeredAbility", "ActivatedAbility")
+--- @class AttackTriggeredAbility:ActivatedAbility
+--- An ActivatedAbility variant that fires automatically when an attack is made.
+AttackTriggeredAbility = RegisterGameType("AttackTriggeredAbility", "ActivatedAbility")
 
 
 function AttackTriggeredAbility.Create(options)

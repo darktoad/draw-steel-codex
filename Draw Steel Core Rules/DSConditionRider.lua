@@ -1,6 +1,11 @@
 local mod = dmhub.GetModLoading()
 
---- @class ConditionRider : CharacterOngoingEffect
+--- @class ConditionRider:CharacterOngoingEffect
+--- @field allowEditingDisplayInfo boolean If true, the display info can be edited in the UI.
+--- @field removeThisInsteadOfCondition boolean If true, effects that remove the condition instead remove this rider.
+--- @field showAsMenuOption boolean If true, this rider is shown as a menu option alongside its parent condition.
+--- @field powerTableText string Text displayed in the power table for this rider.
+--- A condition rider is an additional ongoing effect attached to a condition, granting extra modifiers or behaviors.
 ConditionRider = RegisterGameType("ConditionRider", "CharacterOngoingEffect")
 
 ConditionRider.allowEditingDisplayInfo = false

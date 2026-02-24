@@ -1,8 +1,17 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("DamageType")
-RegisterGameType("DamageFlag")
+--- @class DamageType
+--- @field name string Display name (lowercase, e.g. "fire", "slashing").
+--- @field tableName string Data table name ("damageTypes").
+--- @field category string Category id for grouping ("none" if uncategorized).
+--- @field hidden boolean If true, this damage type is not shown in UI menus.
+--- @field iscategory boolean If true, this entry is a category rather than a specific damage type.
+DamageType = RegisterGameType("DamageType")
 
+--- @class DamageFlag
+DamageFlag = RegisterGameType("DamageFlag")
+
+--- @return DamageType
 function DamageType.CreateNew()
 	return DamageType.new{
 		iconid = "ui-icons/skills/1.png",

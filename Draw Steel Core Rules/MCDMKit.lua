@@ -1,6 +1,25 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("Kit")
+--- @class Kit
+--- @field name string Display name of the kit.
+--- @field tableName string Data table name ("kits").
+--- @field type string Kit type id (e.g. "martial", "caster", "stormwight").
+--- @field description string Descriptive text.
+--- @field equipmentDescription string Description of the kit's equipment.
+--- @field portraitid string Asset id for the kit portrait.
+--- @field health integer Stamina bonus from this kit.
+--- @field speed integer Speed bonus from this kit.
+--- @field damage integer Damage bonus from this kit.
+--- @field range integer Range bonus from this kit.
+--- @field reach integer Reach bonus from this kit.
+--- @field area integer Area bonus from this kit.
+--- @field stability integer Stability bonus from this kit.
+--- @field disengage integer Disengage bonus from this kit.
+--- @field signatureAbility false|ActivatedAbility The kit's signature ability (false if none).
+--- @field kitManeuver false|ActivatedAbility The kit's maneuver ability (false if none).
+--- @field damageBonuses table<string, number[]> Map from damage bonus type id to tier values.
+--- @field weapons table Equipment items associated with this kit.
+Kit = RegisterGameType("Kit")
 
 local ApplyBonusesFromKit
 
@@ -31,6 +50,8 @@ local function RecalculateKits()
     Kit.kitManeuver = false
 end
 
+--- Registers a kit type (e.g. martial, caster). Adds to Kit.kitTypes and Kit.kitTypesById.
+--- @param args {id: string, text: string, keywords: string[], displayOrd: integer, lockedByDefault: boolean}
 function Kit.RegisterKitType(args)
     local index = #Kit.kitTypes + 1
     for i,kitType in ipairs(Kit.kitTypes) do
@@ -75,6 +96,8 @@ Kit.RegisterKitType{
 	lockedByDefault = true,
 }
 
+--- Returns the list of signature abilities for this kit (including any additional ones).
+--- @return ActivatedAbility[]
 function Kit:SignatureAbilities()
 	if self:has_key("signatureAbilities") then
 		--generally for a combined ability.
@@ -235,16 +258,19 @@ Kit.weapons = {}
 Kit.implement = false
 Kit.armor = "None"
 
+--- @return Kit
 function Kit.CreateNew()
 	return Kit.new{
 		damageBonuses = {},
 	}
 end
 
+--- @return string
 function Kit:Describe()
 	return self.name
 end
 
+--- @return boolean
 function Kit:HasWeapons()
 	for k,v in pairs(self.weapons) do
 		return true
@@ -273,6 +299,12 @@ function Kit.DamageBonusPreferred(a, b)
 	return damage_a_count > damage_b_count
 end
 
+--- Returns true if kit1's damage bonus for bonusid is selected, false if kit2's is used instead.
+--- @param creature creature
+--- @param bonusid string
+--- @param kit1 Kit
+--- @param kit2 Kit
+--- @return boolean
 --given a creature holding two kits, with a given type of attack bonus it will return
 --if the creature is set up to use the first kit's bonus or the second kit's.
 --returns true if using kit1, false if using kit2
@@ -301,6 +333,11 @@ function Kit.DamageBonusSelected(creature, bonusid, kit1, kit2)
 	return Kit.DamageBonusPreferred(a, b)
 end
 
+--- Combines two kits into a single merged Kit taking the best bonuses from each.
+--- @param creature creature
+--- @param a Kit
+--- @param b Kit
+--- @return Kit
 function Kit.CombineKits(creature, a, b)
 	local damageBonuses = DeepCopy(a:DamageBonuses())
 	local damage_b = b:DamageBonuses()
@@ -492,6 +529,9 @@ function Kit:StatsFeature(creature)
     return self._tmp_statsFeature
 end
 
+--- @param creature creature
+--- @param choices table<string, string[]>
+--- @param result CharacterFeature[]
 function Kit:FillClassFeatures(creature, choices, result)
 	result[#result+1] = self:StatsFeature(creature)
 
@@ -505,6 +545,10 @@ function Kit:FillClassFeatures(creature, choices, result)
 	end
 end
 
+--- Fills result with feature detail entries wrapping each feature with its source kit.
+--- @param creature creature
+--- @param choices table<string, string[]>
+--- @param result {kit: Kit, feature: CharacterFeature|CharacterChoice}[]
 --result is filled with a list of { kit = Kit object, feature = CharacterFeature or CharacterChoice }
 function Kit:FillFeatureDetails(creature, choices, result)
 	local statsFeatures = {}
@@ -530,10 +574,13 @@ function Kit:FillFeatureDetails(creature, choices, result)
 	
 end
 
+--- @return string
 function Kit:FeatureSourceName()
 	return string.format("%s Kit Feature", self.name)
 end
 
+--- Returns the ClassLevel object that stores this kit's base modifiers and features.
+--- @return ClassLevel
 --this is where a kit stores its modifiers etc, which are very similar to what a class gets.
 function Kit:GetClassLevel()
 	if self:try_get("modifierInfo") == nil then
@@ -543,6 +590,7 @@ function Kit:GetClassLevel()
 	return self.modifierInfo
 end
 
+--- @return DropdownOption[]
 function Kit.GetDropdownList()
 	local result = {
 		{

@@ -1,6 +1,12 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("ActivatedAbilityTableRollBehavior", "ActivatedAbilityBehavior")
+--- @class ActivatedAbilityTableRollBehavior:ActivatedAbilityBehavior
+--- @field summary string Short label shown in behavior lists.
+--- @field tableType string Source of the table: "custom" or a built-in type id.
+--- @field tableid string Id of the table to roll on.
+--- @field resourceAction string Action resource id consumed when rolling, or "none".
+--- @field interpretResultAsGameRule boolean If true, the table result text is parsed as a game rule.
+ActivatedAbilityTableRollBehavior = RegisterGameType("ActivatedAbilityTableRollBehavior", "ActivatedAbilityBehavior")
 
 
 ActivatedAbilityTableRollBehavior.summary = 'Roll on Table'

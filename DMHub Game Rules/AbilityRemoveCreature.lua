@@ -1,6 +1,11 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("ActivatedAbilityRemoveCreatureBehavior", "ActivatedAbilityBehavior")
+--- @class ActivatedAbilityRemoveCreatureBehavior:ActivatedAbilityBehavior
+--- @field summary string Short label shown in behavior lists.
+--- @field dropsLoot boolean If true, the removed creature drops its loot.
+--- @field leavesCorpse boolean If true, a corpse object is left behind.
+--- @field waitForAbilitiesToFinish boolean If true, waits for other ability animations to complete before removing.
+ActivatedAbilityRemoveCreatureBehavior = RegisterGameType("ActivatedAbilityRemoveCreatureBehavior", "ActivatedAbilityBehavior")
 
 ActivatedAbility.RegisterType
 {

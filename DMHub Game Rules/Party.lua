@@ -3,7 +3,17 @@ local mod = dmhub.GetModLoading()
 --This file implements parties, including both their core rules and the UI for editing them.
 
 
-RegisterGameType("Party")
+--- @class Party
+--- @field name string Display name.
+--- @field details string Description / lore text.
+--- @field tableName string Data table name ("parties").
+--- @field playerParty boolean If true, this is the player-character party.
+--- @field noncombatant boolean If true, this party does not engage in combat.
+--- @field color string Hex color used to tint tokens belonging to this party.
+--- @field ord number Sort order index.
+--- @field defaultFrame nil|string Token frame asset id used for members of this party.
+--- @field allyParties nil|table<string, boolean> Set of party ids that are allied with this party.
+Party = RegisterGameType("Party")
 
 Party.name = "New Party"
 Party.details = ""
@@ -402,8 +412,10 @@ function Party.CreateEditor()
 	return partyPanel
 end
 
---PartyInfo is the per-game info about a party, such as party inventory, etc.
-RegisterGameType("PartyInfo", "loot")
+--- @class PartyInfo:loot
+--- @field partyid string Id of the Party this info object belongs to.
+--- Per-game session data for a party, including shared inventory (inherited from loot).
+PartyInfo = RegisterGameType("PartyInfo", "loot")
 
 function CreatePartyInfo(partyid)
 	return PartyInfo.new{

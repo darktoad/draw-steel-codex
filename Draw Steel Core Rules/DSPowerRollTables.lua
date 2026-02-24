@@ -1,7 +1,17 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("PowerRollTable")
-RegisterGameType("PowerRollTableGroup")
+--- @class PowerRollTable
+--- @field name string Display name for this power roll tier table.
+--- @field entries table[] List of tier entries with outcome descriptions and thresholds.
+--- A single power roll table (e.g. "Tier 1 / Tier 2 / Tier 3 results") within a PowerRollTableGroup.
+PowerRollTable = RegisterGameType("PowerRollTable")
+
+--- @class PowerRollTableGroup
+--- @field name string Display name for this group of power roll tables.
+--- @field tableName string Data table name ("powerRolls").
+--- @field tables PowerRollTable[] Ordered list of PowerRollTable entries in this group.
+--- A named collection of PowerRollTable entries (e.g. "Easy", "Medium", "Hard" encounter tables).
+PowerRollTableGroup = RegisterGameType("PowerRollTableGroup")
 
 PowerRollTableGroup.name = "Power Rolls"
 PowerRollTableGroup.tableName = "powerRolls"

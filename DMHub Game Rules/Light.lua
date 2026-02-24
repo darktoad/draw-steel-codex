@@ -1,6 +1,13 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("Light")
+--- @class Light
+--- @field color table Color value for the emitted light.
+--- @field radius number Outer radius in world units (dim light boundary).
+--- @field innerRadius number Inner radius in world units (bright light boundary).
+--- @field angle number Cone angle in degrees (360 = full circle).
+--- @field size number Light source size/intensity multiplier.
+--- Represents a dynamic light source attached to a token or object.
+Light = RegisterGameType("Light")
 
 Light.size = 0.1
 

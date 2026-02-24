@@ -1,6 +1,10 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("ActivatedAbilitySavingThrowBehavior", "ActivatedAbilityBehavior")
+--- @class ActivatedAbilitySavingThrowBehavior:ActivatedAbilityBehavior
+--- @field summary string Short label shown in behavior lists.
+--- @field consequenceText string Text shown to describe the consequence of a failed save.
+--- @field dc nil|string Saving throw attribute id used as the DC (e.g. "str", "dex").
+ActivatedAbilitySavingThrowBehavior = RegisterGameType("ActivatedAbilitySavingThrowBehavior", "ActivatedAbilityBehavior")
 
 
 ActivatedAbilitySavingThrowBehavior.summary = 'Saving Throw'

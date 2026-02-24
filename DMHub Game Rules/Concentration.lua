@@ -3,7 +3,12 @@ local mod = dmhub.GetModLoading()
 --This file implements some basic rules and utilities for how concentration works. Most concentration-related
 --code is inside the Creature file though.
 
-RegisterGameType("Concentration")
+--- @class Concentration
+--- @field name string Name of the spell or ability being concentrated on.
+--- @field duration number Duration in rounds.
+--- @field time table Timestamp object used to compute rounds elapsed.
+--- Tracks an active concentration effect on a creature. Stored in `creature.concentration`.
+Concentration = RegisterGameType("Concentration")
 function Concentration:HasExpired()
 	return self:has_key("duration") and self.time:RoundsSince() >= self.duration
 end

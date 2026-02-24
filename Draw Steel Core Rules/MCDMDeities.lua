@@ -1,12 +1,17 @@
 local mod = dmhub.GetModLoading()
 
 --- @class Deity
---- @field name string
---- @field description string
---- @field tableName string
+--- @field name string Display name.
+--- @field description string Lore/description text.
+--- @field tableName string Data table name ("Deities").
+--- @field group string UI group label for organizing deities.
+--- @field domainList table[] List of domain references {id, text} associated with this deity.
+Deity = RegisterGameType("Deity")
 
-RegisterGameType("Deity")
-RegisterGameType("DeityDomain")
+--- @class DeityDomain
+--- @field name string Display name.
+--- @field tableName string Data table name ("DeityDomains").
+DeityDomain = RegisterGameType("DeityDomain")
 
 Deity.name = "New Deity"
 Deity.description = ""
@@ -257,7 +262,14 @@ function Deity.DeleteDomainById(self, id)
     self.domainList = newDomains
 end
 
-RegisterGameType("CharacterDeityChoice", "CharacterChoice")
+--- @class CharacterDeityChoice:CharacterChoice
+--- @field name string Display name ("Deity").
+--- @field description string Prompt shown to the player.
+--- @field domainList table[] Filtered domain list; empty means all domains are available.
+--- @field deityId string Id of a specific deity to restrict choices to, or "none".
+--- @field numDomains number Number of domains the player may choose alongside the deity.
+--- @field useSubclass boolean If true, domain selection functions as a subclass choice.
+CharacterDeityChoice = RegisterGameType("CharacterDeityChoice", "CharacterChoice")
 
 CharacterDeityChoice.name = "Deity"
 CharacterDeityChoice.description = "Choose a deity."
@@ -468,7 +480,13 @@ CharacterChoice.RegisterChoice{
     type = CharacterDeityChoice,
 }
 
-RegisterGameType("CharacterDomainChoice", "CharacterChoice")
+--- @class CharacterDomainChoice:CharacterChoice
+--- @field name string Display name ("Domain").
+--- @field numChoices number Number of domains the player may choose.
+--- @field description string Prompt shown to the player.
+--- @field deityId string Id of the deity whose domains are offered, or "" for all.
+--- @field options table[] Explicit list of domain options to present (overrides deityId if non-empty).
+CharacterDomainChoice = RegisterGameType("CharacterDomainChoice", "CharacterChoice")
 
 CharacterDomainChoice.name = "Domain"
 CharacterDomainChoice.numChoices = 1

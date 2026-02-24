@@ -1,8 +1,9 @@
 local mod = dmhub.GetModLoading()
 
---- @class follower
---- @field follower.availableRolls number
---- @field follower.followerType string artisan|sage|retainer
+--- @class follower:monster
+--- @field availableRolls number Number of rolls this follower has available.
+--- @field followerType string Follower sub-type: "artisan", "sage", or "retainer".
+--- @field role string Role tag, always "follower".
 follower = RegisterGameType("follower", "monster")
 
 follower.availableRolls = 0

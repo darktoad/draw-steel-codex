@@ -70,9 +70,20 @@ function RollTableReference:GetTable()
 	return nil
 end
 
-RegisterGameType("RollTable")
+--- @class RollTable
+--- @field name string Display name.
+--- @field details string Optional rules text for this table.
+--- @field rollType string How to determine the roll: "auto", "autoUnusual", or "custom".
+--- @field customRoll string Dice expression used when rollType is "custom" (e.g. "1d100").
+--- @field visibility string Visibility setting: "visible" or "hidden".
+--- @field rows RollTableRow[] Ordered list of rows in this table.
+RollTable = RegisterGameType("RollTable")
 
-RegisterGameType("RollTableRow")
+--- @class RollTableRow
+--- @field weight number Relative weight for weighted random selection.
+--- @field revealed boolean If true, this row's result has been revealed to players.
+--- @field value VariantCollection The reward/outcome for this row.
+RollTableRow = RegisterGameType("RollTableRow")
 
 RollTableRow.weight = 1
 RollTableRow.revealed = false

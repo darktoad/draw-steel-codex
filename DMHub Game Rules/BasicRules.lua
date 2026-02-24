@@ -48,9 +48,26 @@ rules = {
 rules.damageTypesWithAll = DeepCopy(rules.damageTypes)
 rules.damageTypesWithAll[#rules.damageTypesWithAll+1] = "all"
 
-RegisterGameType("DamageInstance")
-RegisterGameType("AttackDefinition")
+--- @class DamageInstance
+--- @field damage string Damage roll formula (e.g. "1d6+3").
+--- @field damageType string Damage type string (e.g. "fire", "slashing").
+--- @field damageMagical nil|boolean If true, this is magical damage.
+--- @field flags nil|table<string, boolean> Additional flags for this damage instance.
+DamageInstance = RegisterGameType("DamageInstance")
 
+--- @class AttackDefinition
+--- @field name string Display name of the attack definition.
+--- @field iconid string Asset id for the attack icon.
+--- @field range nil|number|string Range value.
+--- @field modifierAttr nil|string Attribute id to add as a hit modifier.
+--- @field additionalModifier nil|string Additional numeric modifier (as string).
+--- @field proficiency nil|boolean If true, add proficiency bonus to hit.
+--- @field damageInstances nil|DamageInstance[] Multiple damage instances (if no single damage field).
+AttackDefinition = RegisterGameType("AttackDefinition")
+
+--- Returns an Attack object generated from this definition for the given character.
+--- @param char character
+--- @return Attack
 --Returns an Attack based on this definition.
 function AttackDefinition.GenerateAttackInstance(self, char)
 
@@ -111,13 +128,21 @@ function AttackDefinition.GenerateAttackInstance(self, char)
 
 end
 
+--- @class ResistanceEntry
+--- @field source string Source label (e.g. "Innate").
+--- @field damageType string Damage type this resistance applies to (from rules.damageTypes or "all").
+--- @field apply string Resistance type: "Resistant", "Vulnerable", "Immune", "Damage Reduction", or "Percent Reduction".
+--- @field nonmagic nil|boolean If true, only applies to non-magical damage.
+--- @field keywords nil|table<string, boolean> Keywords that this resistance matches.
+--- @field dr nil|number Damage reduction amount (for "Damage Reduction" and "Percent Reduction" types).
+--- @field stacks boolean If true, multiple entries of this resistance stack.
 --ResistanceEntry type.
 --   nonmagic: (optional) boolean.
 --   damageType: from rules.damageTypes enum
 --   apply: from ResistanceEntry.types enum
 --   keywords: a table of {string: true} that contains keywords that this matches to.
 --   dr (optional): number that is valid when damageType == 'Damage Reduction' or damageType == 'Percent Reduction'
-RegisterGameType("ResistanceEntry")
+ResistanceEntry = RegisterGameType("ResistanceEntry")
 
 ResistanceEntry.source = "Innate"
 ResistanceEntry.nonmagic = false
@@ -128,9 +153,15 @@ ResistanceEntry.stacks = false
                 
 
 
+--- @class Loc
+--- @field _tmp_loc table Internal engine loc object (not serialized).
+--- Wrapper around the engine's Loc type that exposes position info to GoblinScript.
 --wrapper for Locs from the engine.
-RegisterGameType("Loc")
+Loc = RegisterGameType("Loc")
 
+--- Creates a Loc wrapper around an engine loc object.
+--- @param loc table Engine loc object.
+--- @return Loc
 function Loc.Create(loc)
 	return Loc.new{
 		_tmp_loc = loc,

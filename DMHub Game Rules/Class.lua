@@ -2,13 +2,43 @@ local mod = dmhub.GetModLoading()
 
 --This file implements the core rules for classes.
 
-RegisterGameType("Class")
-RegisterGameType("ClassLevel") --type which represents the benefits a character gets at a specific level.
-RegisterGameType("CharacterChoice")
-RegisterGameType("CharacterFeatureChoice", "CharacterChoice")
-RegisterGameType("CharacterSubclassChoice", "CharacterChoice")
-RegisterGameType("CharacterFeatureList")
+--- @class Class
+--- @field name string Display name of the class.
+--- @field details string Long-form description/lore text.
+--- @field portraitid string Asset id for the class portrait image.
+--- @field tableName string Name of the data table this class is stored in ("classes").
+--- @field isSubclass boolean If true, this is a subclass rather than a base class.
+--- @field primaryClassId string The id of the parent class (empty string if not a subclass).
+--- @field hit_die integer Hit die size (e.g. 8, 10, 12).
+--- @field savingThrows string[] List of attribute ids for which this class grants saving throw proficiency.
+--- @field spellcastingAttr string Attribute id used for spellcasting ("none" if the class has no spellcasting).
+--- @field spellLeveling string Spellcasting progression type: "full", "half", "third", or "custom".
+--- @field spellLevelFormula string GoblinScript formula for custom spellcasting level progression.
+--- @field spellList table[] Spell lists available to this class.
+--- @field cantripsKnownFormula string GoblinScript formula for number of cantrips known.
+--- @field spellsKnownFormula string GoblinScript formula for number of spells known.
+--- @field hasSpellbook boolean If true, the class uses a spellbook instead of a spell list.
+--- @field spellbookSizeFormula string GoblinScript formula for spellbook size.
+Class = RegisterGameType("Class")
 
+--- @class ClassLevel
+--- @field features (CharacterFeature|CharacterChoice)[] Features and choices granted at this level.
+ClassLevel = RegisterGameType("ClassLevel") --type which represents the benefits a character gets at a specific level.
+
+--- @class CharacterChoice
+CharacterChoice = RegisterGameType("CharacterChoice")
+
+--- @class CharacterFeatureChoice:CharacterChoice
+CharacterFeatureChoice = RegisterGameType("CharacterFeatureChoice", "CharacterChoice")
+
+--- @class CharacterSubclassChoice:CharacterChoice
+CharacterSubclassChoice = RegisterGameType("CharacterSubclassChoice", "CharacterChoice")
+
+--- @class CharacterFeatureList
+CharacterFeatureList = RegisterGameType("CharacterFeatureList")
+
+--- @param options nil|table
+--- @return Class
 function Class.CreateNew(options)
 	options = options or {}
 	return Class.new(options)
@@ -55,15 +85,17 @@ Class.spellsKnownFormula = ""
 Class.hasSpellbook = false
 Class.spellbookSizeFormula = ""
 
+--- @return string
 function Class:Describe()
 	return self.name
 end
 
-
+--- @return string
 function Class:Domain()
 	return string.format("class:%s", self.id)
 end
 
+--- @return nil|string
 function Class:Subdomain()
 	if self.primaryClassId == "" then
 		return nil
@@ -100,10 +132,13 @@ function Class:ForceDomains()
 	end
 end
 
+--- @return string
 function Class:FeatureSourceName()
 	return string.format("%s Class Feature", self.name)
 end
 
+--- Fills modifiers with the core saving throw proficiency for this class.
+--- @param modifiers CharacterModifier[]
 --gets core modifiers which does things like saving throws.
 function Class:FillPrimaryModifiers(modifiers)
 
@@ -124,6 +159,8 @@ function Class:FillPrimaryModifiers(modifiers)
 	}
 end
 
+--- Returns a CharacterFeature containing the class's primary saving throw modifiers.
+--- @return CharacterFeature
 function Class:GetPrimaryFeature()
 	local result = CharacterFeature.Create{
 		name = self.name,
@@ -134,6 +171,8 @@ function Class:GetPrimaryFeature()
 	return result
 end
 
+--- Returns a sorted list of {id, text} pairs for use in dropdowns.
+--- @return DropdownOption[]
 function Class.GetDropdownList()
 	local result = {}
 	local classesTable = dmhub.GetTable(Class.tableName)
@@ -147,6 +186,8 @@ function Class.GetDropdownList()
 	return result
 end
 
+--- Returns the resource type id string for this class's hit die, or nil if the system doesn't use hit dice.
+--- @return nil|string
 function Class:HitDieResourceType()
 	if GameSystem.haveHitDice == false then
 		return nil
@@ -155,6 +196,11 @@ function Class:HitDieResourceType()
 	return string.format("hitDie%d", self.hit_die)
 end
 
+--- Returns the ClassLevel entry for the given level number.
+--- levelNum == 0: primary class entry; levelNum == -1: multiclass entry; otherwise: that level.
+--- @param levelNum integer
+--- @param subkey nil|string
+--- @return ClassLevel
 --gets the ClassLevel a class gets at a specific level. levelNum == 0 gives the benefits you get when you select this class as your primary class. levelNum == -1 is for multiclass.
 function Class:GetLevel(levelNum, subkey)
     subkey = subkey or ""
@@ -176,6 +222,12 @@ function Class:GetLevel(levelNum, subkey)
 	return table[key]
 end
 
+--- Fills result with ClassLevel entries up to levelNum. Returns the number of pre-level-1 entries.
+--- @param levelNum integer
+--- @param extraLevelInfo nil|table
+--- @param secondaryClass boolean|string False for primary class, true for multiclass, "noprimary" to skip both.
+--- @param result ClassLevel[]
+--- @return integer
 --fills levels into result. returns the number of entries before the real level 1 begins.
 function Class:FillLevelsUpTo(levelNum, extraLevelInfo, secondaryClass, result)
 	local levelsTable = self:get_or_add("levels", {})
@@ -219,6 +271,11 @@ function Class:FillLevelsUpTo(levelNum, extraLevelInfo, secondaryClass, result)
 	return nlevelsbefore1
 end
 
+--- Returns the list of subclasses chosen for this class up to levelNum.
+--- @param choices table<string, string[]>
+--- @param levelNum integer
+--- @param extraLevelInfo nil|table
+--- @return Class[]
 function Class:GetSubclasses(choices, levelNum, extraLevelInfo)
 	local result = {}
 
@@ -240,6 +297,13 @@ function Class:GetSubclasses(choices, levelNum, extraLevelInfo)
 	return result
 end
 
+--- Fills result with CharacterFeature objects for this class up to levelNum.
+--- Features with duplicate names will have only the highest level version included.
+--- @param choices table<string, string[]>
+--- @param levelNum integer
+--- @param extraLevelInfo nil|table
+--- @param secondaryClass boolean|string
+--- @param result CharacterFeature[]
 --This fills 'result' with the features we have for this class up to the given level.
 --Features with duplicate names will have only the highest level returned.
 --choices is a map of string -> {string choice} made for that string.
@@ -264,6 +328,12 @@ function Class:FillFeaturesForLevel(choices, levelNum, extraLevelInfo, secondary
 	end
 end
 
+--- Like FillFeaturesForLevel() but wraps each feature with source details.
+--- @param choices table<string, string[]>
+--- @param levelNum integer
+--- @param extraLevelInfo nil|table
+--- @param secondaryClass boolean|string
+--- @param result {class: Class, levels: integer[], feature: CharacterFeature|CharacterChoice}[]
 --This is like FillFeaturesForLevel() but it wraps with additional details about the source of the features.
 --result is filled with a list of { class = Class object, levels = {list of ints}, feature = CharacterFeature or CharacterChoice }
 function Class:FillFeatureDetailsForLevel(choices, levelNum, extraLevelInfo, secondaryClass, result)
@@ -308,12 +378,15 @@ function Class:FillFeatureDetailsForLevel(choices, levelNum, extraLevelInfo, sec
 	end
 end
 
+--- @return ClassLevel
 function ClassLevel.CreateNew()
 	return ClassLevel.new{
 		features = {} --list of CharacterChoice, or CharacterFeature objects
 	}
 end
 
+--- Appends all features from other into this ClassLevel's features list.
+--- @param other ClassLevel
 function ClassLevel:MergeFeatures(other)
     local features = self:get_or_add("features", {})
     local otherFeatures = other:try_get("features", {})
@@ -323,12 +396,15 @@ function ClassLevel:MergeFeatures(other)
     end
 end
 
+--- Calls f on every feature in this level recursively.
+--- @param f fun(feature: CharacterFeature)
 function ClassLevel:VisitAllFeatures(f)
 	for _,feature in ipairs(self.features) do
 		feature:VisitRecursive(f)
 	end
 end
 
+--- @param domainid string
 function ClassLevel:SetDomain(domainid)
 	local domains = self:get_or_add("domains", {})
 	if not domains[domainid] then
@@ -721,7 +797,14 @@ end
 -- CharacterSkillsChoice and CharacterToolsChoice are specialized generators designed to allow choices to fill in for duplicate tool/skill proficiencies.
 -------------------------------------------------
 
-RegisterGameType("CharacterSkillsChoice", "CharacterChoice")
+--- @class CharacterSkillsChoice:CharacterChoice
+--- @field name string Display name ("Extra Proficiency").
+--- @field guid string Fixed guid ("duplicate-skills-choice") for this singleton choice type.
+--- @field description string Prompt explaining the duplicate proficiency situation.
+--- @field quantity string GoblinScript expression for the number of replacement skills to choose.
+--- @field existingSkills table<string, boolean> Set of skill ids the player already has (excluded from choices).
+--- Presented when a character gains a duplicate skill proficiency, letting them pick a different skill instead.
+CharacterSkillsChoice = RegisterGameType("CharacterSkillsChoice", "CharacterChoice")
 
 CharacterSkillsChoice.name = "Extra Proficiency"
 CharacterSkillsChoice.guid = "duplicate-skills-choice"
@@ -797,7 +880,14 @@ function CharacterSkillsChoice:Choices(numOption, existingChoices, creature)
 	return result
 end
 
-RegisterGameType("CharacterToolsChoice", "CharacterChoice")
+--- @class CharacterToolsChoice:CharacterChoice
+--- @field name string Display name ("Extra Tools Proficiency").
+--- @field guid string Fixed guid ("duplicate-tools-choice") for this singleton choice type.
+--- @field description string Prompt explaining the duplicate tool proficiency situation.
+--- @field quantity string GoblinScript expression for the number of replacement tool proficiencies to choose.
+--- @field existingSkills table<string, boolean> Set of tool category ids the player already has (excluded from choices).
+--- Presented when a character gains a duplicate tool proficiency, letting them pick a different category instead.
+CharacterToolsChoice = RegisterGameType("CharacterToolsChoice", "CharacterChoice")
 
 CharacterToolsChoice.name = "Extra Tools Proficiency"
 CharacterToolsChoice.guid = "duplicate-tools-choice"

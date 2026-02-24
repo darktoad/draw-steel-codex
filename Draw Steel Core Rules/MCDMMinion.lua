@@ -41,7 +41,10 @@ end
 
 --- @module DrawSteelMinion
 
-RegisterGameType("DrawSteelMinion")
+--- @class DrawSteelMinion
+--- @field squads nil|table<string, {color: string}> Per-session squad color overrides, keyed by squad name.
+--- Manages Draw Steel minion squads, including per-squad color assignment.
+DrawSteelMinion = RegisterGameType("DrawSteelMinion")
 
 
 --- Given the name of a squad get the color we should display for it.

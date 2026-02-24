@@ -1,6 +1,13 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("Title", "CharacterFeat")
+--- @class Title:CharacterFeat
+--- @field name string Display name.
+--- @field description string Description text.
+--- @field prerequisite string GoblinScript prerequisite expression.
+--- @field effect string Rules text describing the title's effect.
+--- @field echelon string Echelon tier required to hold this title (e.g. "1", "2", "3").
+--- @field tableName string Data table name ("titles").
+Title = RegisterGameType("Title", "CharacterFeat")
 
 --standard title fields.
 Title.name = "New Title"

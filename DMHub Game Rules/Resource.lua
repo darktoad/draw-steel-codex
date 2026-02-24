@@ -1035,8 +1035,11 @@ dmhub.RegisterEventHandler("refreshTables", function(updated)
 	end
 end)
 
---represents all resources a character has, exposed to goblin script.
-RegisterGameType("CharacterResourceCollection")
+--- @class CharacterResourceCollection
+--- @field helpSymbols table GoblinScript help symbol table for this collection (keyed by resource name).
+--- @field lookupSymbols table GoblinScript lookup symbols populated from resource table data.
+--- Represents all resources a character currently has, used as the GoblinScript "resources" object.
+CharacterResourceCollection = RegisterGameType("CharacterResourceCollection")
 
 CharacterResourceCollection.helpSymbols = {
 	__name = "resources",

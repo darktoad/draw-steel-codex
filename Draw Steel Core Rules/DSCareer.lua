@@ -1,6 +1,11 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("Background")
+--- @class Background
+--- @field name string Display name of the career/background.
+--- @field description string Descriptive text.
+--- @field portraitid string Asset id for the career portrait.
+--- @field tableName string Data table name ("careers").
+Background = RegisterGameType("Background")
 
 Background.tableName = "careers"
 
@@ -8,15 +13,20 @@ Background.name = "New Career"
 Background.description = ""
 Background.portraitid = ""
 
+--- @return Background
 function Background.CreateNew()
 	return Background.new{
 	}
 end
 
+--- @return string
 function Background:Describe()
 	return self.name
 end
 
+--- Fills result with features from this background.
+--- @param choices table<string, string[]>
+--- @param result CharacterFeature[]
 function Background:FillClassFeatures(choices, result)
 	for i,feature in ipairs(self:GetClassLevel().features) do
 
@@ -28,6 +38,9 @@ function Background:FillClassFeatures(choices, result)
 	end
 end
 
+--- Fills result with feature detail entries wrapping each feature with its source background.
+--- @param choices table<string, string[]>
+--- @param result {background: Background, feature: CharacterFeature|CharacterChoice}[]
 --result is filled with a list of { background = Background object, feature = CharacterFeature or CharacterChoice }
 function Background:FillFeatureDetails(choices, result)
 	for i,feature in ipairs(self:GetClassLevel().features) do
@@ -44,10 +57,13 @@ function Background:FillFeatureDetails(choices, result)
 	
 end
 
+--- @return string
 function Background:FeatureSourceName()
 	return string.format("%s Career Feature", self.name)
 end
 
+--- Returns the ClassLevel object that stores this background's base modifiers and features.
+--- @return ClassLevel
 --this is where a background stores its modifiers etc, which are very similar to what a class gets.
 function Background:GetClassLevel()
 	if self:try_get("modifierInfo") == nil then
@@ -57,6 +73,7 @@ function Background:GetClassLevel()
 	return self.modifierInfo
 end
 
+--- @return DropdownOption[]
 function Background.GetDropdownList()
 	local result = {
 		{

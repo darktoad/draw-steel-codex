@@ -1,6 +1,16 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("Currency")
+--- @class Currency
+--- @field name string Display name of this currency denomination.
+--- @field details string Description/lore text.
+--- @field tableName string Name of the data table ("currency").
+--- @field money boolean If true, this denomination is a monetary currency (not a generic resource).
+--- @field autoconvert boolean If true, the system can automatically make change using this denomination.
+--- @field value number Exchange value relative to the monetary standard for this denomination's standard.
+--- @field hidden boolean If true, this denomination is hidden from UI.
+--- @field weight number Weight in lbs per unit.
+--- @field standard string Id of the monetary standard this denomination belongs to (usually the gold piece id).
+Currency = RegisterGameType("Currency")
 
 Currency.name = "New Currency"
 Currency.details = ""
@@ -11,6 +21,8 @@ Currency.value = 1
 Currency.hidden = false
 Currency.weight = 0.02
 
+--- Returns the exchange value of this denomination relative to the standard (1 for the standard itself).
+--- @return number
 function Currency:UnitValue()
 	if self.standard == self.id then
 		return 1
@@ -19,6 +31,8 @@ function Currency:UnitValue()
 	return self.value
 end
 
+--- Appends {id, text} entries for all currencies into options (sorted by name).
+--- @param options DropdownOption[]
 function Currency.FillDropdownOptions(options)
 	local result = {}
 	local dataTable = dmhub.GetTable(Currency.tableName)
@@ -35,6 +49,7 @@ function Currency.FillDropdownOptions(options)
 	end
 end
 
+--- @return Currency
 function Currency.CreateNew()
 	local id = dmhub.GenerateGuid()
 	return Currency.new{
@@ -45,6 +60,8 @@ function Currency.CreateNew()
 end
 
 
+--- Returns a map from monetary standard id to a list of Currency objects in that standard, sorted descending by value.
+--- @return table<string, Currency[]>
 --returns a mapping of currency id of standard -> list of currencies using this standard, sorted by value (descending).
 function Currency.MonetaryStandards()
 	local currencyTable = dmhub.GetTable(Currency.tableName) or {}
@@ -316,11 +333,15 @@ function Currency.CreateEditor()
 	return currencyPanel
 end
 
+--- Returns the display name of the primary monetary standard currency (e.g. "Gold").
+--- @return string
 function Currency.GetMainCurrencyName()
 	local currencyTable = dmhub.GetTable(Currency.tableName) or {}
 	return currencyTable[Currency.GetMainCurrencyStandard()].name
 end
 
+--- Returns the id of the primary monetary standard.
+--- @return nil|string
 function Currency.GetMainCurrencyStandard()
 	local currencyStandard = nil
 	local currencyTable = dmhub.GetTable(Currency.tableName) or {}
@@ -336,6 +357,10 @@ function Currency.GetMainCurrencyStandard()
 	return currencyStandard
 end
 
+--- Converts a currency map to a total value in the given standard (defaults to main standard).
+--- @param currencymap table<string, number>
+--- @param standard nil|string
+--- @return number
 function Currency.CalculatePriceInStandard(currencymap, standard)
 	if standard == nil then
 		standard = Currency.GetMainCurrencyStandard()
@@ -355,6 +380,9 @@ function Currency.CalculatePriceInStandard(currencymap, standard)
 
 end
 
+--- Converts a currency entry map to a total numeric value using each denomination's exchange rate.
+--- @param entry table<string, number>
+--- @return number
 function Currency.EntryToNumber(entry)
 	local result = 0
 	local currencyTable = dmhub.GetTable(Currency.tableName) or {}
@@ -367,6 +395,13 @@ function Currency.EntryToNumber(entry)
 	return result
 end
 
+--- Returns a spend table {currencyid -> quantity} for the given amount in the given standard.
+--- If creature is provided, prefers low-value denominations the creature has; otherwise uses high-value.
+--- @param creature nil|creature
+--- @param amount number
+--- @param standard nil|string
+--- @param noWholeUnit nil|boolean
+--- @return table<string, number>
 --returns a spend table in the format {currencyid -> quantity}
 function Currency.CalculateSpend(creature, amount, standard, noWholeUnit)
 	if standard == nil then

@@ -8,9 +8,51 @@ local mod = dmhub.GetModLoading()
 --- @alias Symbols table|function
 
 --- @class ActivatedAbility
+--- @field description string Rules text shown to players.
+--- @field flavor string Flavor/lore text shown in the ability tooltip.
+--- @field range number Targeting range in world units.
+--- @field lineDistance number Length for line-area targeting.
+--- @field rangeDisadvantage string GoblinScript: if truthy, ranged attacks have disadvantage.
+--- @field selfTarget boolean If true, the ability always targets the caster.
+--- @field castImmediately boolean If true, auto-casts when there are no targeting choices.
+--- @field recharge boolean|number Recharge roll threshold (false = no recharge mechanic).
+--- @field legendary boolean If true, this is a legendary action.
+--- @field categorization string Ability category string (e.g. "none", "action", "maneuver").
+--- @field multipleModes boolean If true, the ability has multiple selectable modes.
+--- @field domains table<string, boolean> Domain set this ability belongs to.
+--- @field isSpell boolean If true, this ability is treated as a spell.
+--- @field abilityModification boolean If true, this is a modification of another ability rather than a standalone ability.
+--- @field usesSpellSlots boolean If true, casting consumes a spell slot.
+--- @field projectileObject string Asset id of the object to use as a projectile visual ("none" if unused).
+--- @field durationType string Duration unit: "instant", "rounds", "minutes", "hours", or "days".
+--- @field durationLength number Numeric duration in durationType units.
+--- @field concentration boolean If true, maintaining this effect requires concentration.
+--- @field silent boolean If true, the ability is triggered by the system and does not show a dialog.
+--- @field castingTime string DEPRECATED. Use actionResourceId instead.
+--- @field actionResourceId string The resource id consumed to cast (e.g. the action resource guid).
+--- @field actionNumber number Number of action resources consumed.
+--- @field resourceCost string Secondary resource id cost ("none" if free).
+--- @field resourceNumber number Amount of the secondary resource cost.
+--- @field targetFilter string GoblinScript formula to filter valid targets.
+--- @field channeledResource string Resource id that can be channeled into this ability for variable power ("none" if unused).
+--- @field channelDescription string Description shown when channeling resource into the ability.
+--- @field channelIncrement number|string Minimum channel increment (number or GoblinScript formula).
+--- @field proximityTargeting boolean If true, targeting uses proximity range instead of ability range.
+--- @field proximityRange string Range in world units for proximity targeting.
+--- @field behaviors ActivatedAbilityBehavior[] The list of behaviors that execute when the ability is cast.
 ActivatedAbility = RegisterGameType("ActivatedAbility")
 
 --- @class ActivatedAbilityBehavior
+--- @field instant boolean If true, executes immediately (not in a coroutine).
+--- @field customOngoingEffect boolean If true, uses a custom ongoing effect rather than the default.
+--- @field duration string Duration type for the effect ("none" by default).
+--- @field filterTarget string GoblinScript: if falsy for a target, skip it.
+--- @field summary string Short display name shown in the ability editor.
+--- @field applyto string Which targets receive this behavior ("targets" or other filter).
+--- @field stacks boolean|string Whether the behavior stacks ("1" or false).
+--- @field damageType string Default damage type for behaviors that deal damage.
+--- @field durationUntilEndOfTurn boolean If true, the effect lasts until end of caster's turn.
+--- @field mono boolean If true, only one of these behaviors can be in an ability's list at a time.
 ActivatedAbilityBehavior = RegisterGameType("ActivatedAbilityBehavior")
 
 --- @class ActivatedAbilityAttackBehavior:ActivatedAbilityBehavior
@@ -146,10 +188,13 @@ function ActivatedAbility:GetDurationInRounds()
 	end
 end
 
+--- Replaces this ability's domain set with a copy of the given domains table.
+--- @param domains table<string, boolean>
 function ActivatedAbility:SetDomains(domains)
 	self.domains = DeepCopy(domains)
 end
 
+--- Called after deserialization to migrate legacy single-behavior data to the behaviors list.
 function ActivatedAbility:OnDeserialize()
 	if self:has_key("behavior") then
 		local behaviors = self:get_or_add("behaviors", {})
@@ -191,6 +236,8 @@ ActivatedAbility.channeledResource = "none"
 ActivatedAbility.channelDescription = ""
 ActivatedAbility.channelIncrement = 1
 
+--- Returns the minimum channel increment as an integer (at least 1).
+--- @return number
 function ActivatedAbility:ChannelIncrement()
 	return math.max(1, round(tonumber(self.channelIncrement) or 1))
 end
@@ -317,6 +364,8 @@ ActivatedAbility.TargetTypes = {
     }
 }
 
+--- @param targetType nil|string
+--- @return boolean
 function ActivatedAbility:IsTargetTypeAOE(targetType)
     targetType = targetType or self.targetType
     return targetType == "all" or targetType == "sphere" or targetType == "cylinder" or targetType == "line" or targetType == "cube" or targetType == "cone" or targetType == "areatemplate"
@@ -356,6 +405,8 @@ ActivatedAbility.TypesById = {}
 --a hook for triggered abilities to grab to update their types.
 ActivatedAbility.OnTypeRegistered = function() end
 
+--- Registers a new ability behavior type. Adds it to ActivatedAbility.Types and ActivatedAbility.TypesById.
+--- @param args {id: string, text: string, createBehavior: fun(): ActivatedAbilityBehavior}
 function ActivatedAbility.RegisterType(args)
     args.index = #ActivatedAbility.Types+1
     local doc = ActivatedAbility.TypesById[args.id]
@@ -369,6 +420,8 @@ function ActivatedAbility.RegisterType(args)
 	ActivatedAbility.OnTypeRegistered()
 end
 
+--- Hides an ability type from the UI by id or display text.
+--- @param nameOrId string
 function ActivatedAbility.SuppressType(nameOrId)
 	for i,t in ipairs(ActivatedAbility.Types) do
 		if t.id == nameOrId or t.text == nameOrId then
@@ -377,6 +430,7 @@ function ActivatedAbility.SuppressType(nameOrId)
 	end
 end
 
+--- @return boolean
 function ActivatedAbility:HasAttack()
 	for _,behavior in ipairs(self.behaviors) do
 		if behavior.typeName == "ActivatedAbilityAttackBehavior" then
@@ -387,6 +441,7 @@ function ActivatedAbility:HasAttack()
 	return false
 end
 
+--- @return boolean
 function ActivatedAbility:HasSavingThrow()
 	for _,behavior in ipairs(self.behaviors) do
 		if behavior:HasSavingThrow() then
@@ -395,10 +450,12 @@ function ActivatedAbility:HasSavingThrow()
 	end
 end
 
+--- @return boolean
 function ActivatedAbilityBehavior:HasSavingThrow()
 	return self:try_get("dc", "none") ~= "none"
 end
 
+--- @return table[]
 function ActivatedAbility:GetShareableRolls()
 	local result = {}
 	for _,behavior in ipairs(self.behaviors) do
@@ -574,6 +631,9 @@ function ActivatedAbility.StandardArgs()
 	}
 end
 
+--- Creates a new ActivatedAbility with optional field overrides.
+--- @param options nil|table Field overrides to apply on top of StandardArgs defaults.
+--- @return ActivatedAbility
 function ActivatedAbility.Create(options)
 
 	local args = ActivatedAbility.StandardArgs()
@@ -587,11 +647,16 @@ function ActivatedAbility.Create(options)
 	return ActivatedAbility.new(args)
 end
 
+--- Returns the unique id of this ability (uses guid or id field).
+--- @return nil|string
 function ActivatedAbility:GetID()
 	--ugh, spells and abilities have a different field for their id.
 	return self:try_get("guid", self:try_get("id"))
 end
 
+--- Returns the id of the primary condition inflicted by this ability (from its first behavior).
+--- Creatures immune to this condition are unaffected; creatures with advantage on saves against it get advantage.
+--- @return nil|string
 --the ID of the primary condition that this spell is trying to inflict.
 --Creatures immune from the primary condition will not be affected by the spell.
 --Creatures with advantage on saving throws against the primary condition will
@@ -605,6 +670,8 @@ function ActivatedAbility:PrimaryConditionID()
 	return nil
 end
 
+--- @param caster creature
+--- @return boolean
 function ActivatedAbility:AffectedByCover(caster)
 	local behaviors = self:try_get("behaviors", {})
 	for _,behavior in ipairs(behaviors) do
@@ -616,6 +683,7 @@ function ActivatedAbility:AffectedByCover(caster)
 	return false
 end
 
+--- @return nil|ActivatedAbilityAttackBehavior
 function ActivatedAbility:GetAttackBehavior()
 	for _,behavior in ipairs(self.behaviors) do
 		if behavior.summary == "Attack" then
@@ -626,6 +694,10 @@ function ActivatedAbility:GetAttackBehavior()
 	return nil
 end
 
+--- @param casterToken CharacterToken
+--- @param behavior nil|ActivatedAbilityBehavior
+--- @param symbols table
+--- @return number
 function ActivatedAbility:SaveDC(casterToken, behavior, symbols)
 	if behavior ~= nil and behavior:has_key("dcvalue") and behavior.dcvalue ~= '' then
 		return ExecuteGoblinScript(behavior.dcvalue, casterToken.properties:LookupSymbol(symbols), 0, string.format("Calculate DC: %s", self.name))
@@ -635,6 +707,8 @@ function ActivatedAbility:SaveDC(casterToken, behavior, symbols)
 	return result
 end
 
+--- @param casterCreature nil|creature
+--- @return string
 function ActivatedAbility:DescribeAOE(casterCreature)
 	if type(self.range) == "string" and string.lower(self.range) == "touch" then
 		return "Touch"
@@ -692,6 +766,9 @@ function ActivatedAbility:DescribeAOE(casterCreature)
 	return '--'
 end
 
+--- Returns the token to use as the origin for range calculations (invoker override or caster).
+--- @param token CharacterToken
+--- @return CharacterToken
 function ActivatedAbility:GetRangeSource(token)
 	if self:has_key("invoker") and self:try_get("rangeUsesInvoker") then
 		local tok = dmhub.LookupToken(self.invoker)
@@ -704,6 +781,10 @@ function ActivatedAbility:GetRangeSource(token)
 	return token
 end
 
+--- Returns the AoE radius in world units (evaluates GoblinScript if needed).
+--- @param casterCreature nil|creature
+--- @param castingSymbols nil|table
+--- @return number
 function ActivatedAbility:GetRadius(casterCreature, castingSymbols)
     local radius = self:try_get("radius")
     if tonumber(radius) ~= nil then
@@ -828,15 +909,21 @@ function ActivatedAbility:GetNumTargets(casterToken, symbols)
 	return targets
 end
 
---may return a {Loc} or nil. If not nil, it will describe the targeted shape.
+--- May return a Loc table or nil. If not nil, it will describe the targeted shape.
+--- @param casterToken CharacterToken
+--- @param range number
+--- @param symbols table
+--- @return nil|Loc
 function ActivatedAbility:CustomTargetShape(casterToken, range, symbols)
     return nil
 end
 
+--- @return boolean
 function ActivatedAbility:IsForcedMovement()
     return self:try_get("targeting") == "straightline"
 end
 
+--- @return nil|string
 function ActivatedAbility:ForcedMovementType()
     if self:IsForcedMovement() then
         return self:try_get("forcedMovement", "slide")
@@ -845,6 +932,7 @@ function ActivatedAbility:ForcedMovementType()
     end
 end
 
+--- @return boolean
 function ActivatedAbility:VerticalTargeting()
     local forcedMovement = self:try_get("forcedMovement")
     if string.starts_with(forcedMovement, "vertical_") then
@@ -1140,6 +1228,10 @@ function ActivatedAbility:CanDuplicateTargets()
 	return self.repeatTargets
 end
 
+--- @param casterToken CharacterToken
+--- @param targets AbilityTarget[]
+--- @param symbols table
+--- @return boolean
 function ActivatedAbility:CanSelectMoreTargets(casterToken, targets, symbols)
 	local numTargets = self:GetNumTargets(casterToken, symbols)
 	if self.sequentialTargeting and #targets == 1 then
@@ -1288,6 +1380,9 @@ function ActivatedAbility.CalculateDiceFaces(cost)
 	return 0
 end
 
+--- Returns a temporary clone of this ability switched to mode i, or self if unchanged.
+--- @param i integer
+--- @return ActivatedAbility
 function ActivatedAbility:SwitchModes(i)
     if (not self:has_key("modeList")) or self.modeList[i] == nil or (not self.modeList[i].hasAbility) or self.modeList[i].variation == nil then
         return self
@@ -1318,6 +1413,10 @@ function ActivatedAbility:SwitchModes(i)
 end
 
 
+--- Returns the number of action resources this ability costs (evaluates GoblinScript if needed).
+--- @param caster nil|creature
+--- @param symbols nil|table
+--- @return number
 function ActivatedAbility:GetNumberOfActionsCost(caster, symbols)
 	if type(self.actionNumber) == "number" then
 		return self.actionNumber
@@ -1335,6 +1434,7 @@ function ActivatedAbility:GetNumberOfActionsCost(caster, symbols)
 	return 1
 end
 
+--- @return number
 function ActivatedAbility:DefaultCharges()
 	if self.channeledResource ~= "none" then
 		return 0
@@ -1343,6 +1443,9 @@ function ActivatedAbility:DefaultCharges()
 	end
 end
 
+--- @param caster creature
+--- @param symbols nil|table
+--- @return number
 function ActivatedAbility:MaxChannel(caster, symbols)
 	local maxChannel = self:try_get("maxChannel", "")
 	if trim(maxChannel) == "" then
@@ -2249,6 +2352,9 @@ function ActivatedAbility:RequiresPromptWhenCast()
     return false
 end
 
+--- Returns a human-readable description of the action taken when targeting (e.g. "Shift", "Push").
+--- @param symbols table
+--- @return nil|string
 --when targeting with this ability, describe what action will take place.
 function ActivatedAbility:DescribeTargetText(symbols)
 
@@ -2269,6 +2375,8 @@ function ActivatedAbility:DescribeTargetText(symbols)
 end
 
 ActivatedAbilityBehavior.hasCast = true
+--- Returns true if this ability can be cast directly without synthesizing sub-abilities.
+--- @return boolean
 function ActivatedAbility:IsDirectlyCastable()
     --if this is directly castable -- i.e. doesn't synthesize abilities etc.
     for _,behavior in ipairs(self.behaviors) do
@@ -2311,6 +2419,10 @@ function ActivatedAbility.CountActiveCasts()
     return count
 end
 
+--- Returns the movement type for relocate-creature behaviors ("move", "shift", etc.), or nil if none.
+--- @param token CharacterToken
+--- @param symbols nil|table
+--- @return nil|string
 function ActivatedAbility:GetMovementType(token, symbols)
     for _,behavior in ipairs(self.behaviors) do
         if behavior.typeName == "ActivatedAbilityRelocateCreatureBehavior" then
@@ -2497,11 +2609,14 @@ end
 
 ActivatedAbility.countsAsCast = true
 
+--- Returns true if using this ability should be recorded as a regular ability cast.
+--- @return boolean
 --if this counts as casting an ability when used.
 function ActivatedAbility:CountsAsRegularAbilityCast()
     return self.countsAsCast and self.categorization ~= "Hidden"
 end
 
+--- @return boolean
 function ActivatedAbility:ShowChatMessageOnCast()
     return self.countsAsCast and self.categorization ~= "Hidden"
 end
@@ -2599,6 +2714,7 @@ function ActivatedAbility:RequireSavingThrowsCo(behavior, casterToken, tokenids,
 	return options.dcaction
 end
 
+--- @return boolean
 function ActivatedAbility:IsMelee()
 	for _,behavior in ipairs(self.behaviors) do
 		if behavior.typeName == "ActivatedAbilityAttackBehavior" then
@@ -2690,6 +2806,9 @@ ActivatedAbilityBehavior.roll = "1d6"
 ActivatedAbilityBehavior.summaryImportance = 1
 ActivatedAbilityModifiersBehavior.summaryImportance = 0
 
+--- Returns a short summary string for the most important behavior of this ability.
+--- @param creatureLookup table
+--- @return string
 function ActivatedAbility:SummarizeBehavior(creatureLookup)
 	if #self.behaviors == 0 then
 		return "--"
@@ -3289,7 +3408,6 @@ function ActivatedAbilityHealBehavior:Cast(ability, casterToken, targets, option
 			for i,target in ipairs(targets) do
 				local targetCreature = target.token.properties
 				for catName,value in pairs(rollInfo.categories) do
-
 					local healAmount = value
 
                     local half = (target.token.properties:CalculateNamedCustomAttribute("Stamina Regain Halved") > 0)

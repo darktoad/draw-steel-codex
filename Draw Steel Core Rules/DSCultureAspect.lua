@@ -1,6 +1,11 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("CultureAspect")
+--- @class CultureAspect
+--- @field name string Display name of the aspect.
+--- @field description string Descriptive text.
+--- @field tableName string Data table name ("cultureAspects").
+--- @field category string Aspect category id: "environment", "organization", or "upbringing".
+CultureAspect = RegisterGameType("CultureAspect")
 
 CultureAspect.tableName = "cultureAspects"
 
@@ -27,17 +32,20 @@ CultureAspect.categories = {
     },
 }
 
+--- @return CultureAspect
 function CultureAspect.CreateNew()
     return CultureAspect.new{
         modifierInfo = ClassLevel:CreateNew()
     }
 end
 
+--- @return string
 function CultureAspect:Describe()
     return self.name
 end
 
-
+--- @param choices table<string, string[]>
+--- @param result CharacterFeature[]
 function CultureAspect:FillClassFeatures(choices, result)
 	for i,feature in ipairs(self:GetClassLevel().features) do
 		if feature.typeName == 'CharacterFeature' then
@@ -48,6 +56,9 @@ function CultureAspect:FillClassFeatures(choices, result)
     end
 end
 
+--- Fills result with feature detail entries; the key in each entry is the category id (e.g. "environment").
+--- @param choices table<string, string[]>
+--- @param result table[]
 --result is filled with a list of { environment/organization/upbringing = CultureAspect object, feature = CharacterFeature or CharacterChoice }
 function CultureAspect:FillFeatureDetails(choices, result)
 	for i,feature in ipairs(self:GetClassLevel().features) do
@@ -63,10 +74,13 @@ function CultureAspect:FillFeatureDetails(choices, result)
 	end
 end
 
+--- @return string
 function CultureAspect:FeatureSourceName()
 	return string.format("%s Culture Feature", self.name)
 end
 
+--- Returns the ClassLevel object that stores this aspect's modifiers and features.
+--- @return ClassLevel
 --this is where a cultureAspect stores its modifiers etc, which are very similar to what a class gets.
 function CultureAspect:GetClassLevel()
 

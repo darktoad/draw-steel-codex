@@ -1,6 +1,8 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("ActivatedAbilityCreatureSetBehavior", "ActivatedAbilityBehavior")
+--- @class ActivatedAbilityCreatureSetBehavior:ActivatedAbilityBehavior
+--- @field summary string Short label shown in behavior lists.
+ActivatedAbilityCreatureSetBehavior = RegisterGameType("ActivatedAbilityCreatureSetBehavior", "ActivatedAbilityBehavior")
 
 ActivatedAbility.RegisterType{
     id = 'creature_set',

@@ -3,7 +3,18 @@ local mod = dmhub.GetModLoading()
 --This file implements the rules for in-game Languages (like Orcish, Elvish, etc. See Translation for the file which
 --allows translating DMHub into other real-world languages).
 
-RegisterGameType("Language")
+--- @class Language
+--- @field name string Display name (e.g. "Elvish", "Common").
+--- @field type string Language type (e.g. "Standard", "Exotic", "Secret").
+--- @field speakers string Description of who speaks this language.
+--- @field description string Lore/descriptive text.
+--- @field typicalSpeakers table Typical speaker creature types.
+--- @field script string Writing system name (e.g. "Common", "Dwarvish").
+--- @field group string UI group label (e.g. "Custom", "Standard").
+--- @field commonality integer Commonality rating (higher = more common).
+--- @field dead boolean If true, this is a dead language not spoken by living creatures.
+--- @field tableName string Data table name ("languages").
+Language = RegisterGameType("Language")
 
 --standard language fields.
 Language.name = "New Language"
@@ -19,11 +30,13 @@ Language.dead = false
 
 Language.tableName = "languages"
 
+--- @return Language
 function Language.CreateNew()
 	return Language.new{
 	}
 end
 
+--- @return DropdownOption[]
 function Language.GetDropdownList()
 	local result = {}
 	local languagesTable = dmhub.GetTable('languages')

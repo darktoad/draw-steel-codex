@@ -1,7 +1,19 @@
 local mod = dmhub.GetModLoading()
 
---objectid: string of the object that will be placed representing this aura.
-RegisterGameType("Aura", "CharacterFeature")
+--- @class Aura:CharacterFeature
+--- @field objectid string Id of the object placed to represent this aura ("none" if unset).
+--- @field iconid string Icon asset path.
+--- @field canrelocate boolean If true, the caster can spend an action to move the aura.
+--- @field relocateResource string Action resource id used to relocate the aura.
+--- @field relocateRange number Maximum range in world units for relocating the aura.
+--- @field triggers table[] List of trigger definitions {trigger: string, ability: TriggeredAbility, destroyaura: boolean}.
+--- @field name string Display name.
+--- @field source string Source description string.
+--- @field description string Rules text.
+--- @field applyto string Target filter id: "all", "allother", "selfandfriends", "friends", "enemies", "sametype", "othertype".
+--- @field creatureFilter string GoblinScript filter evaluated against each creature to determine whether it is affected.
+--- @field modifiers CharacterModifier[] Modifiers applied to creatures inside the aura.
+Aura = RegisterGameType("Aura", "CharacterFeature")
 
 Aura.TriggerConditions = {
     {
@@ -74,6 +86,9 @@ function Aura.OnDeserialize(self)
     self:get_or_add("display", { hueshift = 0, saturation = 1, brightness = 1, bgcolor = "#ffffffff" })
 end
 
+--- Creates a new Aura instance with default display settings.
+--- @param options nil|table Optional initial field values.
+--- @return Aura
 function Aura.Create(options)
     local args = {
         guid = dmhub.GenerateGuid(),
@@ -95,8 +110,19 @@ function Aura.Create(options)
     return result
 end
 
---area: the area of the aura, a Shape type object.
----@class AuraInstance
+--- @class AuraInstance
+--- @field aura Aura The Aura definition this instance belongs to.
+--- @field casterid string Token id of the creature that cast/owns this aura.
+--- @field guid string Unique identifier.
+--- @field name string Display name (copied from the Aura definition).
+--- @field iconid string Icon asset path.
+--- @field display table Display settings {hueshift, saturation, brightness, bgcolor}.
+--- @field area table|nil Shape object describing the aura's area, or nil if not yet placed.
+--- @field symbols table|nil GoblinScript symbols attached to this instance.
+--- @field duration number|string|nil Duration value: rounds as number, "eoe" (end of encounter), "endround", or nil for permanent.
+--- @field durationRound number|nil Initiative round at which the aura expires.
+--- @field time table|nil Time-stamp object used to compute rounds elapsed.
+--- @field object table|nil Reference to the placed object {floorid, objid}.
 AuraInstance = RegisterGameType("AuraInstance")
 
 Aura.Flags = {
@@ -106,10 +132,17 @@ Aura.Flags = {
     }
 }
 
+--- Returns true if this aura has the given flag set.
+--- @param id string Flag id (e.g. "zerocost").
+--- @return boolean
 function Aura:HasFlag(id)
     return self:try_get("flags", {})[id]
 end
 
+--- Returns true if the creature passes this aura's GoblinScript creatureFilter.
+--- @param c creature The creature to evaluate.
+--- @param auraInstance AuraInstance The live aura instance (provides caster context).
+--- @return boolean
 function Aura:CreaturePassesFilter(c, auraInstance)
     if self:try_get("creatureFilter", "") == "" then
         return true
@@ -690,6 +723,9 @@ AuraInstance.helpSymbols = {
 
 
 --get symbols for a triggered event. Includes this aura as the 'aura' key.
+--- Builds a GoblinScript symbols table for a triggered event, including this aura as "aura".
+--- @param targetCreature nil|creature The creature that triggered the event, added as "target" if provided.
+--- @return table
 function AuraInstance:GetSymbolsForTrigger(targetCreature)
     local result = DeepCopy(self.symbols or {})
     result.aura = GenerateSymbols(self)
@@ -700,6 +736,11 @@ function AuraInstance:GetSymbolsForTrigger(targetCreature)
     return result
 end
 
+--- Fires a triggered ability from this aura instance.
+--- @param ability TriggeredAbility The triggered ability to fire.
+--- @param castingCreature creature The creature that owns the aura.
+--- @param targetToken table|nil Token that entered/exited and triggered the event.
+--- @param addedSymbols nil|table Extra GoblinScript symbols to inject.
 function AuraInstance:FireTriggeredAbility(ability, castingCreature, targetToken, addedSymbols)
     ability = self:PopulateTriggeredAbility(ability)
     local temporaryModifier = self:CreateTemporaryModifier(castingCreature)
@@ -750,6 +791,8 @@ function AuraInstance:DestroyAura(creature)
     end
 end
 
+--- Returns true if the aura should be removed at end-of-round (also includes HasExpired check).
+--- @return boolean
 function AuraInstance:HasExpiredEndOfRound()
     if self:try_get("duration") == "endround" then
         return true
@@ -758,6 +801,8 @@ function AuraInstance:HasExpiredEndOfRound()
     return self:HasExpired()
 end
 
+--- Returns true if this aura instance's duration has elapsed.
+--- @return boolean
 function AuraInstance:HasExpired()
     if self:has_key("duration") then
         local initiative = dmhub.initiativeQueue
@@ -786,10 +831,14 @@ function AuraInstance:HasExpired()
 end
 
 --this is called by DMHub to get the locs an aura fills.
+--- Returns the Shape object describing the aura's area, or nil if not yet placed.
+--- @return table|nil
 function AuraInstance:GetArea()
     return self:try_get("area")
 end
 
+--- Returns the applyto filter id from the Aura definition.
+--- @return string
 function AuraInstance:GetApplyTo()
     return self.aura.applyto
 end
@@ -860,6 +909,8 @@ function AuraInstance:FillActivatedAbilities(creature, resultAbilities)
     end
 end
 
+--- Returns the list of modifiers from the Aura definition, with GoblinScript symbols populated.
+--- @return CharacterModifier[]
 function AuraInstance:GetModifiers()
     if self:try_get("_tmp_refresh") ~= dmhub.ngameupdate then
         self._tmp_refresh = dmhub.ngameupdate
@@ -879,8 +930,11 @@ function AuraInstance:GetModifiers()
     return self.aura.modifiers
 end
 
---the object attached to an aura component object.
-RegisterGameType("AuraComponent")
+--- @class AuraComponent
+--- @field casterid string Token id of the creature that owns the aura.
+--- @field auraid string Guid of the AuraInstance on the caster.
+--- The object component attached to the placed map object representing an aura.
+AuraComponent = RegisterGameType("AuraComponent")
 
 function AuraComponent:Destroy()
     if self:has_key("casterid") then

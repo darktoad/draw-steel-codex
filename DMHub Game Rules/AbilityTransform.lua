@@ -2,7 +2,15 @@ local mod = dmhub.GetModLoading()
 
 --this implements the "transform" behavior for activated abilities.
 
-RegisterGameType("ActivatedAbilityTransformBehavior", "ActivatedAbilityBehavior")
+--- @class ActivatedAbilityTransformBehavior:ActivatedAbilityBehavior
+--- @field summary string Short label shown in behavior lists.
+--- @field allCreaturesTheSame boolean If true, all targets transform into the same creature.
+--- @field monsterType string Source for the transform target: "custom" or a monster category filter.
+--- @field bestiaryFilter string GoblinScript filter used to select eligible transformation targets.
+--- @field casterChoosesCreatures boolean If true, the caster picks the creature form.
+--- @field replaceCaster boolean If true, the caster is replaced by the transformed creature.
+--- @field hasReplaceCaster boolean Internal: controls whether "replace caster" option is shown in the editor.
+ActivatedAbilityTransformBehavior = RegisterGameType("ActivatedAbilityTransformBehavior", "ActivatedAbilityBehavior")
 
 ActivatedAbility.RegisterType
 {

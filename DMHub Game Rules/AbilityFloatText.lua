@@ -1,6 +1,8 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("ActivatedAbilityFloatTextBehavior", "ActivatedAbilityBehavior")
+--- @class ActivatedAbilityFloatTextBehavior:ActivatedAbilityBehavior
+--- @field summary string Short label shown in behavior lists.
+ActivatedAbilityFloatTextBehavior = RegisterGameType("ActivatedAbilityFloatTextBehavior", "ActivatedAbilityBehavior")
 
 ActivatedAbilityFloatTextBehavior.summary = 'Float Text'
 

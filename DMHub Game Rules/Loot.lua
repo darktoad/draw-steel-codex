@@ -23,7 +23,12 @@ local function GetSheet(component)
 	return component.sheet.sheet
 end
 
-RegisterGameType("loot")
+--- @class loot
+--- @field inventory table<string, table> Map of item id to inventory entry.
+--- @field isLoot boolean Always true for loot objects; distinguishes from full creature objects.
+--- @field discount number Percentage discount applied to item prices when purchasing (0-100).
+--- Represents a loot container (chest, dropped items, NPC shop) attached to a map object.
+loot = RegisterGameType("loot")
 
 loot.inventory = {}
 loot.isLoot = true
@@ -795,7 +800,9 @@ end
 creature.RollLoot = loot.RollLoot
 
 
-RegisterGameType("ObjectComponentText")
+--- @class ObjectComponentText
+--- A map-object component that displays a text label rendered on the canvas via a game sheet.
+ObjectComponentText = RegisterGameType("ObjectComponentText")
 
 dmhub.CreateTextComponent = function()
 	return ObjectComponentText.new{}

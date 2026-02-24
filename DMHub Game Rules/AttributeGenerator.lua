@@ -1,6 +1,19 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("AttributeGenerator")
+--- @class AttributeGenerator
+--- @field tableName string Data table name ("attributeGenerator").
+--- @field method string Generation method id: "manual", "standardArray", "roll", "pointbuy", etc.
+--- @field hiddenFromPlayers boolean If true, players cannot see or use this generator.
+--- @field ord number Ordering index for display in lists.
+--- @field standardArray number[] Attribute scores for the standard array method.
+--- @field roll string Dice expression used for the roll method (e.g. "4d6 keep 3").
+--- @field extraRolls number Extra roll results generated (player picks best).
+--- @field lockInPlayerRolls boolean If true, players cannot re-roll once committed.
+--- @field availableMethods table[] Registered generation method descriptors.
+--- @field name string Display name for this generator entry.
+--- @field points number Point-buy budget.
+--- @field pointBuyTable nil|GoblinScriptTable Custom point-buy cost table.
+AttributeGenerator = RegisterGameType("AttributeGenerator")
 
 AttributeGenerator.tableName = "attributeGenerator"
 AttributeGenerator.method = "manual"

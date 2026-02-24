@@ -1,6 +1,11 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("ActivatedAbilityRollBehavior", "ActivatedAbilityBehavior")
+--- @class ActivatedAbilityRollBehavior:ActivatedAbilityBehavior
+--- @field summary string Short label shown in behavior lists.
+--- @field consequenceText string Text shown alongside the roll result.
+--- @field roll string Dice expression to roll (e.g. "2d6+3"). GoblinScript formula.
+--- @field rollDescription string Label shown above the roll dialog.
+ActivatedAbilityRollBehavior = RegisterGameType("ActivatedAbilityRollBehavior", "ActivatedAbilityBehavior")
 
 
 ActivatedAbilityRollBehavior.summary = 'Roll Dice'

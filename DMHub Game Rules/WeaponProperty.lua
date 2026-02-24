@@ -1,8 +1,17 @@
 local mod = dmhub.GetModLoading()
 
 
---These are more correctly called "EquipmentProperty"! We call them weapon properties for historical reasons.
-RegisterGameType("WeaponProperty")
+--- @class WeaponProperty
+--- @field tableName string Data table name ("weaponProperties").
+--- @field name string Display name.
+--- @field details string Rules text describing this property.
+--- @field hasValue boolean If true, this property carries a numeric value when applied to equipment.
+--- @field hidden boolean If true, this property is not shown in UI menus.
+--- @field modifiesAttacks boolean If true, this property modifies attack rolls.
+--- @field itemType string Equipment category this property applies to: "weapon", "armor", "shield", "other", or "all".
+--- @field features table[] List of features/modifiers granted by this property.
+--- These are more correctly called "EquipmentProperty"; "WeaponProperty" is a historical name.
+WeaponProperty = RegisterGameType("WeaponProperty")
 
 WeaponProperty.tableName = "weaponProperties"
 function WeaponProperty.GetTable()

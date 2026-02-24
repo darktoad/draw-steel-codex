@@ -3,8 +3,12 @@ local mod = dmhub.GetModLoading()
 --A behavior that will cause roll modifiers to be inserted for this ability.
 
 
---- @class ActivatedAbilityModifyPowerRollBehavior : ActivatedAbilityBehavior
-RegisterGameType("ActivatedAbilityModifyPowerRollBehavior", "ActivatedAbilityBehavior")
+--- @class ActivatedAbilityModifyPowerRollBehavior:ActivatedAbilityBehavior
+--- @field summary string Short label shown in behavior lists.
+--- @field guid string Unique identifier.
+--- @field modifier CharacterModifier The CharacterModifier (behavior="power") applied during the roll.
+--- Injects temporary roll modifiers into a power roll made as part of this ability.
+ActivatedAbilityModifyPowerRollBehavior = RegisterGameType("ActivatedAbilityModifyPowerRollBehavior", "ActivatedAbilityBehavior")
 
 ActivatedAbilityModifyPowerRollBehavior.summary = "Modify Power Roll"
 

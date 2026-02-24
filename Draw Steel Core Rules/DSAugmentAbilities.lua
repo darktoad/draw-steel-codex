@@ -1,6 +1,10 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("ActivatedAbilityAugmentedAbilityBehavior", "ActivatedAbilityBehavior")
+--- @class ActivatedAbilityAugmentedAbilityBehavior:ActivatedAbilityBehavior
+--- @field hasCast boolean Internal flag set to true once this behavior has synthesized its augmented cast.
+--- @field modifier CharacterModifier The modifier that defines how abilities are augmented.
+--- Synthesizes modified copies of the caster's abilities with the augment applied, then presents them for casting.
+ActivatedAbilityAugmentedAbilityBehavior = RegisterGameType("ActivatedAbilityAugmentedAbilityBehavior", "ActivatedAbilityBehavior")
 
 ActivatedAbilityAugmentedAbilityBehavior.hasCast = false
 

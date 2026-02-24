@@ -1,6 +1,11 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("CharacterType")
+--- @class CharacterType
+--- @field tableName string Data table name ("characterTypes").
+--- @field name string Display name.
+--- @field description string Rules/lore text.
+--- @field modifierInfo nil|ClassLevel ClassLevel storing modifiers and features for this character type.
+CharacterType = RegisterGameType("CharacterType")
 
 CharacterType.tableName = "characterTypes"
 

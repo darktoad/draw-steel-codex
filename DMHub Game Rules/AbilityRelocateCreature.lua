@@ -1,6 +1,8 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("ActivatedAbilityRelocateCreatureBehavior", "ActivatedAbilityBehavior")
+--- @class ActivatedAbilityRelocateCreatureBehavior:ActivatedAbilityBehavior
+--- Behavior that moves (relocates) the target creature along a chosen path.
+ActivatedAbilityRelocateCreatureBehavior = RegisterGameType("ActivatedAbilityRelocateCreatureBehavior", "ActivatedAbilityBehavior")
 
 
 ActivatedAbility.RegisterType

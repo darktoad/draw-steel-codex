@@ -1,6 +1,23 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("EquipmentCategory")
+--- @class EquipmentCategory
+--- @field tableName string Data table name ("equipmentCategories").
+--- @field name string Display name.
+--- @field editorType string Editor category shown in the compendium ("Gear", "Weapon", "Armor", etc.).
+--- @field superset nil|string Parent category id, or nil if top-level.
+--- @field allowProficiency boolean If true, characters can gain proficiency with this whole category.
+--- @field allowIndividualProficiency boolean If true, characters can gain proficiency with individual items.
+--- @field isUnarmored boolean Marks the unarmored category used for AC calculations.
+--- @field isTool boolean If true, items in this category are tools.
+--- @field isMartial boolean If true, items require martial proficiency.
+--- @field isMelee boolean If true, items in this category are melee weapons.
+--- @field isRanged boolean If true, items in this category are ranged weapons.
+--- @field isAmmo boolean If true, items in this category are ammunition.
+--- @field isQuantity boolean If true, items stack by quantity.
+--- @field isTreasure boolean If true, items are treasure/currency.
+--- @field isPacks boolean If true, items are packs/bundles.
+--- @field isLightSource boolean If true, items are light sources.
+EquipmentCategory = RegisterGameType("EquipmentCategory")
 
 local g_unarmoredCategory = nil
 

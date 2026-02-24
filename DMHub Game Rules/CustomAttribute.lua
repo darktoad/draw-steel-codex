@@ -1,7 +1,15 @@
 local mod = dmhub.GetModLoading()
 
 
-RegisterGameType("CustomAttribute")
+--- @class CustomAttribute
+--- @field name string Display name of the attribute.
+--- @field tableName string Data table name ("customAttributes").
+--- @field attributeType string Value type: "number", "string", or "creatureSet".
+--- @field category string UI category label (e.g. "Custom").
+--- @field classid string Restriction to a class id, or "global" for all classes.
+--- @field baseValue string GoblinScript formula for the base value.
+--- @field attributeInfoByLookupSymbol table<string, CustomAttribute> Lookup map by normalized symbol name.
+CustomAttribute = RegisterGameType("CustomAttribute")
 
 CustomAttribute.tableName = "customAttributes"
 CustomAttribute.attributeType = "number"
@@ -10,14 +18,18 @@ CustomAttribute.classid = "global"
 CustomAttribute.baseValue = ""
 CustomAttribute.attributeInfoByLookupSymbol = {}
 
+--- @return string[]
 function CustomAttribute:GetPossibleStringValues()
 	return self:try_get("possibleValues", {})
 end
 
+--- @param val string[]
 function CustomAttribute:SetPossibleStringValues(val)
 	self.possibleValues = val
 end
 
+--- @param val string
+--- @return boolean
 function CustomAttribute:HasPossibleStringValue(val)
 	for _,item in ipairs(self:GetPossibleStringValues()) do
 		if string.lower(item) == string.lower(val) then
@@ -28,6 +40,7 @@ function CustomAttribute:HasPossibleStringValue(val)
 	return false
 end
 
+--- @param val string
 function CustomAttribute:RemovePossibleStringValue(val)
 	local newValues = {}
 	
@@ -40,21 +53,32 @@ function CustomAttribute:RemovePossibleStringValue(val)
 	self:SetPossibleStringValues(newValues)
 end
 
-RegisterGameType("AttributeType")
-RegisterGameType("AttributeTypeNumber", "AttributeType")
-RegisterGameType("AttributeTypeStringSet", "AttributeType")
-RegisterGameType("AttributeTypeCreatureSet", "AttributeType")
+--- @class AttributeType
+AttributeType = RegisterGameType("AttributeType")
+
+--- @class AttributeTypeNumber:AttributeType
+AttributeTypeNumber = RegisterGameType("AttributeTypeNumber", "AttributeType")
+
+--- @class AttributeTypeStringSet:AttributeType
+AttributeTypeStringSet = RegisterGameType("AttributeTypeStringSet", "AttributeType")
+
+--- @class AttributeTypeCreatureSet:AttributeType
+AttributeTypeCreatureSet = RegisterGameType("AttributeTypeCreatureSet", "AttributeType")
 
 --- @class CreatureSet
---- @param creatures creature[]
+--- @field creatures string[] List of token ids in this set.
 CreatureSet = RegisterGameType("CreatureSet")
 CreatureSet.creatures = {}
 CreatureSet.helpSymbols = {}
 
+--- Removes all creatures from the set.
 function CreatureSet:Clear()
     self.creatures = {}
 end
 
+--- Adds a creature (by token id) to the set. Returns true if added, false if already present.
+--- @param creature creature|string
+--- @return boolean
 function CreatureSet:Add(creature)
     local id = dmhub.LookupTokenId(creature)
     if id == nil then
@@ -78,6 +102,9 @@ function CreatureSet:GoblinScriptSequence()
     return self.creatures
 end
 
+--- Returns true if the creature (or token id) is in this set.
+--- @param creature creature|string|fun(): string
+--- @return boolean
 function CreatureSet:Has(creature)
     if type(creature) == "function" then
         creature = creature("self")
@@ -142,14 +169,20 @@ RegisterGoblinScriptSymbol(CreatureSet, {
     end,
 })
 
-RegisterGameType("StringSet")
+--- @class StringSet
+--- @field strings string[] The strings in this set.
+StringSet = RegisterGameType("StringSet")
 StringSet.strings = {}
 
+--- Returns the strings list for GoblinScript iteration.
+--- @return string[]
 --interrogated by GoblinScript to provide an iterable sequence.
 function StringSet:GoblinScriptSequence()
     return self.strings
 end
 
+--- @param s string
+--- @return boolean
 function StringSet:Has(s)
 	for _,val in ipairs(self.strings) do
 		if string.lower(val) == string.lower(s) then

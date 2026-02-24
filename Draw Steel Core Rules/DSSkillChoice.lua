@@ -1,6 +1,12 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("CharacterSkillChoice", "CharacterChoice")
+--- @class CharacterSkillChoice:CharacterChoice
+--- @field name string Display name ("Skill").
+--- @field description string Prompt shown to the player.
+--- @field categories string[] Skill category ids to filter available skills; empty means all categories.
+--- @field individualSkills string[] Specific skill ids available for selection (overrides categories if non-empty).
+--- @field numChoices number Number of skills the player may choose.
+CharacterSkillChoice = RegisterGameType("CharacterSkillChoice", "CharacterChoice")
 
 CharacterSkillChoice.name = "Skill"
 CharacterSkillChoice.description = "Choose a Skill"

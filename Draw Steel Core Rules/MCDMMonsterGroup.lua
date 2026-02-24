@@ -1,9 +1,18 @@
 local mod = dmhub.GetModLoading()
 
 --- @class MonsterGroup
---- @field name string
---- @field tableName string
-RegisterGameType("MonsterGroup")
+--- @field name string Display name.
+--- @field tableName string Data table name ("MonsterGroup").
+--- @field reach number Default reach in world units.
+--- @field size string Size code (e.g. "1M", "2L").
+--- @field weight number Weight category.
+--- @field commonTraits table[] Traits shared by all monsters in this group.
+--- @field languages string[] Language ids spoken by monsters in this group.
+--- @field keywords string[] Keyword tags (e.g. "humanoid", "undead").
+--- @field attacks table[] Attack definitions for monsters in this group.
+--- @field traits table[] Special trait entries.
+--- @field maliceAbilities MaliceAbility[] Malice-cost special abilities for this group.
+MonsterGroup = RegisterGameType("MonsterGroup")
 
 function MonsterGroup.CreateNew(args)
     local params = {

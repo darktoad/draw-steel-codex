@@ -1,6 +1,8 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("ActivatedAbilityCustomTriggerBehavior", "ActivatedAbilityBehavior")
+--- @class ActivatedAbilityCustomTriggerBehavior:ActivatedAbilityBehavior
+--- @field summary string Short label shown in behavior lists.
+ActivatedAbilityCustomTriggerBehavior = RegisterGameType("ActivatedAbilityCustomTriggerBehavior", "ActivatedAbilityBehavior")
 
 ActivatedAbilityCustomTriggerBehavior.summary = 'Custom Trigger'
 

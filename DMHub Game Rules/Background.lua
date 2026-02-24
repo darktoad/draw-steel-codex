@@ -1,6 +1,12 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("Background")
+--- @class Background
+--- @field tableName string Data table name ("backgrounds").
+--- @field name string Display name.
+--- @field description string Lore/description text.
+--- @field portraitid string Portrait asset id, or "" if unset.
+--- @field modifierInfo nil|ClassLevel ClassLevel storing modifiers and features for this background.
+Background = RegisterGameType("Background")
 
 Background.tableName = "backgrounds"
 

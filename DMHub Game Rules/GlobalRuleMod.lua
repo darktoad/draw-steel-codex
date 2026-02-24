@@ -1,6 +1,13 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("GlobalRuleMod")
+--- @class GlobalRuleMod
+--- @field TableName string Data table name ("globalRuleMods").
+--- @field applyCharacters boolean If true, this modifier applies to player characters.
+--- @field applyMonsters boolean If true, this modifier applies to monsters.
+--- @field applyRetainers boolean If true, this modifier applies to retainers.
+--- @field applyCompanions boolean If true, this modifier applies to companions.
+--- A global rule modifier that is applied to all creatures of matching types without being attached to any character.
+GlobalRuleMod = RegisterGameType("GlobalRuleMod")
 
 GlobalRuleMod.TableName = "globalRuleMods"
 

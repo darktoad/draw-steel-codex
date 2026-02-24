@@ -1,6 +1,19 @@
 local mod = dmhub.GetModLoading()
 
---- @class CharacterCondition
+--- @class CharacterCondition:CharacterFeature
+--- @field name string Display name of the condition.
+--- @field description string Rules text shown to players.
+--- @field tableName string Name of the data table this condition is stored in ("charConditions").
+--- @field ridersTableName string Name of the table for condition riders ("conditionRiders").
+--- @field emoji string Emoji id shown in the UI ("none" if unused).
+--- @field immunityPossible boolean If true, creatures can be immune to this condition.
+--- @field trackCaster boolean If true, the caster who applied this condition is tracked.
+--- @field source string Source label (e.g. "Condition").
+--- @field stackable boolean If true, multiple stacks of this condition can be applied.
+--- @field powertable boolean If true, the condition stores a power table for tiered effects.
+--- @field indefiniteDuration boolean If true, the condition persists until manually removed.
+--- @field showInMenus boolean If true, this condition appears in UI menus.
+--- @field sustainFormula string GoblinScript formula evaluated each turn to sustain the condition.
 CharacterCondition = RegisterGameType("CharacterCondition", "CharacterFeature")
 
 CharacterCondition.name = "New Condition"
@@ -20,6 +33,7 @@ CharacterCondition.sustainFormula = ""
 
 CharacterCondition.conditionsByName = {}
 
+--- @return string
 function CharacterCondition:SoundEvent()
     return "Condition." .. self.name
 end
@@ -44,6 +58,8 @@ function CharacterCondition.OnDeserialize(self)
 	end
 end
 
+--- Appends {id, text} entries for all conditions into options (sorted by name).
+--- @param options DropdownOption[]
 function CharacterCondition.FillDropdownOptions(options)
 	local result = {}
 	local dataTable = dmhub.GetTable(CharacterCondition.tableName)
@@ -60,6 +76,7 @@ function CharacterCondition.FillDropdownOptions(options)
 	end
 end
 
+--- @return CharacterCondition
 function CharacterCondition.CreateNew()
 	return CharacterCondition.new{
 		guid = dmhub.GenerateGuid(),
@@ -73,6 +90,8 @@ function CharacterCondition.CreateNew()
 	}
 end
 
+--- Returns the set of condition ids that "underlie" this condition (sub-conditions that also apply).
+--- @return table<string, boolean>
 function CharacterCondition:GetUnderlyingConditions()
 	local result = self:try_get("underlying")
 	if result == nil then
@@ -82,11 +101,13 @@ function CharacterCondition:GetUnderlyingConditions()
 	return result
 end
 
+--- @param condid string
 function CharacterCondition:AddUnderlyingCondition(condid)
 	local underlying = self:get_or_add("underlying", {})
 	underlying[condid] = true
 end
 
+--- @param condid string
 function CharacterCondition:RemoveUnderlyingCondition(condid)
 	local underlying = self:get_or_add("underlying", {})
 	underlying[condid] = nil

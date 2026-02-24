@@ -1,6 +1,8 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("Projectile")
+--- @class Projectile
+--- Computes and manages the path and visual behavior of a ranged attack projectile.
+Projectile = RegisterGameType("Projectile")
 
 local GetExpectedDamage = function(casterToken, targetToken, ability)
 	for _,behavior in ipairs(ability.behaviors) do

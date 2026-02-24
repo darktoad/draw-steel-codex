@@ -1,6 +1,11 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("CharacterFeaturePrefabs")
+--- @class CharacterFeaturePrefabs
+--- @field name string Display name for this prefab collection.
+--- @field details string Description text.
+--- @field tableName string Data table name ("featurePrefabs").
+--- A named collection of CharacterFeature prefabs that can be referenced from class/feat editors.
+CharacterFeaturePrefabs = RegisterGameType("CharacterFeaturePrefabs")
 
 --an instance of CharacterFeaturePrefabs represents an entire collection of prefabs.
 CharacterFeaturePrefabs.name = "New Prefabs"

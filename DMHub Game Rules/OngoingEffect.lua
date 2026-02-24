@@ -270,7 +270,7 @@ end
 --- @field removeOnEoE boolean
 --- @field timestamp string|number
 --- @field bondid string|false if this effect tracks casters by bond, this is the bond id.
-RegisterGameType("CharacterOngoingEffectInstance")
+CharacterOngoingEffectInstance = RegisterGameType("CharacterOngoingEffectInstance")
 
 CharacterOngoingEffectInstance.timestamp = 0
 CharacterOngoingEffectInstance.momentaryDuration = false

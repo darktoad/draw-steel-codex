@@ -1,6 +1,8 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("ActivatedAbilityPurgeEffectsBehavior", "ActivatedAbilityBehavior")
+--- @class ActivatedAbilityPurgeEffectsBehavior:ActivatedAbilityBehavior
+--- @field conditions string[] List of condition ids to purge; empty means purge all ongoing effects.
+ActivatedAbilityPurgeEffectsBehavior = RegisterGameType("ActivatedAbilityPurgeEffectsBehavior", "ActivatedAbilityBehavior")
 
 
 ActivatedAbility.RegisterType

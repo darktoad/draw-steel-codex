@@ -1,7 +1,23 @@
 local mod = dmhub.GetModLoading()
 
-
-RegisterGameType("character", "creature")
+--- @class character:creature
+--- @field description string Display name for the character type (e.g. "Character").
+--- @field chartypeid string UUID of the CharacterType that defines this character's base.
+--- @field experienceRequirements number[] XP thresholds for each level, indexed by level-1.
+--- @field roll_hitpoints boolean If true, hitpoints are rolled per level rather than using fixed values.
+--- @field override_hitpoints boolean If true, max_hitpoints is used as the character's maximum instead of class-calculated values.
+--- @field override_hitpoints_note string Note explaining the hitpoints override.
+--- @field skillProficiencies table<string, boolean|string> Map of skill id to proficiency level (true, false, or a proficiency key string).
+--- @field savingThrowProficiencies table<string, boolean|string> Map of saving throw id to proficiency level.
+--- @field inventory table<string, {quantity: number}> Map of item id to quantity info.
+--- @field equipment table<string, string> Map of equipment slot id to item id.
+--- @field classes {classid: string, level: number}[] List of class assignments with levels.
+--- @field levelChoices table<string, string> Map of choice guid to the player's selected option for that choice.
+--- @field characterFeatures CharacterFeature[] Custom features added directly to this character.
+--- @field darkvision nil|number Darkvision range override in feet, or nil to derive from ancestry.
+--- @field extraLevelInfo table Additional level-specific data keyed by class feature id.
+--- @field notes {tableid: string, rowid: string, title: string, text: string}[] Player notes attached to compendium table rows.
+character = RegisterGameType("character", "creature")
 
 TokenTypes.character = character
 
@@ -36,6 +52,9 @@ character.max_hitpoints = 10 --this is only used for overrides
 
 local g_defaultCharTypeId = "139fe6fa-c9e7-4d69-9c93-60833b1bdeaf"
 
+--- Creates a new character with default fields.
+--- @param chartypeid nil|string UUID of the CharacterType to assign. Defaults to the built-in Character type.
+--- @return character
 function character.CreateNew(chartypeid)
 	local result = character.new{
         ctime = ServerTimestamp(),
@@ -90,10 +109,14 @@ function character.OnDeserialize(self)
 end
 
 
+--- Returns the character type id.
+--- @return nil|string
 function character:CharTypeID()
 	return self:try_get('chartypeid')
 end
 
+--- Returns the CharacterType object for this character, or nil if not found.
+--- @return nil|CharacterType
 function character:CharacterType()
 	local chartypeid = self:try_get("chartypeid")
 	if chartypeid ~= nil then
@@ -187,28 +210,40 @@ function creature:RemoveNotesForTable(tableid)
 	end
 end
 
+--- Returns the character's ancestry (race) id.
+--- @return string
 function character:RaceID()
 	return self:try_get('raceid', Race.DefaultRace())
 end
 
+--- Returns the character's subrace id, or nil if none.
+--- @return nil|string
 function character:SubraceID()
 	return self:try_get('subraceid')
 end
 
+--- Returns the character's Race/Ancestry object.
+--- @return Race
 function character:Race()
 	local table = GetTableCached('races')
 	return table[self:RaceID()] or table[Race.DefaultRace()]
 end
 
+--- Returns the character's subrace object, or nil if none.
+--- @return nil|Race
 function character:Subrace()
 	local table = GetTableCached('subraces')
 	return table[self:try_get('subraceid', 'none')]
 end
 
+--- Returns the character's background (career in DS) id.
+--- @return string
 function character:BackgroundID()
 	return self:try_get('backgroundid', 'none')
 end
 
+--- Returns the character's Background object, or nil if none assigned.
+--- @return nil|Background
 function character:Background()
 	local table = GetTableCached(Background.tableName)
 	return table[self:BackgroundID()]
@@ -222,6 +257,8 @@ function creature:CharacterLevel()
 	return 1
 end
 
+--- Returns the character's total level summed from all chosen classes.
+--- @return number
 function character:CharacterLevelFromChosenClasses()
 	local classes = self:get_or_add("classes", {})
 	local result = 0
@@ -232,6 +269,8 @@ function character:CharacterLevelFromChosenClasses()
 	return result
 end
 
+--- Returns the character's effective level (max of class levels and levelOverride).
+--- @return number
 function character:CharacterLevel()
 	local result = self:CharacterLevelFromChosenClasses()
 	return math.max(result, self:try_get("levelOverride", 1))
@@ -240,6 +279,8 @@ end
 function creature:FillHitDice(targetTable)
 end
 
+--- Fills targetTable with hit die counts keyed by die type resource id.
+--- @param targetTable table<string, number>
 function character:FillHitDice(targetTable)
 	if not GameSystem.haveHitDice then
 		return
@@ -259,6 +300,9 @@ function character:FillHitDice(targetTable)
 end
 
 
+--- Returns the number of levels the character has in the given class.
+--- @param classid string
+--- @return number
 function character:GetLevelInClass(classid)
 	local classes = self:get_or_add("classes", {})
 	for i,entry in ipairs(classes) do
@@ -270,6 +314,9 @@ function character:GetLevelInClass(classid)
 	return 0
 end
 
+--- Sets the character's level in a class. Pass level <= 0 or nil to remove the class.
+--- @param classid string
+--- @param level nil|number
 function character:SetClass(classid, level)
 	local classes = self:get_or_add("classes", {})
 
@@ -309,6 +356,8 @@ function character:GetClassLevel(classid)
 	return 0
 end
 
+--- The character's base walking speed derived from ancestry, with optional override.
+--- @return number
 function character:BaseWalkingSpeed()
 	local baseSpeed = 30
 	local race = self:Race()
@@ -320,6 +369,8 @@ function character:BaseWalkingSpeed()
 end
 
 
+--- Returns the character's base creature size, from override or ancestry.
+--- @return nil|string
 function character:GetBaseCreatureSize()
 	local override = self:try_get("creatureSizeOverride", "none")
 	if override ~= "none" then
@@ -342,6 +393,10 @@ end
 ---------------
 
 
+--- Returns the character's proficiency bonus for the given skill.
+--- @param skillInfo {id: string, attribute: string}
+--- @param descriptionTable nil|table Optional table to fill with modifier descriptions.
+--- @return number
 function character.SkillProficiencyBonus(self, skillInfo, descriptionTable)
 	local level = self:SkillProficiencyLevel(skillInfo)
 	local proficiencyBonus = GameSystem.CalculateProficiencyBonus(self, level)
@@ -354,6 +409,9 @@ function character.SkillProficiencyBonus(self, skillInfo, descriptionTable)
 	return proficiencyBonus
 end
 
+--- Returns the total skill modifier for the given skill (attribute mod + proficiency bonus + other mods).
+--- @param skillInfo nil|{id: string, attribute: string}
+--- @return number
 function character.SkillMod(self, skillInfo)
     if skillInfo == nil then
         return 0
@@ -366,6 +424,9 @@ function character.SkillMod(self, skillInfo)
 	return self:CalculateAttribute(skillInfo.id, baseValue)
 end
 
+--- Returns true if the character has a proficiency override set for the given skill.
+--- @param skillInfo {id: string}
+--- @return boolean
 function character.HasSkillProficiency(self, skillInfo)
 	return self.skillProficiencies[skillInfo.id]
 end
@@ -418,6 +479,9 @@ end
 ---------------
 --SAVING THROWS
 ---------------
+--- Returns the character's total modifier for the given saving throw.
+--- @param saveid string
+--- @return number
 function character.SavingThrowMod(self, saveid)
 	local saveInfo = creature.savingThrowInfo[saveid]
 
@@ -459,6 +523,9 @@ function character.SavingThrowProficiency(self, attr)
 	return creature.proficiencyKeyToValue[result].id
 end
 
+--- Returns true if the character is proficient in the given saving throw.
+--- @param attr string Saving throw id.
+--- @return boolean
 function character.HasSavingThrowProficiency(self, attr)
 	local result = self.savingThrowProficiencies[attr]
 	if result == nil then
@@ -531,7 +598,8 @@ function character.PrimaryTokenRank(self)
 	return 1
 end
 
---called by DMHub to see a creature's dark vision info.
+--- Returns the character's darkvision range in feet, or nil if they have none.
+--- @return nil|number
 function character:GetDarkvision()
 	local darkvision = 0
 
@@ -552,7 +620,8 @@ function creature:GetClassesAndSubClasses()
 	return {}
 end
 
---returns all classes and subclasses in a list of { class -> Class, level -> int, hasSubclass -> bool? }
+--- Returns all classes and subclasses with their levels.
+--- @return {class: Class, level: number, hasSubclass: nil|boolean}[]
 function character:GetClassesAndSubClasses()
 	local classes = self:get_or_add("classes", {})
 	local result = {}
@@ -582,6 +651,9 @@ function character:GetClassesAndSubClasses()
 	return result
 end
 
+--- Returns the active subclass of the given class, or nil if none.
+--- @param classInfo Class
+--- @return nil|Class
 function character:GetSubClass(classInfo)
 	local classes = self:get_or_add("classes", {})
 	for i,entry in ipairs(classes) do
@@ -612,6 +684,9 @@ function character:GetClassLevels()
 	return result
 end
 
+--- Returns all CharacterFeature objects active on this character from all sources.
+--- @param options nil|table
+--- @return CharacterFeature[]
 function character:GetClassFeatures(options)
 	options = options or {}
 	local result = {}
@@ -698,6 +773,8 @@ function character:GetClassFeaturesAndChoicesWithDetails()
 	return result
 end
 
+--- Returns all features on this character (custom + class features).
+--- @return CharacterFeature[]
 function character:GetFeatures()
     local features = self:try_get("characterFeatures")
 
@@ -714,7 +791,9 @@ function character:GetFeatures()
     return features
 end
 
---gets a list of CharacterModifier objects which are currently active on this creature.
+--- Builds and returns the list of all active CharacterModifier objects for this character.
+--- @param calculatingModifiers nil|CharacterModifier[] Optional existing list to append to.
+--- @return CharacterModifier[]
 function character:CalculateActiveModifiers(calculatingModifiers)
 	local result = calculatingModifiers or {}
 
@@ -733,6 +812,8 @@ function character:CalculateActiveModifiers(calculatingModifiers)
 	return result
 end
 
+--- Returns true if the character is dying (below 0 HP but not yet dead).
+--- @return boolean
 function character:IsDying()
     if self:IsHero() then
         local hp = self:CurrentHitpoints()
@@ -742,6 +823,8 @@ function character:IsDying()
     return false
 end
 
+--- Returns true if the character is dead.
+--- @return boolean
 function character:IsDead()
     if self:IsHero() then
         return self:CurrentHitpoints() <= -self:BloodiedThreshold()
@@ -823,8 +906,10 @@ function creature:GetLobbySummaryText()
 	}
 end
 
+--- Returns the character's height in feet (from ancestry default).
+--- @return number
 function character:GetHeight()
-	
+
 	local race = self:Race()
 	if race ~= nil then
 		return race:try_get("height", 6)
@@ -901,7 +986,8 @@ end
 
 AddGoblinScriptDerived(creature, character)
 
---the ancestry, or if a revenant, the former life ancestry.
+--- Returns the character's effective ancestry: their own, or the inherited one if they are a revenant.
+--- @return nil|Race
 function character:AncestryOrInheritedAncestry()
     return self:InheritedAncestry() or self:Race()
 end

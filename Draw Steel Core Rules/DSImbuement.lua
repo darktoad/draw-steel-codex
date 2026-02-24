@@ -2,6 +2,12 @@
     Imbuement management
 ]]
 
+--- @class DSImbuement
+--- @field imbueTargetType string The equipment type this imbuement applies to: "armor", "implement", or "weapon".
+--- @field imbueLevel number Imbuement tier level (1, 5, or 9 correspond to kit tiers).
+--- @field imbuePrereq nil|string Id of a prerequisite imbuement that must already be applied.
+--- @field features table[] Features/modifiers applied to the target item when imbued.
+--- Represents an imbuement: a magical enhancement that can be applied to a mundane item.
 DSImbuement = RegisterGameType("DSImbuement")
 
 --- Create a unique mundane item to be imbued

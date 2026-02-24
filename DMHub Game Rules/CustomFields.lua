@@ -1,6 +1,12 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("CustomField")
+--- @class CustomField
+--- @field name string Display name of the field.
+--- @field type string Field value type (currently only "number").
+--- @field default number Default value when unset.
+--- @field documentation string Human-readable description of the field's purpose.
+--- @field display boolean If true, show this field on the creature description panel.
+CustomField = RegisterGameType("CustomField")
 
 CustomField.name = "Custom Field"
 CustomField.type = "number"
@@ -28,7 +34,12 @@ function CustomField:GetValue(obj)
     return self.default
 end
 
-RegisterGameType("CustomFieldCollection")
+--- @class CustomFieldCollection
+--- @field name string Display name ("Custom Fields").
+--- @field tableName string Data table name ("customfields").
+--- @field fieldTypes string[] Data type ids that support custom fields (e.g. {"spells"}).
+--- @field fields table<string, CustomField> Map of field id to CustomField definitions.
+CustomFieldCollection = RegisterGameType("CustomFieldCollection")
 
 CustomFieldCollection.name = "Custom Fields"
 CustomFieldCollection.tableName = "customfields"
@@ -218,7 +229,11 @@ function CustomFieldCollection.CreateEditor(dataType)
 
 end
 
-RegisterGameType("CustomFieldInstance")
+--- @class CustomFieldInstance
+--- @field fieldType string Data type id this instance belongs to (e.g. "spells").
+--- @field dataType string Id of the CustomFieldCollection schema this instance follows.
+--- A live instance of custom field values attached to a game object (stored as `obj.customFields`).
+CustomFieldInstance = RegisterGameType("CustomFieldInstance")
 
 CustomFieldInstance.fieldType = "spells"
 

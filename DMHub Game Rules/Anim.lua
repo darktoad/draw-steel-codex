@@ -1,6 +1,8 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("Anim")
+--- @class Anim
+--- Namespace for attack animation coroutine utilities (melee, ranged, spell, etc.).
+Anim = RegisterGameType("Anim")
 
 --rollInfo: a rollInfo object
 --attackerToken: token

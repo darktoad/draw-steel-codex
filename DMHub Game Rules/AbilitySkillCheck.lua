@@ -1,6 +1,10 @@
 local mod = dmhub.GetModLoading()
 
-RegisterGameType("ActivatedAbilitySkillCheckBehavior", "ActivatedAbilityBehavior")
+--- @class ActivatedAbilitySkillCheckBehavior:ActivatedAbilityBehavior
+--- @field summary string Short label shown in behavior lists.
+--- @field consequenceText string Text shown when the check fails.
+--- @field rollType string What is rolled: "attribute" or a specific skill/attribute id.
+ActivatedAbilitySkillCheckBehavior = RegisterGameType("ActivatedAbilitySkillCheckBehavior", "ActivatedAbilityBehavior")
 
 
 ActivatedAbilitySkillCheckBehavior.summary = 'Skill Check'
