@@ -2583,7 +2583,7 @@ function CreateTitlescreen(dialog, options)
                 vmargin = 24,
                 captureEscape = true,
                 escape = function(element)
-                    element:FireEvent("escape")
+                    element:FireEvent("press")
                 end,
                 press = function(element)
                     SetTitlescreenState("selection-screen")
