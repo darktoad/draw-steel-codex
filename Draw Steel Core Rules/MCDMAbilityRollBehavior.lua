@@ -1133,7 +1133,15 @@ function ActivatedAbilityPowerRollBehavior:Cast(ability, casterToken, targets, o
                 autofailure = rollInfo.autofailure,
                 autosuccess = rollInfo.autosuccess,
             }
-            options.symbols.cast.naturalRoll = rollInfo.naturalRoll
+            
+            local naturalresult = 0
+            for _, roll in ipairs(rollInfo.rolls or {}) do
+                if not roll.dropped and roll.numFaces == 10 then
+                    naturalresult = naturalresult + roll.result
+                end
+            end
+
+            options.symbols.cast.naturalRoll = naturalresult
             options.symbols.cast.boonsApplied = rollInfo.boons
             options.symbols.cast.banesApplied = rollInfo.banes
             options.symbols.cast.casterid = casterToken.id
