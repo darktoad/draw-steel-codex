@@ -138,6 +138,12 @@ ActivatedAbilityCast.helpSymbols = {
 		desc = "The attack roll made while using this ability.",
 	},
 
+    naturalroll = {
+		name = "Natural Roll",
+		type = "number",
+		desc = "The unmodified 2d10 roll made while using this ability.",
+	},
+
 	healing = {
 		name = "Healing",
 		type = "number",
@@ -334,6 +340,10 @@ ActivatedAbilityCast.lookupSymbols = {
 
 	naturalattackroll = function(c)
 		return c.naturalattackroll
+	end,
+
+    naturalroll = function(c)
+		return c.naturalRoll
 	end,
 
 	attackroll = function(c)

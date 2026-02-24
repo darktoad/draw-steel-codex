@@ -372,7 +372,7 @@ ActivatedAbilityPowerRollBehavior.GetPowerTablePopulateCustom = function(rollPro
                     end
 
                     local eventName = string.format("UI.PowerRoll_Tier%d", tier)
-                    if critEligible and m_rollInfo.naturalRoll == 19 or m_rollInfo.naturalRoll == 20 then
+                    if critEligible and m_rollInfo.naturalRoll >= caster:CalculateNamedCustomAttribute("Critical Threshold") then
                         eventName = "UI.PowerRoll_Crit"
                     end
 
@@ -1133,6 +1133,7 @@ function ActivatedAbilityPowerRollBehavior:Cast(ability, casterToken, targets, o
                 autofailure = rollInfo.autofailure,
                 autosuccess = rollInfo.autosuccess,
             }
+            options.symbols.cast.naturalRoll = rollInfo.naturalRoll
             options.symbols.cast.boonsApplied = rollInfo.boons
             options.symbols.cast.banesApplied = rollInfo.banes
             options.symbols.cast.casterid = casterToken.id
